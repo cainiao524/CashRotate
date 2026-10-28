@@ -8,13 +8,13 @@ import 'package:flutter_test/flutter_test.dart';
 /// Applies to every test under app/test.
 ///
 /// Loads Roboto and Material Icons from the Flutter SDK so goldens show real
-/// glyph widths instead of the default box font, and swaps in a comparator
-/// that tolerates the tiny anti-aliasing differences between Windows and Linux.
+/// glyph widths instead of the default box font, and installs the golden
+/// comparator described on [_LinuxGoldenComparator].
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   await _loadSdkFonts();
   final current = goldenFileComparator;
   if (current is LocalFileComparator) {
-    goldenFileComparator = _TolerantComparator(current.basedir.resolve('_'));
+    goldenFileComparator = _LinuxGoldenComparator(current.basedir.resolve('_'));
   }
   await testMain();
 }
@@ -22,11 +22,29 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 /// Pixel share that may differ before a golden fails.
 const _goldenTolerance = 0.005;
 
-class _TolerantComparator extends LocalFileComparator {
-  _TolerantComparator(super.testFile);
+/// Baselines are rendered on Linux (CI, or the "Update goldens" workflow):
+/// Windows and macOS anti-alias text differently, a few percent of pixels.
+///
+/// Elsewhere golden tests still run, so layout overflow and exceptions at
+/// every width and text scale are caught, but pixels are not compared and
+/// baselines cannot be overwritten.
+class _LinuxGoldenComparator extends LocalFileComparator {
+  _LinuxGoldenComparator(super.testFile);
+
+  @override
+  Future<void> update(Uri golden, Uint8List imageBytes) {
+    if (!Platform.isLinux) {
+      throw StateError(
+        'Golden baselines are rendered on Linux only. Run the '
+        '"Update goldens" GitHub workflow instead of --update-goldens here.',
+      );
+    }
+    return super.update(golden, imageBytes);
+  }
 
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    if (!Platform.isLinux) return true;
     final result = await GoldenFileComparator.compareLists(
       imageBytes,
       await getGoldenBytes(golden),

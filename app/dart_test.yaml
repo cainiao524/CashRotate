@@ -1,0 +1,4 @@
+tags:
+  golden:
+    # Pixel baselines live in test/goldens and are rendered on Linux.
+    # Regenerate them with the "Update goldens" GitHub workflow.
