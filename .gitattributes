@@ -1,0 +1,21 @@
+# Text files always use LF, in the repo and in every checkout, regardless of
+# the machine's core.autocrlf. Keeps `dart format` output identical to CI.
+* text=auto eol=lf
+
+# Windows-only scripts need CRLF to run correctly.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets: never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.ttf binary
+*.otf binary
+*.keystore binary
+*.jks binary
