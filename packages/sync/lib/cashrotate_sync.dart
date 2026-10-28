@@ -3,3 +3,5 @@
 ///
 /// Pure Dart. Nothing here may depend on Flutter or platform code.
 library;
+
+export 'src/hlc/hlc.dart';

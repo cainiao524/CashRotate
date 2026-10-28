@@ -1,4 +1,4 @@
-﻿name: cashrotate_core
+name: cashrotate_core
 description: CashRotate domain layer. Pure Dart, must never import Flutter.
 publish_to: none
 version: 0.1.0
@@ -7,6 +7,9 @@ environment:
   sdk: ^3.13.0
 
 resolution: workspace
+
+dependencies:
+  meta: ^1.15.0
 
 dev_dependencies:
   test: any # pinned via flutter_test in the shared workspace resolution

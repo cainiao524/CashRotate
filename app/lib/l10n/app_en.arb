@@ -53,6 +53,8 @@
   "@stateLoading": { "description": "Accessible label for a loading indicator." },
   "stateErrorTitle": "Something went wrong",
   "@stateErrorTitle": { "description": "Generic error state title." },
+  "databaseOpenFailed": "Your data could not be opened",
+  "@databaseOpenFailed": { "description": "Shown at startup when the encrypted local database cannot be opened." },
   "actionRetry": "Try again",
   "@actionRetry": { "description": "Button that retries a failed load." },
   "comingSoon": "Coming in a later milestone",

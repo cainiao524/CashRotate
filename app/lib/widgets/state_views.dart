@@ -57,8 +57,10 @@ class LoadingState extends StatelessWidget {
 }
 
 class ErrorState extends StatelessWidget {
-  const ErrorState({super.key, this.message, this.onRetry});
+  const ErrorState({super.key, this.title, this.message, this.onRetry});
 
+  /// Defaults to a generic "something went wrong".
+  final String? title;
   final String? message;
   final VoidCallback? onRetry;
 
@@ -75,7 +77,7 @@ class ErrorState extends StatelessWidget {
             Icon(Icons.error_outline, size: 40, color: palette.error),
             const SizedBox(height: 12),
             Text(
-              l10n.stateErrorTitle,
+              title ?? l10n.stateErrorTitle,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),

@@ -28,6 +28,7 @@
 
   "stateLoading": "加载中",
   "stateErrorTitle": "出错了",
+  "databaseOpenFailed": "无法打开你的数据",
   "actionRetry": "重试",
   "comingSoon": "将在之后的里程碑完成"
 }

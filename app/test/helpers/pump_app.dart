@@ -1,4 +1,7 @@
 import 'package:cashrotate/app.dart';
+import 'package:cashrotate/data/db/app_database.dart';
+import 'package:cashrotate/data/providers.dart';
+import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -42,7 +45,16 @@ Future<void> pumpApp(
   addTearDown(view.reset);
   addTearDown(dispatcher.clearAllTestValues);
 
-  await tester.pumpWidget(const ProviderScope(child: CashRotateApp()));
+  // Unencrypted in-memory database instead of Keystore + SQLCipher file.
+  final db = AppDatabase(NativeDatabase.memory());
+  addTearDown(db.close);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [appDatabaseProvider.overrideWith((ref) async => db)],
+      child: const CashRotateApp(),
+    ),
+  );
   // Not pumpAndSettle: overflowing MarqueeText animates forever by design.
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 500));

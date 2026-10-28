@@ -12,3 +12,10 @@ workspace:
 
 dev_dependencies:
   flutter_lints: ^6.0.0
+
+# Encrypted SQLite for the local database (ADR 0003). Read by package:sqlite3's
+# build hook for every member of the workspace.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
