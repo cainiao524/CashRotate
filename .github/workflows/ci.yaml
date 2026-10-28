@@ -28,6 +28,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      # Material fonts (Roboto, Material Icons) are only fetched on demand;
+      # the golden tests load them from the Flutter cache.
+      - name: Download Material fonts
+        run: flutter precache --universal --no-ios --no-web --no-linux --no-windows --no-macos
+
       - name: Generate localizations
         working-directory: app
         run: flutter gen-l10n

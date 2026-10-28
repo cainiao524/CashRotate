@@ -40,14 +40,28 @@ class _TolerantComparator extends LocalFileComparator {
   }
 }
 
+/// Goldens are drawn with these fonts, so a missing one is a setup error, not
+/// something to paper over: the images would silently stop matching.
 Future<void> _loadSdkFonts() async {
   final fontsDir = _findMaterialFontsDir();
-  if (fontsDir == null) return; // fall back to the box font rather than failing
-  Future<void> load(String family, List<String> files) async {
+  // File names differ in case between platforms' font archives.
+  final files = {
+    for (final f in fontsDir?.listSync().whereType<File>() ?? <File>[])
+      f.uri.pathSegments.last.toLowerCase(): f,
+  };
+  Future<void> load(String family, List<String> names) async {
     final loader = FontLoader(family);
-    for (final f in files) {
-      final bytes = File('${fontsDir.path}/$f').readAsBytesSync();
-      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    for (final name in names) {
+      final file = files[name];
+      if (file == null) {
+        throw StateError(
+          'Material font "$name" not found in ${fontsDir?.path ?? 'the Flutter '
+                  'cache'}. Run `flutter precache --universal` first.',
+        );
+      }
+      loader.addFont(
+        Future.value(ByteData.sublistView(file.readAsBytesSync())),
+      );
     }
     await loader.load();
   }
