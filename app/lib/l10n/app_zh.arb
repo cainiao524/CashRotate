@@ -1,0 +1,33 @@
+{
+  "@@locale": "zh",
+
+  "navHome": "首页",
+  "navItems": "固定支出",
+  "navLedger": "记账",
+  "navReports": "分析",
+  "navSettings": "设置",
+
+  "itemsTitle": "固定支出",
+  "ledgerTitle": "记账",
+  "reportsTitle": "分析",
+  "settingsTitle": "设置",
+
+  "homeMonthlyFixedTotal": "本月固定支出",
+  "homeDueSoon": "7 天内到期",
+  "homeIncomeExpense": "本月收支",
+  "homeFixedVsVariable": "固定与变动支出",
+
+  "itemsPendingCount": "{count, plural, =0{没有待补的项目} other{还有 {count} 项待补}}",
+
+  "emptyItems": "还没有固定支出",
+  "emptyItemsHint": "添加订阅、账单与还款，就能看到每月要付多少。",
+  "emptyLedger": "还没有交易",
+  "emptyReports": "有数据后就会显示图表",
+  "emptyDueSoon": "7 天内没有要付的项目",
+  "detailPlaceholder": "选择一个项目以查看详情",
+
+  "stateLoading": "加载中",
+  "stateErrorTitle": "出错了",
+  "actionRetry": "重试",
+  "comingSoon": "将在之后的里程碑完成"
+}

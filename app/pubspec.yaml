@@ -1,0 +1,31 @@
+name: cashrotate
+description: Fixed-expense first budgeting app. Data stays on device and the user's own WebDAV.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cashrotate_core:
+    path: ../packages/core
+  cashrotate_sync:
+    path: ../packages/sync
+  intl: ^0.20.3
+  flutter_riverpod: ^3.4.3
+  go_router: ^18.1.1
+  material_ui: ^1.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  generate: true

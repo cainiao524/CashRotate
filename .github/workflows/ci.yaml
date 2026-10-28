@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.8
+          cache: true
+
+      - name: Disable analytics
+        run: flutter config --no-analytics && dart --disable-analytics
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        working-directory: app
+        run: flutter gen-l10n
+
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed app/lib app/test packages
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      - name: Test packages
+        run: |
+          for pkg in packages/*/; do
+            if [ -d "$pkg/test" ]; then
+              (cd "$pkg" && dart test)
+            fi
+          done
+
+      - name: Test app (includes goldens)
+        working-directory: app
+        run: flutter test
+
+      - name: Upload golden failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: app/test/**/failures/
+          if-no-files-found: ignore

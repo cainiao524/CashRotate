@@ -1,0 +1,16 @@
+﻿name: cashrotate_sync
+description: CashRotate sync layer (HLC, change log merge, crypto, WebDAV). Pure Dart.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+
+resolution: workspace
+
+dependencies:
+  cashrotate_core:
+    path: ../core
+
+dev_dependencies:
+  test: any # pinned via flutter_test in the shared workspace resolution

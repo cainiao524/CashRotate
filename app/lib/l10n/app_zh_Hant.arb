@@ -1,0 +1,33 @@
+{
+  "@@locale": "zh_Hant",
+
+  "navHome": "首頁",
+  "navItems": "固定支出",
+  "navLedger": "記帳",
+  "navReports": "分析",
+  "navSettings": "設定",
+
+  "itemsTitle": "固定支出",
+  "ledgerTitle": "記帳",
+  "reportsTitle": "分析",
+  "settingsTitle": "設定",
+
+  "homeMonthlyFixedTotal": "本月固定支出",
+  "homeDueSoon": "7 天內到期",
+  "homeIncomeExpense": "本月收支",
+  "homeFixedVsVariable": "固定與變動支出",
+
+  "itemsPendingCount": "{count, plural, =0{沒有待補的項目} other{還有 {count} 項待補}}",
+
+  "emptyItems": "還沒有固定支出",
+  "emptyItemsHint": "加入訂閱、帳單與還款，就能看到每月要付多少。",
+  "emptyLedger": "還沒有交易",
+  "emptyReports": "有資料後就會顯示圖表",
+  "emptyDueSoon": "7 天內沒有要付的項目",
+  "detailPlaceholder": "選擇一個項目以查看詳情",
+
+  "stateLoading": "載入中",
+  "stateErrorTitle": "發生錯誤",
+  "actionRetry": "重試",
+  "comingSoon": "將在之後的里程碑完成"
+}
