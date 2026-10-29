@@ -94,5 +94,11 @@
   "obApplyDate": "已选项目使用同一扣款日", "obApplyCurrency": "已选项目使用同一币种", "obSelectAll": "全选",
   "obColumnDate": "扣款日", "obPending": "待补", "obSummaryTitle": "设置完成", "obSummaryMonthly": "每月固定支出",
   "obSummaryDueSoon": "{count, plural, =0{未来 7 天没有要付的} other{未来 7 天有 {count} 笔要付}}",
-  "obSummaryReminders": "每次扣款前都会提醒你。", "obSummaryMissingRates": "部分外币项目尚未设置汇率，未计入总额。", "obFinish": "开始使用"
+  "obSummaryReminders": "每次扣款前都会提醒你。", "obSummaryMissingRates": "部分外币项目尚未设置汇率，未计入总额。", "obFinish": "开始使用",
+
+  "settingsGeneral": "通用", "settingsAmounts": "金额显示", "settingsShowDecimals": "{currency} 显示小数",
+  "settingsRates": "汇率", "settingsNoRates": "尚未设置汇率。外币项目需要汇率才会计入总额。",
+  "settingsRateLine": "1 {base} = {rate} {quote}", "settingsRateUpdated": "手动设置 · {date}", "settingsAddRate": "添加汇率",
+  "settingsSetup": "快速设置", "settingsRunSetup": "重新运行快速设置", "settingsRunSetupHint": "一次添加多个服务，现有项目不受影响。",
+  "settingsAbout": "关于", "settingsPrivacy": "你的数据只保存在这台手机上，不会发送给我们。"
 }

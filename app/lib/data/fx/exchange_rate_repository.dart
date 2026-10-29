@@ -29,6 +29,15 @@ class ExchangeRateRepository {
       .watch()
       .map((rows) => FxConverter(rows.map(_toRate)));
 
+  /// Stored rates, as entered (one direction per pair), by base then quote.
+  Stream<List<ExchangeRate>> watchRates() =>
+      (_db.select(_db.exchangeRates)..orderBy([
+            (r) => OrderingTerm.asc(r.base),
+            (r) => OrderingTerm.asc(r.quote),
+          ]))
+          .watch()
+          .map((rows) => rows.map(_toRate).toList());
+
   Future<FxConverter> converter() async =>
       FxConverter((await _db.select(_db.exchangeRates).get()).map(_toRate));
 

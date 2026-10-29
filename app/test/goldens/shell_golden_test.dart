@@ -146,6 +146,14 @@ void main() {
         await pumpUntil(tester, find.byKey(const ValueKey('currency-USD')));
       },
     ),
+    'settings': (
+      onboarded: true,
+      seed: (d) => d.seedItems(),
+      open: (tester) async {
+        await tester.tap(find.byIcon(Icons.settings_outlined));
+        await settle(tester);
+      },
+    ),
     'onboarding_basics': (onboarded: false, seed: null, open: null),
     'onboarding_import': (
       onboarded: false,

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -8,13 +7,12 @@ import '../../brand.dart';
 import '../../data/providers.dart';
 import '../../data/settings/settings_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../l10n/locale_tags.dart';
 import '../../theme/palette.dart';
 import '../../theme/pearl_surface.dart';
-import '../../widgets/currency_picker.dart';
 import '../../widgets/money_text.dart';
 import '../../widgets/state_views.dart';
 import '../home/fixed_summary.dart';
+import '../settings/basic_settings_fields.dart';
 import 'batch.dart';
 import 'batch_table.dart';
 import 'service_picker.dart';
@@ -177,77 +175,12 @@ class _Basics extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final settings = ref.watch(userSettingsProvider).value;
     if (settings == null) return const LoadingState();
-    final repo = ref.read(settingsRepositoryProvider);
-    final lang = contentLanguageOf(context);
-    const regions = [
-      'TW',
-      'HK',
-      'MO',
-      'CN',
-      'JP',
-      'KR',
-      'SG',
-      'MY',
-      'US',
-      'GB',
-      'AU',
-      'CA',
-    ];
-    final regionOptions = {...regions, settings.region}.toList();
-
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         Text(l10n.obBasicsBody, style: Theme.of(context).textTheme.bodyLarge),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String?>(
-          key: const Key('ob-language'),
-          initialValue: settings.language,
-          isExpanded: true,
-          decoration: InputDecoration(labelText: l10n.obLanguage),
-          items: [
-            DropdownMenuItem(value: null, child: Text(l10n.obLanguageSystem)),
-            const DropdownMenuItem(value: 'zh-Hant', child: Text('繁體中文')),
-            const DropdownMenuItem(value: 'zh-Hans', child: Text('简体中文')),
-            const DropdownMenuItem(value: 'en', child: Text('English')),
-          ],
-          onChanged: repo.setLanguage,
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          key: const Key('ob-region'),
-          initialValue: settings.region,
-          isExpanded: true,
-          decoration: InputDecoration(labelText: l10n.obRegion),
-          items: [
-            for (final r in regionOptions)
-              DropdownMenuItem(value: r, child: Text(_regionName(r, lang))),
-          ],
-          onChanged: (r) async {
-            if (r == null) return;
-            await repo.setRegion(r);
-            await repo.setMainCurrency(CurrencyInfo.forRegion(r));
-          },
-        ),
-        const SizedBox(height: 16),
-        ListTile(
-          key: const Key('ob-currency'),
-          contentPadding: EdgeInsets.zero,
-          title: Text(l10n.obMainCurrency),
-          subtitle: Text(
-            '${CurrencyInfo.of(settings.mainCurrency).symbol} · '
-            '${CurrencyInfo.of(settings.mainCurrency).name.resolve(lang)}',
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () async {
-            final c = await showCurrencyPicker(
-              context,
-              region: settings.region,
-              selected: settings.mainCurrency,
-            );
-            if (c != null) await repo.setMainCurrency(c);
-          },
-        ),
+        const BasicSettingsFields(keyPrefix: 'ob'),
         const SizedBox(height: 16),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,22 +200,6 @@ class _Basics extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  /// Region names come from the currency table so no extra list is kept.
-  static String _regionName(String region, String lang) {
-    final info = CurrencyInfo.all
-        .where((i) => i.regions.contains(region))
-        .firstOrNull;
-    final names = info?.countries ?? const <String>[];
-    final zh = names.where((n) => n.runes.any((r) => r > 0x2E80)).toList();
-    final en = names.where((n) => !n.runes.any((r) => r > 0x2E80)).firstOrNull;
-    final name = switch (lang) {
-      'zh-Hant' => zh.firstOrNull,
-      'zh-Hans' => zh.length > 1 ? zh.last : zh.firstOrNull,
-      _ => en,
-    };
-    return name == null ? region : '$name ($region)';
   }
 }
 

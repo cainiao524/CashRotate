@@ -239,5 +239,19 @@
   "obSummaryDueSoon": "{count, plural, =0{Nothing due in the next 7 days} =1{1 payment due in the next 7 days} other{{count} payments due in the next 7 days}}", "@obSummaryDueSoon": { "description": "Summary line.", "placeholders": { "count": { "type": "int" } } },
   "obSummaryReminders": "We'll remind you before each charge.", "@obSummaryReminders": { "description": "Summary line about reminders." },
   "obSummaryMissingRates": "Some foreign items have no exchange rate yet, so they're not in the total.", "@obSummaryMissingRates": { "description": "Summary note." },
-  "obFinish": "Start", "@obFinish": { "description": "Finishes onboarding." }
+  "obFinish": "Start", "@obFinish": { "description": "Finishes onboarding." },
+
+  "settingsGeneral": "General", "@settingsGeneral": { "description": "Settings section: language, region, main currency." },
+  "settingsAmounts": "Amounts", "@settingsAmounts": { "description": "Settings section: how amounts are displayed." },
+  "settingsShowDecimals": "Show decimals for {currency}", "@settingsShowDecimals": { "description": "Switch: show cents for a currency usually shown as whole numbers, or hide them.", "placeholders": { "currency": { "type": "String" } } },
+  "settingsRates": "Exchange rates", "@settingsRates": { "description": "Settings section: manual exchange rates." },
+  "settingsNoRates": "No exchange rates yet. Foreign items need one to be counted in totals.", "@settingsNoRates": { "description": "Empty state of the exchange rate list." },
+  "settingsRateLine": "1 {base} = {rate} {quote}", "@settingsRateLine": { "description": "One stored exchange rate.", "placeholders": { "base": { "type": "String" }, "rate": { "type": "String" }, "quote": { "type": "String" } } },
+  "settingsRateUpdated": "Set manually · {date}", "@settingsRateUpdated": { "description": "When and how a rate was set.", "placeholders": { "date": { "type": "String" } } },
+  "settingsAddRate": "Add exchange rate", "@settingsAddRate": { "description": "Button: add a manual rate for another currency." },
+  "settingsSetup": "Quick setup", "@settingsSetup": { "description": "Settings section." },
+  "settingsRunSetup": "Run quick setup again", "@settingsRunSetup": { "description": "Reopens the first-launch setup to add several services." },
+  "settingsRunSetupHint": "Add several services at once. Existing items stay as they are.", "@settingsRunSetupHint": { "description": "Subtitle of the run-setup action." },
+  "settingsAbout": "About", "@settingsAbout": { "description": "Settings section." },
+  "settingsPrivacy": "Your data stays on this phone. Nothing is sent to us.", "@settingsPrivacy": { "description": "Privacy statement under the app name." }
 }
