@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -5,7 +7,8 @@ import 'package:uuid/uuid.dart';
 import '../db/app_database.dart';
 import '../journal.dart';
 
-/// What the user enters to create a fixed expense.
+/// What the user enters to create (or replace the details of) a fixed
+/// expense.
 class NewItem {
   const NewItem({
     required this.type,
@@ -18,6 +21,10 @@ class NewItem {
     this.accountId,
     this.paidUntil,
     this.note = '',
+    this.typeFields = const {},
+    this.sharing,
+    this.remindDays = const [3],
+    this.needsDetails = false,
   });
 
   final ItemType type;
@@ -28,10 +35,67 @@ class NewItem {
   final LocalDate anchor;
   final PriceSchedule prices;
   final String? presetId;
+
+  /// Preset category name until user categories arrive with the ledger (M4).
   final String? categoryId;
   final String? accountId;
   final LocalDate? paidUntil;
   final String note;
+
+  /// Type-specific fields (plan, trial end, domain, VPS …), JSON-encodable.
+  final Map<String, Object?> typeFields;
+
+  /// Cost sharing (total, people, my share, members), JSON-encodable.
+  final Map<String, Object?>? sharing;
+
+  /// Days before each charge to remind; reminder kinds arrive in M3.
+  final List<int> remindDays;
+
+  /// Amount or date still to be filled in (quick setup).
+  final bool needsDetails;
+}
+
+/// An item with everything the list and detail screens show.
+class ItemView {
+  ItemView(this.row, this.schedule, this.nextDue);
+
+  final ItemRow row;
+  final ItemSchedule schedule;
+
+  /// Next pending occurrence, if any.
+  final OccurrenceRow? nextDue;
+
+  Map<String, Object?> get typeFields =>
+      (jsonDecode(row.typeFields) as Map).cast<String, Object?>();
+  Map<String, Object?>? get sharing => row.sharing == null
+      ? null
+      : (jsonDecode(row.sharing!) as Map).cast<String, Object?>();
+  List<int> get remindDays => [
+    for (final r in jsonDecode(row.reminderRules) as List)
+      if (r is Map && r['daysBefore'] is int) r['daysBefore'] as int,
+  ];
+
+  /// Average monthly cost of the long-term price.
+  Money get stableMonthly =>
+      schedule.cycle.monthlyEquivalent(schedule.prices.stablePrice);
+
+  /// Back to the editor's input shape, for editing or duplicating.
+  NewItem toNewItem() => NewItem(
+    type: row.type,
+    name: row.name,
+    cycle: schedule.cycle,
+    anchor: schedule.anchor,
+    prices: schedule.prices,
+    presetId: row.presetId,
+    categoryId: row.categoryId,
+    accountId: row.accountId,
+    paidUntil: schedule.paidUntil,
+    note: row.note,
+    typeFields: typeFields,
+    sharing: sharing,
+    remindDays: remindDays,
+    needsDetails: row.needsDetails,
+  );
 }
 
 /// Writes items, their price phases and expanded occurrences, journaling
@@ -54,37 +118,177 @@ class ItemRepository {
   final int Function() _nowMillis;
   final Uuid _uuid;
 
-  static String occurrenceId(String itemId, int index) => '$itemId:$index';
+  static String occurrenceId(String itemId, LocalDate dueOn) =>
+      '$itemId:$dueOn';
   static String phaseId(String itemId, int seq) => '$itemId:$seq';
 
   Future<String> create(NewItem item) => _db.transaction(() async {
     final id = _uuid.v7();
     final now = _nowMillis();
-    final row = ItemRow(
-      id: id,
-      type: item.type,
-      name: item.name,
-      presetId: item.presetId,
-      categoryId: item.categoryId,
-      accountId: item.accountId,
-      currency: item.prices.stablePrice.currency,
-      cycleUnit: item.cycle.unit,
-      cycleEvery: item.cycle.every,
-      anchorOn: item.anchor,
-      paidUntil: item.paidUntil,
-      status: ItemStatus.active,
-      reminderRules: '[]',
-      typeFields: '{}',
-      note: item.note,
-      createdAt: now,
-      updatedAt: now,
-    );
+    final row = _rowFor(id, item, createdAt: now, status: ItemStatus.active);
     await _db.into(_db.items).insert(row);
     await _journal.inserted('items', id, row);
     await _writePhases(id, item.prices);
     await _replan(id);
     return id;
   });
+
+  /// Creates several items in one transaction (quick setup).
+  Future<List<String>> createAll(List<NewItem> items) =>
+      _db.transaction(() async => [for (final i in items) await create(i)]);
+
+  /// Replaces an item's details. Status and paid occurrences are kept;
+  /// pending occurrences are re-planned from the new schedule.
+  ///
+  /// [NewItem.paidUntil] wins when given: the editor sets it to the next
+  /// charge date the user entered, which is an explicit instruction even if
+  /// the old schedule was paid further ahead. Otherwise it is kept.
+  Future<void> update(String itemId, NewItem item) => _db.transaction(() async {
+    final before = await _item(itemId);
+    final after = _rowFor(
+      itemId,
+      item,
+      createdAt: before.createdAt,
+      status: before.status,
+      statusSince: before.statusSince,
+      paidUntil: item.paidUntil ?? before.paidUntil,
+    );
+    await _db.update(_db.items).replace(after);
+    await _journal.updated('items', itemId, before, after);
+    await _writePhases(itemId, item.prices);
+    await _replan(itemId);
+  });
+
+  /// A copy of [itemId] as a new active item, named [name].
+  Future<String> duplicate(String itemId, {required String name}) async {
+    final source = await view(itemId);
+    final copy = source.toNewItem();
+    return create(
+      NewItem(
+        type: copy.type,
+        name: name,
+        cycle: copy.cycle,
+        anchor: copy.anchor,
+        prices: copy.prices,
+        presetId: copy.presetId,
+        categoryId: copy.categoryId,
+        accountId: copy.accountId,
+        note: copy.note,
+        typeFields: copy.typeFields,
+        sharing: copy.sharing,
+        remindDays: copy.remindDays,
+        needsDetails: copy.needsDetails,
+      ),
+    );
+  }
+
+  Future<ItemView> view(String itemId) async {
+    final row = await _item(itemId);
+    return ItemView(
+      row,
+      _schedule(row, await _phases(itemId)),
+      await _nextDue(itemId),
+    );
+  }
+
+  /// Every item, soonest next charge first; items without one go last.
+  Stream<List<ItemView>> watchAll() {
+    return _db
+        .customSelect(
+          'SELECT 1',
+          readsFrom: {_db.items, _db.pricePhases, _db.occurrences},
+        )
+        .watch()
+        .asyncMap((_) => _loadAll());
+  }
+
+  Stream<ItemView?> watchOne(String itemId) =>
+      watchAll().map((all) => all.where((v) => v.row.id == itemId).firstOrNull);
+
+  // One transaction: never see an item without its phases mid-write.
+  Future<List<ItemView>> _loadAll() => _db.transaction(() async {
+    final rows = await _db.select(_db.items).get();
+    final phases = await (_db.select(
+      _db.pricePhases,
+    )..orderBy([(p) => OrderingTerm.asc(p.seq)])).get();
+    final pending =
+        await (_db.select(_db.occurrences)
+              ..where((o) => o.state.equalsValue(OccurrenceState.pending))
+              ..orderBy([(o) => OrderingTerm.asc(o.dueOn)]))
+            .get();
+    final phasesByItem = <String, List<PricePhaseRow>>{};
+    for (final p in phases) {
+      (phasesByItem[p.itemId] ??= []).add(p);
+    }
+    final nextByItem = <String, OccurrenceRow>{};
+    for (final o in pending) {
+      nextByItem.putIfAbsent(o.itemId, () => o);
+    }
+    final views = [
+      for (final r in rows)
+        ItemView(
+          r,
+          _schedule(r, phasesByItem[r.id] ?? const []),
+          nextByItem[r.id],
+        ),
+    ];
+    int byNextDue(ItemView a, ItemView b) {
+      final da = a.nextDue?.dueOn;
+      final db = b.nextDue?.dueOn;
+      if (da != null && db != null) return da.compareTo(db);
+      if (da != null) return -1; // items with a next charge first
+      if (db != null) return 1;
+      return 0;
+    }
+
+    return views..sort((a, b) {
+      final c = byNextDue(a, b);
+      return c != 0 ? c : a.row.name.compareTo(b.row.name);
+    });
+  });
+
+  Future<OccurrenceRow?> _nextDue(String itemId) =>
+      (_db.select(_db.occurrences)
+            ..where(
+              (o) =>
+                  o.itemId.equals(itemId) &
+                  o.state.equalsValue(OccurrenceState.pending),
+            )
+            ..orderBy([(o) => OrderingTerm.asc(o.dueOn)])
+            ..limit(1))
+          .getSingleOrNull();
+
+  ItemRow _rowFor(
+    String id,
+    NewItem item, {
+    required int createdAt,
+    required ItemStatus status,
+    LocalDate? statusSince,
+    LocalDate? paidUntil,
+  }) => ItemRow(
+    id: id,
+    type: item.type,
+    name: item.name.trim(),
+    presetId: item.presetId,
+    categoryId: item.categoryId,
+    accountId: item.accountId,
+    currency: item.prices.stablePrice.currency,
+    cycleUnit: item.cycle.unit,
+    cycleEvery: item.cycle.every,
+    anchorOn: item.anchor,
+    paidUntil: paidUntil ?? item.paidUntil,
+    status: status,
+    statusSince: statusSince,
+    reminderRules: jsonEncode([
+      for (final d in item.remindDays) {'daysBefore': d},
+    ]),
+    typeFields: jsonEncode(item.typeFields),
+    sharing: item.sharing == null ? null : jsonEncode(item.sharing),
+    note: item.note,
+    needsDetails: item.needsDetails,
+    createdAt: createdAt,
+    updatedAt: _nowMillis(),
+  );
 
   Future<ItemSchedule> scheduleOf(String itemId) async {
     final row = await _item(itemId);
@@ -260,7 +464,7 @@ class ItemRepository {
     ], today: _today());
     for (final p in plan.toInsert) {
       final row = OccurrenceRow(
-        id: occurrenceId(itemId, p.index),
+        id: occurrenceId(itemId, p.dueOn),
         itemId: itemId,
         cycleIndex: p.index,
         dueOn: p.dueOn,

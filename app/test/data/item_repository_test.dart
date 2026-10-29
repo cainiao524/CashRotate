@@ -62,7 +62,7 @@ void main() {
       expect(occ[1].dueOn, d('2026-02-28'));
       expect(occ.last.dueOn, d('2027-02-28'));
       expect(occ.every((o) => o.state == OccurrenceState.pending), isTrue);
-      expect(occ.first.id, '$id:0');
+      expect(occ.first.id, '$id:2026-01-31');
       expect(
         await repo.scheduleOf(id).then((s) => s.prices),
         PriceSchedule.fixed(twd(390)),
@@ -86,7 +86,7 @@ void main() {
     'price rise: history kept, paid charges untouched, pending updated',
     () async {
       final id = await netflix();
-      await repo.markPaid('$id:0');
+      await repo.markPaid('$id:2026-01-31');
       await repo.changePrice(id, fromIndex: 3, amount: twd(420));
 
       final occ = await occurrences(id);
@@ -119,7 +119,7 @@ void main() {
       ),
     );
     expect((await occurrences(id)).map((o) => o.cycleIndex), [0]);
-    await repo.markPaid('$id:0', cycles: 3);
+    await repo.markPaid('$id:2026-06-01', cycles: 3);
 
     final schedule = await repo.scheduleOf(id);
     expect(schedule.paidUntil, d('2029-06-01'));
@@ -156,8 +156,8 @@ void main() {
     'cancelled items stay usable until paidUntil and plan nothing after',
     () async {
       final id = await netflix();
-      await repo.markPaid('$id:0');
-      await repo.markPaid('$id:1');
+      await repo.markPaid('$id:2026-01-31');
+      await repo.markPaid('$id:2026-02-28');
       await repo.setStatus(id, ItemStatus.cancelled, d('2026-03-10'));
       final schedule = await repo.scheduleOf(id);
       expect(schedule.isUsableOn(d('2026-03-30')), isTrue);
@@ -234,6 +234,116 @@ void main() {
         db.meta,
       )..where((m) => m.key.equals('device_id'))).getSingle();
       expect(meta.value, device);
+    });
+  });
+
+  group('editing (M2)', () {
+    test('update replaces details, keeps status and paid history', () async {
+      final id = await netflix();
+      await repo.markPaid('$id:2026-01-31');
+      final before = (await repo.view(id)).toNewItem();
+      await repo.update(
+        id,
+        NewItem(
+          type: before.type,
+          name: 'Netflix Premium',
+          cycle: before.cycle,
+          anchor: before.anchor,
+          prices: PriceSchedule.fixed(twd(490)),
+          typeFields: {'plan': 'premium'},
+          sharing: {'people': 4, 'myShare': 12250},
+        ),
+      );
+      final view = await repo.view(id);
+      expect(view.row.name, 'Netflix Premium');
+      expect(view.typeFields, {'plan': 'premium'});
+      expect(view.sharing!['people'], 4);
+      final occ = await occurrences(id);
+      expect(occ.first.state, OccurrenceState.paid);
+      expect(
+        occ.first.expectedMinor,
+        39000,
+        reason: 'history is not rewritten',
+      );
+      expect(occ[1].expectedMinor, 49000);
+    });
+
+    test(
+      'moving the billing day after payments keeps the next charge',
+      () async {
+        final id = await netflix();
+        await repo.markPaid('$id:2026-01-31');
+        await repo.markPaid('$id:2026-02-28');
+        final before = (await repo.view(id)).toNewItem();
+        await repo.update(
+          id,
+          NewItem(
+            type: before.type,
+            name: before.name,
+            cycle: before.cycle,
+            anchor: d('2026-03-10'),
+            prices: before.prices,
+            paidUntil: d('2026-03-10'), // what the editor sends
+          ),
+        );
+        final occ = await occurrences(id);
+        final paid = occ
+            .where((o) => o.state == OccurrenceState.paid)
+            .map((o) => '${o.dueOn}');
+        expect(paid, ['2026-01-31', '2026-02-28']);
+        final pending =
+            occ.where((o) => o.state == OccurrenceState.pending).toList()
+              ..sort((a, b) => a.dueOn.compareTo(b.dueOn));
+        expect(pending.first.dueOn, d('2026-03-10'));
+        expect(pending.first.id, '$id:2026-03-10');
+      },
+    );
+
+    test('duplicate creates an independent active copy', () async {
+      final id = await netflix();
+      await repo.setStatus(id, ItemStatus.paused, d('2026-03-01'));
+      final copy = await repo.duplicate(id, name: 'Netflix (copy)');
+      final view = await repo.view(copy);
+      expect(view.row.name, 'Netflix (copy)');
+      expect(view.row.status, ItemStatus.active);
+      expect(view.schedule.prices, PriceSchedule.fixed(twd(390)));
+      expect(await occurrences(copy), isNotEmpty);
+    });
+
+    test('createAll writes items with blanks marked to fill in', () async {
+      final ids = await repo.createAll([
+        NewItem(
+          type: ItemType.subscription,
+          name: 'Spotify',
+          cycle: Cycle.monthly,
+          anchor: today,
+          prices: PriceSchedule.fixed(twd(0)),
+          needsDetails: true,
+        ),
+        NewItem(
+          type: ItemType.bill,
+          name: 'Rent',
+          cycle: Cycle.monthly,
+          anchor: d('2026-04-05'),
+          prices: PriceSchedule.fixed(twd(20000)),
+        ),
+      ]);
+      expect(ids, hasLength(2));
+      final all = await repo.watchAll().first;
+      expect(all.where((v) => v.row.needsDetails).map((v) => v.row.name), [
+        'Spotify',
+      ]);
+    });
+
+    test('watchAll orders by next charge and updates on change', () async {
+      await netflix(anchor: '2026-04-20');
+      await netflix(anchor: '2026-03-20');
+      final first = await repo.watchAll().first;
+      expect(first.map((v) => '${v.nextDue!.dueOn}'), [
+        '2026-03-20',
+        '2026-04-20',
+      ]);
+      expect(first.first.stableMonthly, twd(390));
     });
   });
 }

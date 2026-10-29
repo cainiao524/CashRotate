@@ -200,6 +200,21 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, ItemRow> {
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _needsDetailsMeta = const VerificationMeta(
+    'needsDetails',
+  );
+  @override
+  late final GeneratedColumn<bool> needsDetails = GeneratedColumn<bool>(
+    'needs_details',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("needs_details" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     createdAt,
@@ -221,6 +236,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, ItemRow> {
     typeFields,
     sharing,
     note,
+    needsDetails,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -314,6 +330,15 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, ItemRow> {
       context.handle(
         _noteMeta,
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('needs_details')) {
+      context.handle(
+        _needsDetailsMeta,
+        needsDetails.isAcceptableOrUnknown(
+          data['needs_details']!,
+          _needsDetailsMeta,
+        ),
       );
     }
     return context;
@@ -415,6 +440,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, ItemRow> {
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       )!,
+      needsDetails: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}needs_details'],
+      )!,
     );
   }
 
@@ -472,6 +501,9 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
   /// JSON cost-sharing settings (total, people, my share, who has paid).
   final String? sharing;
   final String note;
+
+  /// Added in quick setup with the amount or date left blank ("to fill in").
+  final bool needsDetails;
   const ItemRow({
     required this.createdAt,
     required this.updatedAt,
@@ -492,6 +524,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
     required this.typeFields,
     this.sharing,
     required this.note,
+    required this.needsDetails,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -549,6 +582,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
       map['sharing'] = Variable<String>(sharing);
     }
     map['note'] = Variable<String>(note);
+    map['needs_details'] = Variable<bool>(needsDetails);
     return map;
   }
 
@@ -585,6 +619,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
           ? const Value.absent()
           : Value(sharing),
       note: Value(note),
+      needsDetails: Value(needsDetails),
     );
   }
 
@@ -619,6 +654,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
       typeFields: serializer.fromJson<String>(json['typeFields']),
       sharing: serializer.fromJson<String?>(json['sharing']),
       note: serializer.fromJson<String>(json['note']),
+      needsDetails: serializer.fromJson<bool>(json['needsDetails']),
     );
   }
   @override
@@ -650,6 +686,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
       'typeFields': serializer.toJson<String>(typeFields),
       'sharing': serializer.toJson<String?>(sharing),
       'note': serializer.toJson<String>(note),
+      'needsDetails': serializer.toJson<bool>(needsDetails),
     };
   }
 
@@ -673,6 +710,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
     String? typeFields,
     Value<String?> sharing = const Value.absent(),
     String? note,
+    bool? needsDetails,
   }) => ItemRow(
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -693,6 +731,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
     typeFields: typeFields ?? this.typeFields,
     sharing: sharing.present ? sharing.value : this.sharing,
     note: note ?? this.note,
+    needsDetails: needsDetails ?? this.needsDetails,
   );
   ItemRow copyWithCompanion(ItemsCompanion data) {
     return ItemRow(
@@ -725,6 +764,9 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
           : this.typeFields,
       sharing: data.sharing.present ? data.sharing.value : this.sharing,
       note: data.note.present ? data.note.value : this.note,
+      needsDetails: data.needsDetails.present
+          ? data.needsDetails.value
+          : this.needsDetails,
     );
   }
 
@@ -749,7 +791,8 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
           ..write('reminderRules: $reminderRules, ')
           ..write('typeFields: $typeFields, ')
           ..write('sharing: $sharing, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('needsDetails: $needsDetails')
           ..write(')'))
         .toString();
   }
@@ -775,6 +818,7 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
     typeFields,
     sharing,
     note,
+    needsDetails,
   );
   @override
   bool operator ==(Object other) =>
@@ -798,7 +842,8 @@ class ItemRow extends DataClass implements Insertable<ItemRow> {
           other.reminderRules == this.reminderRules &&
           other.typeFields == this.typeFields &&
           other.sharing == this.sharing &&
-          other.note == this.note);
+          other.note == this.note &&
+          other.needsDetails == this.needsDetails);
 }
 
 class ItemsCompanion extends UpdateCompanion<ItemRow> {
@@ -821,6 +866,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
   final Value<String> typeFields;
   final Value<String?> sharing;
   final Value<String> note;
+  final Value<bool> needsDetails;
   final Value<int> rowid;
   const ItemsCompanion({
     this.createdAt = const Value.absent(),
@@ -842,6 +888,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
     this.typeFields = const Value.absent(),
     this.sharing = const Value.absent(),
     this.note = const Value.absent(),
+    this.needsDetails = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ItemsCompanion.insert({
@@ -864,6 +911,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
     this.typeFields = const Value.absent(),
     this.sharing = const Value.absent(),
     this.note = const Value.absent(),
+    this.needsDetails = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : createdAt = Value(createdAt),
        updatedAt = Value(updatedAt),
@@ -895,6 +943,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
     Expression<String>? typeFields,
     Expression<String>? sharing,
     Expression<String>? note,
+    Expression<bool>? needsDetails,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -917,6 +966,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
       if (typeFields != null) 'type_fields': typeFields,
       if (sharing != null) 'sharing': sharing,
       if (note != null) 'note': note,
+      if (needsDetails != null) 'needs_details': needsDetails,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -941,6 +991,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
     Value<String>? typeFields,
     Value<String?>? sharing,
     Value<String>? note,
+    Value<bool>? needsDetails,
     Value<int>? rowid,
   }) {
     return ItemsCompanion(
@@ -963,6 +1014,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
       typeFields: typeFields ?? this.typeFields,
       sharing: sharing ?? this.sharing,
       note: note ?? this.note,
+      needsDetails: needsDetails ?? this.needsDetails,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1041,6 +1093,9 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (needsDetails.present) {
+      map['needs_details'] = Variable<bool>(needsDetails.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1069,6 +1124,7 @@ class ItemsCompanion extends UpdateCompanion<ItemRow> {
           ..write('typeFields: $typeFields, ')
           ..write('sharing: $sharing, ')
           ..write('note: $note, ')
+          ..write('needsDetails: $needsDetails, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1708,7 +1764,7 @@ class $OccurrencesTable extends Occurrences
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-    {itemId, cycleIndex},
+    {itemId, dueOn},
   ];
   @override
   OccurrenceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
@@ -1769,7 +1825,8 @@ class $OccurrencesTable extends Occurrences
 }
 
 class OccurrenceRow extends DataClass implements Insertable<OccurrenceRow> {
-  /// `<itemId>:<cycleIndex>`, so every device plans the same row.
+  /// `<itemId>:<yyyy-MM-dd>`: one charge per item per day, and every device
+  /// plans the same row.
   final String id;
   final String itemId;
   final int cycleIndex;
@@ -7235,6 +7292,681 @@ class MetaCompanion extends UpdateCompanion<MetaRow> {
   }
 }
 
+class $AppSettingsTable extends AppSettings
+    with TableInfo<$AppSettingsTable, SettingRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [key, value, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SettingRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {key};
+  @override
+  SettingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SettingRow(
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AppSettingsTable createAlias(String alias) {
+    return $AppSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class SettingRow extends DataClass implements Insertable<SettingRow> {
+  final String key;
+  final String value;
+  final int updatedAt;
+  const SettingRow({
+    required this.key,
+    required this.value,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  AppSettingsCompanion toCompanion(bool nullToAbsent) {
+    return AppSettingsCompanion(
+      key: Value(key),
+      value: Value(value),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SettingRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SettingRow(
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  SettingRow copyWith({String? key, String? value, int? updatedAt}) =>
+      SettingRow(
+        key: key ?? this.key,
+        value: value ?? this.value,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  SettingRow copyWithCompanion(AppSettingsCompanion data) {
+    return SettingRow(
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SettingRow(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(key, value, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SettingRow &&
+          other.key == this.key &&
+          other.value == this.value &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AppSettingsCompanion extends UpdateCompanion<SettingRow> {
+  final Value<String> key;
+  final Value<String> value;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const AppSettingsCompanion({
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AppSettingsCompanion.insert({
+    required String key,
+    required String value,
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : key = Value(key),
+       value = Value(value),
+       updatedAt = Value(updatedAt);
+  static Insertable<SettingRow> custom({
+    Expression<String>? key,
+    Expression<String>? value,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AppSettingsCompanion copyWith({
+    Value<String>? key,
+    Value<String>? value,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return AppSettingsCompanion(
+      key: key ?? this.key,
+      value: value ?? this.value,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsCompanion(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExchangeRatesTable extends ExchangeRates
+    with TableInfo<$ExchangeRatesTable, ExchangeRateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExchangeRatesTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Currency, String> base =
+      GeneratedColumn<String>(
+        'base',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Currency>($ExchangeRatesTable.$converterbase);
+  @override
+  late final GeneratedColumnWithTypeConverter<Currency, String> quote =
+      GeneratedColumn<String>(
+        'quote',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Currency>($ExchangeRatesTable.$converterquote);
+  static const VerificationMeta _rateMeta = const VerificationMeta('rate');
+  @override
+  late final GeneratedColumn<String> rate = GeneratedColumn<String>(
+    'rate',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<LocalDate, String> asOf =
+      GeneratedColumn<String>(
+        'as_of',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<LocalDate>($ExchangeRatesTable.$converterasOf);
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    base,
+    quote,
+    rate,
+    asOf,
+    source,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exchange_rates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExchangeRateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('rate')) {
+      context.handle(
+        _rateMeta,
+        rate.isAcceptableOrUnknown(data['rate']!, _rateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rateMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {base, quote};
+  @override
+  ExchangeRateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExchangeRateRow(
+      base: $ExchangeRatesTable.$converterbase.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}base'],
+        )!,
+      ),
+      quote: $ExchangeRatesTable.$converterquote.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}quote'],
+        )!,
+      ),
+      rate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rate'],
+      )!,
+      asOf: $ExchangeRatesTable.$converterasOf.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}as_of'],
+        )!,
+      ),
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExchangeRatesTable createAlias(String alias) {
+    return $ExchangeRatesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Currency, String> $converterbase =
+      const CurrencyConverter();
+  static TypeConverter<Currency, String> $converterquote =
+      const CurrencyConverter();
+  static TypeConverter<LocalDate, String> $converterasOf =
+      const LocalDateConverter();
+}
+
+class ExchangeRateRow extends DataClass implements Insertable<ExchangeRateRow> {
+  final Currency base;
+  final Currency quote;
+
+  /// Exact decimal text, never a double.
+  final String rate;
+  final LocalDate asOf;
+  final String source;
+  final int updatedAt;
+  const ExchangeRateRow({
+    required this.base,
+    required this.quote,
+    required this.rate,
+    required this.asOf,
+    required this.source,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['base'] = Variable<String>(
+        $ExchangeRatesTable.$converterbase.toSql(base),
+      );
+    }
+    {
+      map['quote'] = Variable<String>(
+        $ExchangeRatesTable.$converterquote.toSql(quote),
+      );
+    }
+    map['rate'] = Variable<String>(rate);
+    {
+      map['as_of'] = Variable<String>(
+        $ExchangeRatesTable.$converterasOf.toSql(asOf),
+      );
+    }
+    map['source'] = Variable<String>(source);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  ExchangeRatesCompanion toCompanion(bool nullToAbsent) {
+    return ExchangeRatesCompanion(
+      base: Value(base),
+      quote: Value(quote),
+      rate: Value(rate),
+      asOf: Value(asOf),
+      source: Value(source),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ExchangeRateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExchangeRateRow(
+      base: serializer.fromJson<Currency>(json['base']),
+      quote: serializer.fromJson<Currency>(json['quote']),
+      rate: serializer.fromJson<String>(json['rate']),
+      asOf: serializer.fromJson<LocalDate>(json['asOf']),
+      source: serializer.fromJson<String>(json['source']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'base': serializer.toJson<Currency>(base),
+      'quote': serializer.toJson<Currency>(quote),
+      'rate': serializer.toJson<String>(rate),
+      'asOf': serializer.toJson<LocalDate>(asOf),
+      'source': serializer.toJson<String>(source),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  ExchangeRateRow copyWith({
+    Currency? base,
+    Currency? quote,
+    String? rate,
+    LocalDate? asOf,
+    String? source,
+    int? updatedAt,
+  }) => ExchangeRateRow(
+    base: base ?? this.base,
+    quote: quote ?? this.quote,
+    rate: rate ?? this.rate,
+    asOf: asOf ?? this.asOf,
+    source: source ?? this.source,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ExchangeRateRow copyWithCompanion(ExchangeRatesCompanion data) {
+    return ExchangeRateRow(
+      base: data.base.present ? data.base.value : this.base,
+      quote: data.quote.present ? data.quote.value : this.quote,
+      rate: data.rate.present ? data.rate.value : this.rate,
+      asOf: data.asOf.present ? data.asOf.value : this.asOf,
+      source: data.source.present ? data.source.value : this.source,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExchangeRateRow(')
+          ..write('base: $base, ')
+          ..write('quote: $quote, ')
+          ..write('rate: $rate, ')
+          ..write('asOf: $asOf, ')
+          ..write('source: $source, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(base, quote, rate, asOf, source, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExchangeRateRow &&
+          other.base == this.base &&
+          other.quote == this.quote &&
+          other.rate == this.rate &&
+          other.asOf == this.asOf &&
+          other.source == this.source &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ExchangeRatesCompanion extends UpdateCompanion<ExchangeRateRow> {
+  final Value<Currency> base;
+  final Value<Currency> quote;
+  final Value<String> rate;
+  final Value<LocalDate> asOf;
+  final Value<String> source;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const ExchangeRatesCompanion({
+    this.base = const Value.absent(),
+    this.quote = const Value.absent(),
+    this.rate = const Value.absent(),
+    this.asOf = const Value.absent(),
+    this.source = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExchangeRatesCompanion.insert({
+    required Currency base,
+    required Currency quote,
+    required String rate,
+    required LocalDate asOf,
+    required String source,
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : base = Value(base),
+       quote = Value(quote),
+       rate = Value(rate),
+       asOf = Value(asOf),
+       source = Value(source),
+       updatedAt = Value(updatedAt);
+  static Insertable<ExchangeRateRow> custom({
+    Expression<String>? base,
+    Expression<String>? quote,
+    Expression<String>? rate,
+    Expression<String>? asOf,
+    Expression<String>? source,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (base != null) 'base': base,
+      if (quote != null) 'quote': quote,
+      if (rate != null) 'rate': rate,
+      if (asOf != null) 'as_of': asOf,
+      if (source != null) 'source': source,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExchangeRatesCompanion copyWith({
+    Value<Currency>? base,
+    Value<Currency>? quote,
+    Value<String>? rate,
+    Value<LocalDate>? asOf,
+    Value<String>? source,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ExchangeRatesCompanion(
+      base: base ?? this.base,
+      quote: quote ?? this.quote,
+      rate: rate ?? this.rate,
+      asOf: asOf ?? this.asOf,
+      source: source ?? this.source,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (base.present) {
+      map['base'] = Variable<String>(
+        $ExchangeRatesTable.$converterbase.toSql(base.value),
+      );
+    }
+    if (quote.present) {
+      map['quote'] = Variable<String>(
+        $ExchangeRatesTable.$converterquote.toSql(quote.value),
+      );
+    }
+    if (rate.present) {
+      map['rate'] = Variable<String>(rate.value);
+    }
+    if (asOf.present) {
+      map['as_of'] = Variable<String>(
+        $ExchangeRatesTable.$converterasOf.toSql(asOf.value),
+      );
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExchangeRatesCompanion(')
+          ..write('base: $base, ')
+          ..write('quote: $quote, ')
+          ..write('rate: $rate, ')
+          ..write('asOf: $asOf, ')
+          ..write('source: $source, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7254,6 +7986,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ReminderLogTable reminderLog = $ReminderLogTable(this);
   late final $ChangeLogTable changeLog = $ChangeLogTable(this);
   late final $MetaTable meta = $MetaTable(this);
+  late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $ExchangeRatesTable exchangeRates = $ExchangeRatesTable(this);
   late final Index occurrencesDue = Index(
     'occurrences_due',
     'CREATE INDEX occurrences_due ON occurrences (due_on)',
@@ -7289,6 +8023,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     reminderLog,
     changeLog,
     meta,
+    appSettings,
+    exchangeRates,
     occurrencesDue,
     transactionsOccurred,
     transactionsAccount,
@@ -7361,6 +8097,7 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<String> typeFields,
   Value<String?> sharing,
   Value<String> note,
+  Value<bool> needsDetails,
   Value<int> rowid,
 });
 typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
@@ -7383,6 +8120,7 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<String> typeFields,
   Value<String?> sharing,
   Value<String> note,
+  Value<bool> needsDetails,
   Value<int> rowid,
 });
 
@@ -7552,6 +8290,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get needsDetails => $composableBuilder(
+    column: $table.needsDetails,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7734,6 +8477,11 @@ class $$ItemsTableOrderingComposer
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get needsDetails => $composableBuilder(
+    column: $table.needsDetails,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ItemsTableAnnotationComposer
@@ -7812,6 +8560,11 @@ class $$ItemsTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<bool> get needsDetails => $composableBuilder(
+    column: $table.needsDetails,
+    builder: (column) => column,
+  );
 
   Expression<T> pricePhasesRefs<T extends Object>(
     Expression<T> Function($$PricePhasesTableAnnotationComposer a) f,
@@ -7940,6 +8693,7 @@ class $$ItemsTableTableManager
                 Value<String> typeFields = const Value.absent(),
                 Value<String?> sharing = const Value.absent(),
                 Value<String> note = const Value.absent(),
+                Value<bool> needsDetails = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemsCompanion(
                 createdAt: createdAt,
@@ -7961,6 +8715,7 @@ class $$ItemsTableTableManager
                 typeFields: typeFields,
                 sharing: sharing,
                 note: note,
+                needsDetails: needsDetails,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -7984,6 +8739,7 @@ class $$ItemsTableTableManager
                 Value<String> typeFields = const Value.absent(),
                 Value<String?> sharing = const Value.absent(),
                 Value<String> note = const Value.absent(),
+                Value<bool> needsDetails = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ItemsCompanion.insert(
                 createdAt: createdAt,
@@ -8005,6 +8761,7 @@ class $$ItemsTableTableManager
                 typeFields: typeFields,
                 sharing: sharing,
                 note: note,
+                needsDetails: needsDetails,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -12643,6 +13400,408 @@ typedef $$MetaTableProcessedTableManager =
       MetaRow,
       PrefetchHooks Function()
     >;
+typedef $$AppSettingsTableCreateCompanionBuilder =
+    AppSettingsCompanion Function({
+      required String key,
+      required String value,
+      required int updatedAt,
+      Value<int> rowid,
+    });
+typedef $$AppSettingsTableUpdateCompanionBuilder =
+    AppSettingsCompanion Function({
+      Value<String> key,
+      Value<String> value,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$AppSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AppSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AppSettingsTable,
+          SettingRow,
+          $$AppSettingsTableFilterComposer,
+          $$AppSettingsTableOrderingComposer,
+          $$AppSettingsTableAnnotationComposer,
+          $$AppSettingsTableCreateCompanionBuilder,
+          $$AppSettingsTableUpdateCompanionBuilder,
+          (
+            SettingRow,
+            BaseReferences<_$AppDatabase, $AppSettingsTable, SettingRow>,
+          ),
+          SettingRow,
+          PrefetchHooks Function()
+        > {
+  $$AppSettingsTableTableManager(_$AppDatabase db, $AppSettingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> key = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AppSettingsCompanion(
+                key: key,
+                value: value,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String key,
+                required String value,
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => AppSettingsCompanion.insert(
+                key: key,
+                value: value,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AppSettingsTable, SettingRow>(table),
+                  BaseReferences<_$AppDatabase, $AppSettingsTable, SettingRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AppSettingsTable,
+      SettingRow,
+      $$AppSettingsTableFilterComposer,
+      $$AppSettingsTableOrderingComposer,
+      $$AppSettingsTableAnnotationComposer,
+      $$AppSettingsTableCreateCompanionBuilder,
+      $$AppSettingsTableUpdateCompanionBuilder,
+      (
+        SettingRow,
+        BaseReferences<_$AppDatabase, $AppSettingsTable, SettingRow>,
+      ),
+      SettingRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ExchangeRatesTableCreateCompanionBuilder =
+    ExchangeRatesCompanion Function({
+      required Currency base,
+      required Currency quote,
+      required String rate,
+      required LocalDate asOf,
+      required String source,
+      required int updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ExchangeRatesTableUpdateCompanionBuilder =
+    ExchangeRatesCompanion Function({
+      Value<Currency> base,
+      Value<Currency> quote,
+      Value<String> rate,
+      Value<LocalDate> asOf,
+      Value<String> source,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ExchangeRatesTableFilterComposer
+    extends Composer<_$AppDatabase, $ExchangeRatesTable> {
+  $$ExchangeRatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<Currency, Currency, String> get base =>
+      $composableBuilder(
+        column: $table.base,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<Currency, Currency, String> get quote =>
+      $composableBuilder(
+        column: $table.quote,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get rate => $composableBuilder(
+    column: $table.rate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<LocalDate, LocalDate, String> get asOf =>
+      $composableBuilder(
+        column: $table.asOf,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExchangeRatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExchangeRatesTable> {
+  $$ExchangeRatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get base => $composableBuilder(
+    column: $table.base,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quote => $composableBuilder(
+    column: $table.quote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rate => $composableBuilder(
+    column: $table.rate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get asOf => $composableBuilder(
+    column: $table.asOf,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExchangeRatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExchangeRatesTable> {
+  $$ExchangeRatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<Currency, String> get base =>
+      $composableBuilder(column: $table.base, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Currency, String> get quote =>
+      $composableBuilder(column: $table.quote, builder: (column) => column);
+
+  GeneratedColumn<String> get rate =>
+      $composableBuilder(column: $table.rate, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<LocalDate, String> get asOf =>
+      $composableBuilder(column: $table.asOf, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ExchangeRatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExchangeRatesTable,
+          ExchangeRateRow,
+          $$ExchangeRatesTableFilterComposer,
+          $$ExchangeRatesTableOrderingComposer,
+          $$ExchangeRatesTableAnnotationComposer,
+          $$ExchangeRatesTableCreateCompanionBuilder,
+          $$ExchangeRatesTableUpdateCompanionBuilder,
+          (
+            ExchangeRateRow,
+            BaseReferences<_$AppDatabase, $ExchangeRatesTable, ExchangeRateRow>,
+          ),
+          ExchangeRateRow,
+          PrefetchHooks Function()
+        > {
+  $$ExchangeRatesTableTableManager(_$AppDatabase db, $ExchangeRatesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExchangeRatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExchangeRatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExchangeRatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<Currency> base = const Value.absent(),
+                Value<Currency> quote = const Value.absent(),
+                Value<String> rate = const Value.absent(),
+                Value<LocalDate> asOf = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExchangeRatesCompanion(
+                base: base,
+                quote: quote,
+                rate: rate,
+                asOf: asOf,
+                source: source,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Currency base,
+                required Currency quote,
+                required String rate,
+                required LocalDate asOf,
+                required String source,
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ExchangeRatesCompanion.insert(
+                base: base,
+                quote: quote,
+                rate: rate,
+                asOf: asOf,
+                source: source,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ExchangeRatesTable, ExchangeRateRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ExchangeRatesTable,
+                    ExchangeRateRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExchangeRatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExchangeRatesTable,
+      ExchangeRateRow,
+      $$ExchangeRatesTableFilterComposer,
+      $$ExchangeRatesTableOrderingComposer,
+      $$ExchangeRatesTableAnnotationComposer,
+      $$ExchangeRatesTableCreateCompanionBuilder,
+      $$ExchangeRatesTableUpdateCompanionBuilder,
+      (
+        ExchangeRateRow,
+        BaseReferences<_$AppDatabase, $ExchangeRatesTable, ExchangeRateRow>,
+      ),
+      ExchangeRateRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12673,4 +13832,8 @@ class $AppDatabaseManager {
   $$ChangeLogTableTableManager get changeLog =>
       $$ChangeLogTableTableManager(_db, _db.changeLog);
   $$MetaTableTableManager get meta => $$MetaTableTableManager(_db, _db.meta);
+  $$AppSettingsTableTableManager get appSettings =>
+      $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$ExchangeRatesTableTableManager get exchangeRates =>
+      $$ExchangeRatesTableTableManager(_db, _db.exchangeRates);
 }

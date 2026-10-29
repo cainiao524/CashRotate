@@ -14,6 +14,7 @@ analyzer:
     - "**/.dart_tool/**"
     - "**/*.g.dart"
     - "app/lib/l10n/gen/**"
+    - "app/test/generated_migrations/**"
 
 linter:
   rules:

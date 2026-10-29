@@ -48,6 +48,9 @@ class Items extends Table with _Timestamps {
   TextColumn get sharing => text().nullable()();
   TextColumn get note => text().withDefault(const Constant(''))();
 
+  /// Added in quick setup with the amount or date left blank ("to fill in").
+  BoolColumn get needsDetails => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -80,7 +83,8 @@ class PricePhases extends Table {
 @DataClassName('OccurrenceRow')
 @TableIndex(name: 'occurrences_due', columns: {#dueOn})
 class Occurrences extends Table {
-  /// `<itemId>:<cycleIndex>`, so every device plans the same row.
+  /// `<itemId>:<yyyy-MM-dd>`: one charge per item per day, and every device
+  /// plans the same row.
   TextColumn get id => text()();
   TextColumn get itemId =>
       text().references(Items, #id, onDelete: KeyAction.cascade)();
@@ -96,7 +100,7 @@ class Occurrences extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => [
-    {itemId, cycleIndex},
+    {itemId, dueOn},
   ];
 }
 
@@ -287,6 +291,35 @@ class ChangeLog extends Table {
   /// Packed HLC; the newer one wins when devices merge.
   TextColumn get hlc => text()();
   BoolColumn get uploaded => boolean().withDefault(const Constant(false))();
+}
+
+/// User settings that follow the user across devices (synced): main
+/// currency, region, onboarding progress … Values are JSON text.
+@DataClassName('SettingRow')
+class AppSettings extends Table {
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
+/// "1 base = rate quote". Manual rates in the free tier; automatic daily
+/// rates (Pro) will be stored here too with their provider as source.
+@DataClassName('ExchangeRateRow')
+class ExchangeRates extends Table {
+  TextColumn get base => text().map(const CurrencyConverter())();
+  TextColumn get quote => text().map(const CurrencyConverter())();
+
+  /// Exact decimal text, never a double.
+  TextColumn get rate => text()();
+  TextColumn get asOf => text().map(const LocalDateConverter())();
+  TextColumn get source => text()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {base, quote};
 }
 
 /// Device-local settings and bookkeeping: device id, last HLC.

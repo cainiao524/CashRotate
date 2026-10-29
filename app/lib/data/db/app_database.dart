@@ -25,16 +25,31 @@ part 'app_database.g.dart';
     ReminderLog,
     ChangeLog,
     Meta,
+    AppSettings,
+    ExchangeRates,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
+  /// Bump with every schema change, add a step below, and run
+  /// `dart run drift_dev schema dump lib/data/db/app_database.dart drift_schemas/`
+  /// so the migration test covers it.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      // v2 (M2): synced settings, exchange rates, "to fill in" items.
+      if (from < 2) {
+        await m.createTable(appSettings);
+        await m.createTable(exchangeRates);
+        await m.addColumn(items, items.needsDetails);
+        // Occurrences are identified by due date instead of charge number.
+        await m.alterTable(TableMigration(occurrences));
+      }
+    },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
