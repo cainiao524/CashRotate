@@ -7,10 +7,7 @@
   {"id": "midjourney", "name": {"en": "Midjourney"}, "aliases": ["MJ"], "category": "ai", "type": "subscription", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "plans": [{"id": "basic", "name": {"en": "Basic"}}, {"id": "standard", "name": {"en": "Standard"}}, {"id": "pro", "name": {"en": "Pro"}}, {"id": "mega", "name": {"en": "Mega"}}], "color": "#111111"},
   {"id": "github-copilot", "name": {"en": "GitHub Copilot"}, "aliases": ["Copilot Individual"], "category": "ai", "type": "subscription", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "cancelUrl": "https://github.com/settings/billing", "color": "#24292F"},
   {"id": "cursor", "name": {"en": "Cursor"}, "aliases": ["Cursor Pro", "Anysphere"], "category": "ai", "type": "subscription", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#111111"},
-  {"id": "poe", "name": {"en": "Poe"}, "category": "ai", "type": "subscription", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#5D5CDE"},
   {"id": "openai-api", "name": {"en": "OpenAI API"}, "aliases": ["OpenAI Platform"], "category": "ai", "type": "bill", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#10A37F"},
   {"id": "anthropic-api", "name": {"en": "Anthropic API"}, "aliases": ["Claude API", "Claude Console"], "category": "ai", "type": "bill", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#D97757"},
-  {"id": "openrouter", "name": {"en": "OpenRouter"}, "category": "ai", "type": "bill", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#6467F2"},
-  {"id": "elevenlabs", "name": {"en": "ElevenLabs"}, "category": "ai", "type": "subscription", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#111111"},
-  {"id": "suno", "name": {"en": "Suno"}, "category": "ai", "type": "subscription", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#111111"}
+  {"id": "openrouter", "name": {"en": "OpenRouter"}, "category": "ai", "type": "bill", "defaultCycle": "monthly", "regions": ["global"], "currency": "USD", "color": "#6467F2"}
 ]

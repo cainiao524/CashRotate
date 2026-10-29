@@ -37,7 +37,11 @@ void main() {
       expect(templates, inInclusiveRange(25, 40));
       expect(tw, inInclusiveRange(30, 50));
       expect(hk, inInclusiveRange(30, 50));
-      expect(global, greaterThanOrEqualTo(110));
+      expect(
+        global,
+        inInclusiveRange(110, 130),
+        reason: 'about 120 global services',
+      );
     });
 
     test('ids are unique and sorted', () {
