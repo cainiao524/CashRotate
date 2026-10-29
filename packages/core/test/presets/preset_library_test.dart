@@ -34,14 +34,53 @@ void main() {
       final global = presets
           .where((p) => !p.isTemplate && p.regions.contains('global'))
           .length;
-      expect(templates, inInclusiveRange(25, 40));
-      expect(tw, inInclusiveRange(30, 50));
-      expect(hk, inInclusiveRange(30, 50));
+      expect(templates, inInclusiveRange(27, 33), reason: 'about 30 templates');
+      expect(tw, inInclusiveRange(30, 50), reason: 'tagged for Taiwan');
+      expect(hk, inInclusiveRange(30, 50), reason: 'tagged for Hong Kong');
       expect(
         global,
         inInclusiveRange(110, 130),
         reason: 'about 120 global services',
       );
+    });
+
+    test('regional source files each hold 30–50 presets', () {
+      int countIn(String dir) =>
+          Directory('../../presets/$dir')
+              .listSync()
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.json'))
+              .map((f) => (jsonDecode(f.readAsStringSync()) as List).length)
+              .fold(0, (a, b) => a + b);
+      expect(countIn('tw'), inInclusiveRange(30, 50));
+      expect(countIn('hk'), inInclusiveRange(30, 50));
+      expect(countIn('templates'), inInclusiveRange(27, 33));
+    });
+
+    test('ships no logos or other brand assets', () {
+      // The schema has no field that could carry an image; brands are drawn
+      // as an initial on their colour.
+      for (final p in raw.cast<Map<String, Object?>>()) {
+        for (final key in p.keys) {
+          expect(
+            key,
+            isNot(
+              matches(RegExp('logo|icon|image|svg|png', caseSensitive: false)),
+            ),
+            reason: p['id'] as String?,
+          );
+        }
+      }
+      final images = Directory('../../app/assets')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where(
+            (f) => RegExp(
+              r'\.(png|jpe?g|webp|gif|svg|ico)$',
+              caseSensitive: false,
+            ).hasMatch(f.path),
+          );
+      expect(images, isEmpty, reason: 'no bundled brand images');
     });
 
     test('ids are unique and sorted', () {
@@ -55,6 +94,18 @@ void main() {
           .readAsStringSync();
       expect(text, isNot(contains('"price')));
       expect(text, isNot(contains('"amount')));
+      // Plan names are names only: no digits followed by a currency mark.
+      for (final p in presets) {
+        for (final plan in p.plans) {
+          for (final name in plan.name.all) {
+            expect(
+              name,
+              isNot(matches(RegExp(r'[$€¥£]\s*\d|\d\s*(元|円|USD|TWD|HKD)'))),
+              reason: p.id,
+            );
+          }
+        }
+      }
     });
 
     test('templates have all three languages', () {

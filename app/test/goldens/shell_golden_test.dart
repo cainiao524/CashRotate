@@ -95,7 +95,63 @@ void main() {
         await settle(tester);
       },
     ),
+    'add_item': (
+      onboarded: true,
+      seed: null,
+      open: (tester) async {
+        await _openFixed(tester);
+        await tester.tap(find.byKey(const Key('items-add')));
+        await pumpUntil(tester, find.byKey(const Key('add-search')));
+        FocusManager.instance.primaryFocus?.unfocus();
+        await settle(tester);
+      },
+    ),
+    'batch_add': (
+      onboarded: true,
+      seed: null,
+      open: (tester) async {
+        await _openFixed(tester);
+        await tester.tap(find.byKey(const Key('items-add')));
+        await pumpUntil(
+          tester,
+          find.byKey(const Key('add-several')).hitTestable(),
+        );
+        await tester.tap(find.byKey(const Key('add-several')));
+        await pumpUntil(tester, find.byKey(const Key('picker-count')));
+      },
+    ),
+    'fx_rate_dialog': (
+      onboarded: true,
+      seed: (d) => d.seedItems(),
+      open: (tester) async {
+        await _openFixed(tester);
+        await tester.tap(find.byKey(const Key('items-add')));
+        await pumpUntil(tester, find.byKey(const Key('add-search')));
+        await tester.enterText(find.byKey(const Key('add-search')), 'chatgpt');
+        await pumpUntil(
+          tester,
+          find.byKey(const ValueKey('add-preset-chatgpt')),
+        );
+        await tester.tap(find.byKey(const ValueKey('add-preset-chatgpt')));
+        await pumpUntil(tester, find.text('Set rate'));
+        await tester.tap(find.text('Set rate'));
+        await pumpUntil(tester, find.byKey(const Key('fx-rate-field')));
+      },
+    ),
+    'currency_picker': (
+      onboarded: false,
+      seed: null,
+      open: (tester) async {
+        await tester.tap(find.byKey(const Key('ob-currency')));
+        await pumpUntil(tester, find.byKey(const ValueKey('currency-USD')));
+      },
+    ),
     'onboarding_basics': (onboarded: false, seed: null, open: null),
+    'onboarding_import': (
+      onboarded: false,
+      seed: (d) => _draft(d, 1),
+      open: null,
+    ),
     'onboarding_pick': (
       onboarded: false,
       seed: (d) => _draft(d, 2),
