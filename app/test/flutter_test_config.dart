@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// glyph widths instead of the default box font, and installs the golden
 /// comparator described on [_LinuxGoldenComparator].
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
+  // Each widget test opens its own in-memory database on purpose.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   await _loadSdkFonts();
   final current = goldenFileComparator;
   if (current is LocalFileComparator) {

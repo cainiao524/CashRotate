@@ -5,23 +5,21 @@ import 'package:material_ui/material_ui.dart';
 import '../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('compact window uses bottom navigation', (tester) async {
+  testApp('compact window uses bottom navigation', (tester) async {
     await pumpApp(tester, width: 360);
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationRail), findsNothing);
   });
 
   for (final width in [600.0, 840.0, 1280.0]) {
-    testWidgets('${width.toInt()}dp window uses a navigation rail', (
-      tester,
-    ) async {
+    testApp('${width.toInt()}dp window uses a navigation rail', (tester) async {
       await pumpApp(tester, width: width);
       expect(find.byType(NavigationRail), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
     });
   }
 
-  testWidgets('fixed expenses become two-pane only on wide windows', (
+  testApp('fixed expenses become two-pane only on wide windows', (
     tester,
   ) async {
     await pumpApp(tester, width: 360);
@@ -38,7 +36,7 @@ void main() {
     expect(find.text('Select an item to see its details'), findsOneWidget);
   });
 
-  testWidgets('scroll position survives a window resize', (tester) async {
+  testApp('scroll position survives a window resize', (tester) async {
     await pumpApp(tester, width: 360, height: 400, textScale: 2);
     final list = find.byKey(const PageStorageKey('home'));
     await tester.drag(list, const Offset(0, -150));
@@ -65,7 +63,7 @@ void main() {
     expect(after, before);
   });
 
-  testWidgets('navigation labels follow system language', (tester) async {
+  testApp('navigation labels follow system language', (tester) async {
     await pumpApp(tester, width: 360, locale: const Locale('zh', 'TW'));
     expect(find.text('固定支出'), findsOneWidget);
     expect(find.text('設定'), findsOneWidget);
