@@ -9,6 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
+  intl: ^0.20.0
   meta: ^1.15.0
 
 dev_dependencies:

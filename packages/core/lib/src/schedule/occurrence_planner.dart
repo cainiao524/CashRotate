@@ -169,9 +169,13 @@ List<PlannedOccurrence> expectedOccurrences(
 
 /// Reconciles [stored] occurrences with [item]'s schedule.
 ///
-/// Paid and skipped occurrences are history and are never touched. Pending
-/// ones are updated, removed when no longer expected (paused, cancelled,
-/// paid ahead), and missing ones are added.
+/// Occurrences are identified by due date: an item has at most one charge
+/// per day, and dates stay meaningful when the user moves the billing day
+/// (charge numbers restart from the new anchor, dates never collide with
+/// history). Paid and skipped occurrences are history and are never touched;
+/// a date already paid or skipped is not planned again. Pending ones are
+/// updated (amount, charge number), removed when no longer expected (paused,
+/// cancelled, paid ahead, moved), and missing dates are added.
 OccurrencePlan planOccurrences(
   ItemSchedule item,
   List<StoredOccurrence> stored, {
@@ -184,17 +188,17 @@ OccurrencePlan planOccurrences(
       today: today,
       horizonMonths: horizonMonths,
     ))
-      o.index: o,
+      o.dueOn: o,
   };
   final toUpdate = <String, PlannedOccurrence>{};
   final toDelete = <String>[];
 
   for (final s in stored) {
-    final want = expected.remove(s.index);
+    final want = expected.remove(s.dueOn);
     if (s.state != OccurrenceState.pending) continue;
     if (want == null) {
       toDelete.add(s.id);
-    } else if (want.dueOn != s.dueOn || want.expected != s.expected) {
+    } else if (want.index != s.index || want.expected != s.expected) {
       toUpdate[s.id] = want;
     }
   }

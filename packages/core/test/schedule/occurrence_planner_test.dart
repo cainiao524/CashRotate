@@ -270,7 +270,7 @@ void main() {
       expect(plan.toDelete, isNot(contains('occ-5')));
     });
 
-    test('changing the anchor day moves pending dates', () {
+    test('changing the anchor day replaces pending dates', () {
       final existing = expectedOccurrences(
         monthly(),
         today: today,
@@ -280,7 +280,39 @@ void main() {
         existing,
         today: today,
       );
-      expect(plan.toUpdate['occ-1']!.dueOn, d('2026-02-15'));
+      expect(plan.toDelete, contains('occ-1')); // Feb 28 is gone
+      expect(plan.toInsert.map((o) => '${o.dueOn}'), contains('2026-02-15'));
+      expect(plan.toUpdate, isEmpty);
+    });
+
+    test(
+      'moving the billing day after payments keeps history and the next charge',
+      () {
+        // Jan 31 and Feb 28 paid; the user then moves billing to the 10th,
+        // starting Mar 10. Charge numbers restart at 0 from the new anchor
+        // but must not collide with the paid charges #0 and #1.
+        final old = expectedOccurrences(monthly(), today: today);
+        final existing = [
+          stored(old[0], state: OccurrenceState.paid),
+          stored(old[1], state: OccurrenceState.paid),
+          ...old.skip(2).map(stored),
+        ];
+        final moved = monthly(anchor: '2026-03-10', paidUntil: '2026-03-10');
+        final plan = planOccurrences(moved, existing, today: today);
+        expect(plan.toInsert.first.dueOn, d('2026-03-10'));
+        expect(plan.toInsert.first.index, 0);
+        expect(plan.toDelete, isNot(contains('occ-0')));
+        expect(plan.toDelete, isNot(contains('occ-1')));
+        expect(plan.toDelete, contains('occ-2')); // old Mar 31 pending
+      },
+    );
+
+    test('a date already paid is not planned again', () {
+      final first = expectedOccurrences(monthly(), today: today).first;
+      final plan = planOccurrences(monthly(), [
+        stored(first, state: OccurrenceState.paid),
+      ], today: today);
+      expect(plan.toInsert.map((o) => o.dueOn), isNot(contains(first.dueOn)));
     });
 
     test('inserts are sorted by index', () {
