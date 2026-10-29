@@ -30,5 +30,69 @@
   "stateErrorTitle": "發生錯誤",
   "databaseOpenFailed": "無法開啟你的資料",
   "actionRetry": "重試",
-  "comingSoon": "將在之後的里程碑完成"
+  "comingSoon": "將在之後的里程碑完成",
+
+  "actionSave": "儲存", "actionCancel": "取消", "actionDelete": "刪除", "actionEdit": "編輯",
+  "actionDuplicate": "複製", "actionPause": "暫停", "actionResume": "恢復", "actionMarkCancelled": "標記為已取消",
+  "actionNext": "下一步", "actionBack": "上一步", "actionAdd": "新增", "actionDone": "完成",
+
+  "itemTypeSubscription": "訂閱", "itemTypeBill": "帳單", "itemTypeRepayment": "還款",
+  "itemTypeInsuranceAndFees": "保險與年費", "itemTypeTransferOut": "定期轉出",
+
+  "cycleDaily": "每天", "cycleWeekly": "每週", "cycleMonthly": "每月", "cycleBimonthly": "每兩個月",
+  "cycleQuarterly": "每季", "cycleHalfYearly": "每半年", "cycleYearly": "每年", "cycleCustom": "自訂",
+  "cycleEveryDays": "{count, plural, =1{每天} other{每 {count} 天}}",
+  "cycleEveryWeeks": "{count, plural, =1{每週} other{每 {count} 週}}",
+  "cycleEveryMonths": "{count, plural, =1{每月} other{每 {count} 個月}}",
+  "cycleEveryYears": "{count, plural, =1{每年} other{每 {count} 年}}",
+  "unitDays": "天", "unitWeeks": "週", "unitMonths": "個月", "unitYears": "年", "fieldEvery": "每",
+
+  "categoryStreaming": "影音", "categoryMusic": "音樂", "categoryCloud": "雲端儲存", "categorySoftware": "軟體",
+  "categoryAi": "AI", "categoryGaming": "遊戲", "categoryReading": "新聞與閱讀", "categoryCreator": "創作者贊助",
+  "categoryVpn": "VPN", "categoryEducation": "學習", "categoryFitness": "健康與運動", "categoryShopping": "購物與外送",
+  "categoryCommunication": "通訊", "categoryDomain": "網域", "categoryHosting": "伺服器與主機", "categoryDevtools": "開發工具",
+  "categoryGameServer": "遊戲伺服器", "categoryTelecom": "手機", "categoryBroadband": "寬頻與電視", "categoryUtilities": "水電瓦斯",
+  "categoryHousing": "居住", "categoryInsurance": "保險", "categoryLoan": "貸款與信用卡", "categoryTax": "稅費與政府",
+  "categoryTransport": "交通", "categoryFamily": "家庭", "categoryInvesting": "儲蓄與投資", "categoryOther": "其他",
+
+  "editorNewTitle": "新增固定支出", "editorEditTitle": "編輯固定支出", "fieldType": "類型", "fieldName": "名稱",
+  "fieldAmount": "金額", "fieldCurrency": "幣別", "fieldCycle": "週期", "fieldNextCharge": "下次扣款日",
+  "fieldIntro": "首期優惠", "fieldIntroAmount": "優惠價", "fieldIntroPeriods": "優惠期數", "fieldRenewal": "續費價",
+  "fieldNote": "備註", "errorRequired": "必填", "errorAmount": "請輸入有效金額",
+  "errorRenewalRequired": "請填寫續費價，之後才不會被嚇到", "errorPeriods": "請輸入 1 以上的整數",
+  "fxEstimate": "≈ {amount} · 匯率 {rate} · {date} 更新", "fxNoRate": "尚未設定 {currency} 匯率", "fxSetRate": "設定匯率",
+  "fxRateTitle": "匯率", "fxRateLabel": "1 {from} =", "fxManualNote": "Pro 版會每天自動更新匯率；你也可以隨時自行設定。",
+
+  "fieldPlan": "方案", "fieldTrialEnds": "免費試用結束日", "fieldAutoRenew": "自動續訂", "fieldCancelUrl": "取消／管理連結",
+  "fieldVariableAmount": "每次金額不同", "fieldContractEnds": "合約到期日", "fieldTotalPeriods": "總期數",
+  "fieldRemainingPeriods": "剩餘期數", "fieldStatementDay": "每月結帳日", "fieldRemainingPrincipal": "剩餘本金",
+  "fieldPolicyNumber": "保單號碼", "fieldExpiresOn": "到期日", "fieldTransferTo": "轉入對象", "fieldDomain": "網域名稱",
+  "fieldRegistrar": "註冊商", "fieldPaidThroughYear": "已付至（年）", "fieldGraceDays": "寬限期（天）", "fieldProvider": "服務商",
+  "fieldHostNote": "主機名稱或 IP 備註", "fieldSpecs": "配置（核心、記憶體、流量）", "fieldLocation": "機房位置",
+  "fieldHourly": "按小時計費", "fieldHourlyRate": "每小時費率", "fieldGame": "遊戲", "fieldRunsOn": "架在",
+  "fieldRunsOnProvider": "服務商主機", "runsOnServerNote": "費用已算在該伺服器，不重複計算。",
+
+  "sharingTitle": "合租分攤", "sharingTotal": "總價", "sharingPeople": "分攤人數", "sharingMyShare": "我的份額",
+  "sharingMember": "成員 {number}", "sharingPaid": "已轉帳給我",
+
+  "detailNextCharge": "下次扣款", "detailMonthlyCost": "每月成本", "detailStableMonthly": "優惠結束後每月成本",
+  "detailPriceChange": "下次將從 {from} 變為 {to}", "detailUpcoming": "即將扣款", "detailPrices": "價格變化",
+  "detailPhaseFor": "{amount}，共 {count, plural, other{{count} 期}}", "detailPhaseUntil": "{amount}，至 {date} 為止",
+  "detailPhaseThen": "之後 {amount}", "detailNeedsDetails": "待補", "statusPaused": "已暫停",
+  "statusCancelledUntil": "已取消 · {date} 前仍可使用", "statusCancelled": "已取消",
+  "deleteItemConfirm": "要刪除「{name}」嗎？之後的扣款也會一併移除。", "copyOfName": "{name}（副本）",
+  "itemsSearchPresets": "搜尋服務", "itemsCustom": "自訂項目", "itemsAddSeveral": "批次新增", "itemsAddTitle": "新增固定支出",
+
+  "currencySearchHint": "代碼、名稱、國家或符號", "currencySuggested": "建議", "currencyAll": "所有幣別", "currencyNoMatch": "找不到符合的幣別",
+
+  "obBasicsTitle": "歡迎", "obBasicsBody": "先確認這幾項。所有資料只存在這支手機上。", "obLanguage": "語言",
+  "obLanguageSystem": "跟隨系統", "obRegion": "地區", "obMainCurrency": "主要幣別", "obSyncLater": "WebDAV 同步可以之後在設定中開啟。",
+  "obImportTitle": "要怎麼開始？", "obImportPick": "勾選常用服務", "obImportPickHint": "推薦 · 大約一分鐘",
+  "obImportPaste": "貼上清單", "obImportRestore": "從 WebDAV 還原", "obComingLater": "將在之後的更新提供",
+  "obPickTitle": "你有在付哪些？", "obSelectedCount": "{count, plural, =0{尚未選擇} other{已選 {count} 項}}",
+  "obAllCategories": "全部", "obAddCustom": "新增「{name}」", "obBatchTitle": "金額與扣款日", "obBatchHint": "可以先留空，之後再補。",
+  "obApplyDate": "已選項目套用同一扣款日", "obApplyCurrency": "已選項目套用同一幣別", "obSelectAll": "全選",
+  "obColumnDate": "扣款日", "obPending": "待補", "obSummaryTitle": "設定完成", "obSummaryMonthly": "每月固定支出",
+  "obSummaryDueSoon": "{count, plural, =0{未來 7 天沒有要付的} other{未來 7 天有 {count} 筆要付}}",
+  "obSummaryReminders": "每次扣款前都會提醒你。", "obSummaryMissingRates": "部分外幣項目尚未設定匯率，未計入總額。", "obFinish": "開始使用"
 }

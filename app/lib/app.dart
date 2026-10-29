@@ -15,12 +15,16 @@ class CashRotateApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final language = ref.watch(appDatabaseProvider).hasValue
+        ? ref.watch(userSettingsProvider).value?.language
+        : null;
     return MaterialApp.router(
       onGenerateTitle: (_) => Brand.appName,
       restorationScopeId: 'app',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Palette.light),
       darkTheme: buildTheme(Palette.dark),
+      locale: _localeFor(language),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         ...GlobalMaterialLocalizations.delegates,
@@ -28,29 +32,59 @@ class CashRotateApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localeListResolutionCallback: resolveAppLocale,
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => _DatabaseGate(child: child!),
+      builder: (context, child) => _StartupGate(child: child!),
     );
+  }
+
+  /// A language picked in settings keeps the system's region for formatting.
+  static Locale? _localeFor(String? language) {
+    if (language == null) return null;
+    final region =
+        WidgetsBinding.instance.platformDispatcher.locale.countryCode;
+    return switch (language) {
+      'zh-Hant' => Locale.fromSubtags(
+        languageCode: 'zh',
+        scriptCode: 'Hant',
+        countryCode: region,
+      ),
+      'zh-Hans' => Locale.fromSubtags(
+        languageCode: 'zh',
+        scriptCode: 'Hans',
+        countryCode: region,
+      ),
+      _ => Locale.fromSubtags(languageCode: 'en', countryCode: region),
+    };
   }
 }
 
-/// Holds the UI back until the encrypted database is open, and explains
-/// instead of crashing when it cannot be opened.
-class _DatabaseGate extends ConsumerWidget {
-  const _DatabaseGate({required this.child});
+/// Holds the UI back until the encrypted database and settings are loaded,
+/// and explains instead of crashing when the database cannot be opened.
+/// First-launch setup is a route (the router redirects to it), so it has a
+/// Navigator and Overlay for dialogs, pickers and tooltips.
+class _StartupGate extends ConsumerWidget {
+  const _StartupGate({required this.child});
 
   final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return switch (ref.watch(appDatabaseProvider)) {
+    switch (ref.watch(appDatabaseProvider)) {
+      case AsyncError(:final error):
+        return Scaffold(
+          body: ErrorState(
+            title: AppLocalizations.of(context).databaseOpenFailed,
+            message: '$error',
+            onRetry: () => ref.invalidate(appDatabaseProvider),
+          ),
+        );
+      case AsyncData():
+        break;
+      default:
+        return const Scaffold(body: SizedBox.expand());
+    }
+    return switch (ref.watch(userSettingsProvider)) {
       AsyncData() => child,
-      AsyncError(:final error) => Scaffold(
-        body: ErrorState(
-          title: AppLocalizations.of(context).databaseOpenFailed,
-          message: '$error',
-          onRetry: () => ref.invalidate(appDatabaseProvider),
-        ),
-      ),
+      AsyncError(:final error) => Scaffold(body: ErrorState(message: '$error')),
       _ => const Scaffold(body: SizedBox.expand()),
     };
   }

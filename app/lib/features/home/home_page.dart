@@ -1,15 +1,20 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../brand.dart';
+import '../../data/providers.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../layout/window_class.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/palette.dart';
 import '../../theme/pearl_surface.dart';
 import '../../widgets/marquee_text.dart';
+import '../../widgets/money_text.dart';
+import '../items/items_page.dart';
+import 'fixed_summary.dart';
 
-/// Home dashboard skeleton: "how much is due this month, and what's next".
-/// Cards are placeholders until M4 wires them to the ledger and reports.
+/// Home dashboard: "how much a month, and what's next". Income/expense and
+/// fixed-vs-variable cards wait for the ledger (M4).
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -17,7 +22,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final cards = [
-      _DashboardCard(title: l10n.homeDueSoon, body: Text(l10n.emptyDueSoon)),
+      _DashboardCard(title: l10n.homeDueSoon, body: const _DueSoon()),
       _DashboardCard(
         title: l10n.homeIncomeExpense,
         body: const _AmountPlaceholder(),
@@ -44,14 +49,15 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _TotalCard extends StatelessWidget {
+class _TotalCard extends ConsumerWidget {
   const _TotalCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final palette = Palette.of(context);
     final text = Theme.of(context).textTheme;
+    final summary = ref.watch(fixedSummaryProvider).value;
     return PearlSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,15 +67,52 @@ class _TotalCard extends StatelessWidget {
             style: text.titleSmall?.copyWith(color: palette.secondaryText),
           ),
           const SizedBox(height: 8),
-          Text('—', style: tabularFigures(text.displaySmall!)),
+          if (summary == null)
+            Text('—', style: tabularFigures(text.displaySmall!))
+          else
+            MoneyText(
+              summary.monthlyTotal,
+              key: const Key('home-total'),
+              style: text.displaySmall,
+            ),
           const SizedBox(height: 8),
           Text(
-            l10n.itemsPendingCount(0),
-            style: text.bodyMedium?.copyWith(color: palette.secondaryText),
+            l10n.itemsPendingCount(summary?.needsDetails ?? 0),
+            key: const Key('home-pending'),
+            style: text.bodyMedium?.copyWith(
+              color: (summary?.needsDetails ?? 0) > 0
+                  ? palette.warning
+                  : palette.secondaryText,
+            ),
           ),
+          if ((summary?.missingRates ?? 0) > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                l10n.obSummaryMissingRates,
+                style: text.bodySmall?.copyWith(color: palette.secondaryText),
+              ),
+            ),
         ],
       ),
     );
+  }
+}
+
+/// Items whose next charge is within 7 days (overdue included).
+class _DueSoon extends ConsumerWidget {
+  const _DueSoon();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final items = ref.watch(itemsProvider).value ?? const [];
+    final soon = todayFrom(ref.watch(clockProvider)).addDays(7);
+    final due = items
+        .where((v) => v.nextDue != null && v.nextDue!.dueOn <= soon)
+        .toList();
+    if (due.isEmpty) return Text(l10n.emptyDueSoon);
+    return Column(children: [for (final v in due) ItemTile(view: v)]);
   }
 }
 

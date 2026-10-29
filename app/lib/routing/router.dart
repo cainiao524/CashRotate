@@ -2,28 +2,48 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../data/providers.dart';
 import '../features/home/home_page.dart';
 import '../features/items/items_page.dart';
 import '../features/ledger/ledger_page.dart';
+import '../features/onboarding/onboarding_flow.dart';
 import '../features/reports/reports_page.dart';
 import '../features/settings/settings_page.dart';
 import '../layout/window_class.dart';
 import 'adaptive_shell.dart';
+import 'routes.dart';
 
-abstract final class Routes {
-  static const home = '/home';
-  static const items = '/items';
-  static String item(String id) => '$items/$id';
-  static const ledger = '/ledger';
-  static const reports = '/reports';
-  static const settings = '/settings';
-}
+export 'routes.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  // Whether first-launch setup is finished; null until settings load. A
+  // notifier (not a watch) so the router is not rebuilt and keeps its state.
+  final onboarded = ValueNotifier<bool?>(null);
+  ref
+    ..listen(
+      userSettingsProvider,
+      (_, next) => onboarded.value = next.value?.onboardingDone,
+      fireImmediately: true,
+    )
+    ..onDispose(onboarded.dispose);
+
   final router = GoRouter(
     initialLocation: Routes.home,
     restorationScopeId: 'router',
+    refreshListenable: onboarded,
+    redirect: (context, state) {
+      final atOnboarding = state.matchedLocation == Routes.onboarding;
+      return switch (onboarded.value) {
+        false when !atOnboarding => Routes.onboarding,
+        true when atOnboarding => Routes.home,
+        _ => null,
+      };
+    },
     routes: [
+      GoRoute(
+        path: Routes.onboarding,
+        builder: (_, _) => const OnboardingFlow(),
+      ),
       StatefulShellRoute.indexedStack(
         restorationScopeId: 'shell',
         builder: (context, state, shell) => AdaptiveShell(shell: shell),
