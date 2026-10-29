@@ -1,0 +1,23 @@
+# Phrase readings that override single-character Unihan readings, for
+# characters read differently in context. One phrase per line:
+# phrase<TAB>space separated pinyin (tone marks optional).
+音樂	yin yue
+音乐	yin yue
+銀行	yin hang
+银行	yin hang
+長榮	chang rong
+重慶	chong qing
+會員	hui yuan
+会员	hui yuan
+大會員	da hui yuan
+大会员	da hui yuan
+會費	hui fei
+会费	hui fei
+還錢	huan qian
+还款	huan kuan
+繳款	jiao kuan
+差餉	chai xiang
+差饷	chai xiang
+地租	di zu
+地價稅	di jia shui
+地价税	di jia shui

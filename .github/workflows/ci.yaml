@@ -34,6 +34,10 @@ jobs:
       - name: Download Material fonts
         run: flutter precache --universal --no-ios --no-web --no-linux --no-windows --no-macos
 
+      - name: Preset library is valid and up to date
+        working-directory: packages/core
+        run: dart run tool/build_presets.dart --check
+
       - name: Generate localizations
         working-directory: app
         run: flutter gen-l10n
