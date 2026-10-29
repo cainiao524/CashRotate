@@ -33,7 +33,7 @@ CashRotate/
 ├─ presets/                      ← 預設庫原始資料（社群經 GitHub 提交）
 │  ├─ schema.json                ← JSON Schema，CI 驗證
 │  ├─ global/*.json  tw/*.json  hk/*.json  templates/*.json
-│  └─ tool/build_presets.dart    ← 合併、驗證、產生 App 內建版與線上版
+│  └─ tool/                      ← 讀音表（Unihan）與破音字詞組；建置工具在 packages/core/tool/build_presets.dart
 ├─ packages/
 │  ├─ core/                      ← 純 Dart 領域層
 │  │  └─ lib/src/
@@ -61,8 +61,8 @@ CashRotate/
    │  ├─ theme/                  ← 色票 token、淺 / 深色、珠光漸層、等寬數字
    │  ├─ layout/                 ← 視窗寬度級別、列表 / 詳情雙欄（避開摺痕）
    │  ├─ routing/                ← 路由表、自適應外殼（底部導覽 / 導覽軌）
-   │  ├─ widgets/                ← 跑馬燈文字、狀態元件（空 / 載入 / 錯誤）；之後加金額文字、首字母徽章
-   │  ├─ data/                   ← drift 資料表、DAO、Repository、ChangeLog 寫入、資料庫金鑰
+   │  ├─ widgets/                ← 跑馬燈文字、狀態元件、金額文字（主要幣別大字＋原幣小字）、首字母徽章、幣別選擇器
+   │  ├─ data/                   ← drift 資料表與遷移、Repository（項目、設定、匯率）、ChangeLog、預設庫載入
    │  ├─ platform/               ← platform channel 的 Dart 端包裝
    │  └─ features/
    │     ├─ home/  items/  onboarding/  ledger/  accounts/
