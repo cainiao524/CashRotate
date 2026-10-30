@@ -82,6 +82,9 @@ class _StartupGate extends ConsumerWidget {
       default:
         return const Scaffold(body: SizedBox.expand());
     }
+    // Today's exchange rates, in the background (once a day; offline keeps
+    // the cached ones).
+    ref.watch(autoRateStartupProvider);
     return switch (ref.watch(userSettingsProvider)) {
       AsyncData() => child,
       AsyncError(:final error) => Scaffold(body: ErrorState(message: '$error')),

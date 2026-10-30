@@ -148,7 +148,7 @@
   "fxSetRate": "Set rate", "@fxSetRate": { "description": "Button that opens the manual exchange rate dialog." },
   "fxRateTitle": "Exchange rate", "@fxRateTitle": { "description": "Title of the manual exchange rate dialog." },
   "fxRateLabel": "1 {from} =", "@fxRateLabel": { "description": "Label before the rate input, e.g. 1 USD = 32.5 TWD.", "placeholders": { "from": { "type": "String" } } },
-  "fxManualNote": "Automatic daily rates come with Pro. You can always set a rate yourself.", "@fxManualNote": { "description": "Explains manual rates in the free version." },
+  "fxManualNote": "A rate you set is used until you change it, or until the next daily update if the currency updates automatically.", "@fxManualNote": { "description": "Explains manual rates in the free version." },
 
   "fieldPlan": "Plan", "@fieldPlan": { "description": "Subscription plan." },
   "fieldTrialEnds": "Free trial ends", "@fieldTrialEnds": { "description": "Date the free trial turns paid." },
@@ -253,5 +253,16 @@
   "settingsRunSetup": "Run quick setup again", "@settingsRunSetup": { "description": "Reopens the first-launch setup to add several services." },
   "settingsRunSetupHint": "Add several services at once. Existing items stay as they are.", "@settingsRunSetupHint": { "description": "Subtitle of the run-setup action." },
   "settingsAbout": "About", "@settingsAbout": { "description": "Settings section." },
-  "settingsPrivacy": "Your data stays on this phone. Nothing is sent to us.", "@settingsPrivacy": { "description": "Privacy statement under the app name." }
+  "settingsPrivacy": "Your data stays on this phone. Nothing is sent to us.", "@settingsPrivacy": { "description": "Privacy statement under the app name." },
+
+  "fxAutoLabel": "Automatic", "@fxAutoLabel": { "description": "Shown next to a converted amount whose rate updates automatically." },
+  "settingsUpdateNow": "Update now", "@settingsUpdateNow": { "description": "Button: download today's exchange rates." },
+  "settingsAutoRatesAll": "Every currency updates automatically each day", "@settingsAutoRatesAll": { "description": "Status when all exchange rates are automatic." },
+  "settingsAutoRatesSome": "Updates automatically each day: {currencies}", "@settingsAutoRatesSome": { "description": "Status listing the free tier's automatic currencies.", "placeholders": { "currencies": { "type": "String" } } },
+  "settingsAutoRatesAsOf": "Rates as of {date}", "@settingsAutoRatesAsOf": { "description": "Date of the latest automatic rates.", "placeholders": { "date": { "type": "String" } } },
+  "settingsAutoRatesNever": "Not downloaded yet. Needs an internet connection.", "@settingsAutoRatesNever": { "description": "No automatic rates yet." },
+  "settingsUpdateFailed": "Couldn't update. The last rates are kept.", "@settingsUpdateFailed": { "description": "Download of rates failed; cached rates remain." },
+  "settingsRateAuto": "Automatic · {date}", "@settingsRateAuto": { "description": "An automatically updated rate and its date.", "placeholders": { "date": { "type": "String" } } },
+  "settingsRatesAttribution": "Rates by ExchangeRate-API (open.er-api.com), with fawazahmed0 currency-api as backup. Only your main currency code is sent.", "@settingsRatesAttribution": { "description": "Required attribution of the exchange rate source." },
+  "settingsPreviewUnlocked": "Preview: everything is unlocked. After release, free users choose 4 currencies to update automatically; Pro updates them all.", "@settingsPreviewUnlocked": { "description": "Explains that pre-release builds unlock Pro features." }
 }

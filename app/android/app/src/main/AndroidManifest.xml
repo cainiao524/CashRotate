@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Daily exchange rates from open.er-api.com (fallback: fawazahmed0
+         currency-api). Only the main currency code is sent. Later: the
+         user's WebDAV server and AI provider of choice. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="${appName}"
         android:name="${applicationName}"

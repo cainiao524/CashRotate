@@ -4,6 +4,8 @@
 /// Pure Dart. Nothing here may depend on Flutter or platform code.
 library;
 
+export 'src/entitlements/entitlements.dart';
+export 'src/fx/auto_rates.dart';
 export 'src/fx/exchange_rate.dart';
 export 'src/model/kinds.dart';
 export 'src/money/currency.dart';

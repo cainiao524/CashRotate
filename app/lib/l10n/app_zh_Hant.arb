@@ -61,7 +61,7 @@
   "fieldNote": "備註", "errorRequired": "必填", "errorAmount": "請輸入有效金額",
   "errorRenewalRequired": "請填寫續費價，之後才不會被嚇到", "errorPeriods": "請輸入 1 以上的整數",
   "fxEstimate": "≈ {amount} · 匯率 {rate} · {date} 更新", "fxNoRate": "尚未設定 {currency} 匯率", "fxSetRate": "設定匯率",
-  "fxRateTitle": "匯率", "fxRateLabel": "1 {from} =", "fxManualNote": "Pro 版會每天自動更新匯率；你也可以隨時自行設定。",
+  "fxRateTitle": "匯率", "fxRateLabel": "1 {from} =", "fxManualNote": "你設定的匯率會一直沿用到你修改為止；若該幣別會自動更新，則沿用到下一次每日更新。",
 
   "fieldPlan": "方案", "fieldTrialEnds": "免費試用結束日", "fieldAutoRenew": "自動續訂", "fieldCancelUrl": "取消／管理連結",
   "fieldVariableAmount": "每次金額不同", "fieldContractEnds": "合約到期日", "fieldTotalPeriods": "總期數",
@@ -100,5 +100,11 @@
   "settingsRates": "匯率", "settingsNoRates": "尚未設定匯率。外幣項目需要匯率才會計入總額。",
   "settingsRateLine": "1 {base} = {rate} {quote}", "settingsRateUpdated": "手動設定 · {date}", "settingsAddRate": "新增匯率",
   "settingsSetup": "快速設定", "settingsRunSetup": "重新執行快速設定", "settingsRunSetupHint": "一次加入多個服務，現有項目不受影響。",
-  "settingsAbout": "關於", "settingsPrivacy": "你的資料只存在這支手機上，不會傳給我們。"
+  "settingsAbout": "關於", "settingsPrivacy": "你的資料只存在這支手機上，不會傳給我們。",
+
+  "fxAutoLabel": "自動", "settingsUpdateNow": "立即更新", "settingsAutoRatesAll": "所有幣別每天自動更新",
+  "settingsAutoRatesSome": "每天自動更新：{currencies}", "settingsAutoRatesAsOf": "匯率日期：{date}",
+  "settingsAutoRatesNever": "尚未下載，需要網路連線。", "settingsUpdateFailed": "更新失敗，沿用上次的匯率。", "settingsRateAuto": "自動 · {date}",
+  "settingsRatesAttribution": "匯率來源：ExchangeRate-API（open.er-api.com），備援為 fawazahmed0 currency-api。只會送出你的主要幣別代碼。",
+  "settingsPreviewUnlocked": "預覽版：所有功能皆開放。正式版上架後，免費版可自選 4 種幣別自動更新，Pro 全部自動更新。"
 }

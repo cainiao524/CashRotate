@@ -7,7 +7,10 @@ import 'package:path_provider/path_provider.dart';
 
 import '../platform/keystore.dart';
 import 'db/app_database.dart';
+import 'entitlements.dart';
+import 'fx/auto_rate_service.dart';
 import 'fx/exchange_rate_repository.dart';
+import 'fx/rate_fetcher.dart';
 import 'items/item_repository.dart';
 import 'journal.dart';
 import 'settings/settings_repository.dart';
@@ -88,4 +91,24 @@ final userSettingsProvider = StreamProvider<UserSettings>(
 
 final fxConverterProvider = StreamProvider<FxConverter>(
   (ref) => ref.watch(exchangeRateRepositoryProvider).watchConverter(),
+);
+
+final rateFetcherProvider = Provider<RateFetcher>((ref) => RateFetcher());
+
+final autoRateServiceProvider = Provider<AutoRateService>((ref) {
+  final clock = ref.watch(clockProvider);
+  return AutoRateService(
+    rates: ref.watch(exchangeRateRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    fetcher: ref.watch(rateFetcherProvider),
+    entitlements: ref.watch(entitlementsProvider),
+    today: () => todayFrom(clock),
+    defaults: UserSettings.defaultsFor(ref.watch(systemRegionProvider)),
+  );
+});
+
+/// Downloads today's rates once the database is open (at most once a day;
+/// failures keep the cached rates). Watched by the app shell.
+final autoRateStartupProvider = FutureProvider<AutoRateResult>(
+  (ref) => ref.watch(autoRateServiceProvider).refresh(),
 );

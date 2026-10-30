@@ -13,6 +13,7 @@ class UserSettings {
     this.onboardingDone = false,
     this.decimalsOverride = const {},
     this.language,
+    this.autoRateCurrencies,
   });
 
   /// Defaults for a fresh install, from the system locale's region.
@@ -29,6 +30,10 @@ class UserSettings {
 
   /// `en`, `zh-Hant`, `zh-Hans`, or null to follow the system.
   final String? language;
+
+  /// Free tier: currencies chosen for daily automatic rates (null = the
+  /// defaults). Ignored while every currency is automatic (Pro, preview).
+  final List<Currency>? autoRateCurrencies;
 
   /// Display decimals chosen by the user per currency code.
   final Map<String, int> decimalsOverride;
@@ -52,6 +57,7 @@ class SettingsRepository {
   static const decimalsKey = 'display_decimals';
   static const languageKey = 'language';
   static const onboardingDraftKey = 'onboarding_draft';
+  static const autoRateCurrenciesKey = 'auto_rate_currencies';
 
   /// Current settings, falling back to [defaults] for keys never written.
   Stream<UserSettings> watch(UserSettings defaults) =>
@@ -66,6 +72,8 @@ class SettingsRepository {
   Future<void> setOnboardingDone({bool done = true}) =>
       _set(onboardingDoneKey, done);
   Future<void> setLanguage(String? language) => _set(languageKey, language);
+  Future<void> setAutoRateCurrencies(List<Currency> currencies) =>
+      _set(autoRateCurrenciesKey, [for (final c in currencies) c.code]);
   Future<void> setDecimals(Currency c, int decimals) async {
     final current = await read(UserSettings.defaultsFor(null));
     await _set(decimalsKey, {...current.decimalsOverride, c.code: decimals});
@@ -113,6 +121,12 @@ class SettingsRepository {
           : defaults.region,
       onboardingDone: map[onboardingDoneKey] == true,
       language: map[languageKey] is String ? map[languageKey] as String : null,
+      autoRateCurrencies: map[autoRateCurrenciesKey] is List
+          ? [
+              for (final c in map[autoRateCurrenciesKey] as List)
+                if (c is String) ?Currency.tryParse(c),
+            ]
+          : null,
       decimalsOverride: decimals is Map
           ? {
               for (final e in decimals.entries)

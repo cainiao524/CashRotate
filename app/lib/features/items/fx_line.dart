@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../data/fx/exchange_rate_repository.dart';
 import '../../data/providers.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
@@ -30,6 +31,8 @@ class FxLine extends ConsumerWidget {
         ?.copyWith(color: Palette.of(context).secondaryText);
     final locale = intlLocaleOf(context);
     final rate = fx?.rate(currency, main);
+    final auto = ref.watch(autoRateServiceProvider).autoCurrencies(settings);
+    final isAuto = auto == null || auto.contains(currency);
 
     if (rate == null) {
       return Wrap(
@@ -37,6 +40,13 @@ class FxLine extends ConsumerWidget {
         spacing: 8,
         children: [
           Text(l10n.fxNoRate(currency.code), style: style),
+          if (isAuto)
+            TextButton(
+              key: const Key('fx-update-now'),
+              onPressed: () =>
+                  ref.read(autoRateServiceProvider).refresh(force: true),
+              child: Text(l10n.settingsUpdateNow),
+            ),
           TextButton(
             onPressed: () =>
                 showManualRateDialog(context, ref, from: currency, to: main),
@@ -45,6 +55,7 @@ class FxLine extends ConsumerWidget {
         ],
       );
     }
+    final manual = rate.source == ExchangeRateRepository.manualSource;
     final converted = amount == null
         ? null
         : fx!.convert(amount!, main)?.amount;
@@ -65,16 +76,20 @@ class FxLine extends ConsumerWidget {
       spacing: 8,
       children: [
         Text(text, style: style),
-        TextButton(
-          onPressed: () => showManualRateDialog(
-            context,
-            ref,
-            from: currency,
-            to: main,
-            initial: rate.rate.toDecimalString(maxDecimals: 6),
+        // Automatic rates refresh daily; only manual ones are edited here.
+        if (!manual)
+          Text(l10n.fxAutoLabel, style: style)
+        else
+          TextButton(
+            onPressed: () => showManualRateDialog(
+              context,
+              ref,
+              from: currency,
+              to: main,
+              initial: rate.rate.toDecimalString(maxDecimals: 6),
+            ),
+            child: Text(l10n.fxSetRate),
           ),
-          child: Text(l10n.fxSetRate),
-        ),
       ],
     );
   }

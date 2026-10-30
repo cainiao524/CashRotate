@@ -3,7 +3,10 @@ import 'dart:io';
 
 import 'package:cashrotate/app.dart';
 import 'package:cashrotate/data/db/app_database.dart';
+import 'package:cashrotate/data/entitlements.dart';
+import 'package:cashrotate/data/fx/auto_rate_service.dart';
 import 'package:cashrotate/data/fx/exchange_rate_repository.dart';
+import 'package:cashrotate/data/fx/rate_fetcher.dart';
 import 'package:cashrotate/data/items/item_repository.dart';
 import 'package:cashrotate/data/journal.dart';
 import 'package:cashrotate/data/presets.dart';
@@ -30,6 +33,12 @@ final PresetLibrary testPresetLibrary = PresetLibrary([
   ) as List<Object?>)
     Preset.fromJson(p),
 ]);
+
+/// What the exchange-rate sources answer in widget tests; offline by default.
+/// A test may replace it (and should restore it with addTearDown).
+Future<String> Function(Uri uri) testRateResponses = _offline;
+
+Future<String> _offline(Uri uri) => throw Exception('offline in tests');
 
 /// Every test runs on this date so due dates and goldens are stable.
 final testNow = DateTime(2026, 3, 15, 10);
@@ -167,6 +176,7 @@ Future<TestData> pumpApp(
   bool onboarded = true,
   String region = 'TW',
   Future<void> Function(TestData data)? seed,
+  Entitlements? entitlements,
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -200,6 +210,21 @@ Future<TestData> pumpApp(
         clockProvider.overrideWithValue(() => testNow),
         systemRegionProvider.overrideWithValue(region),
         presetLibraryProvider.overrideWith((ref) async => testPresetLibrary),
+        // Never touch the network: "Update now" uses [testRateResponses];
+        // the automatic startup download is skipped.
+        rateFetcherProvider.overrideWithValue(
+          RateFetcher(get: (uri) async => testRateResponses(uri)),
+        ),
+        autoRateStartupProvider.overrideWith(
+          (ref) async => (
+            status: AutoRateStatus.alreadyToday,
+            asOf: null,
+            source: null,
+            error: null,
+          ),
+        ),
+        if (entitlements != null)
+          entitlementsProvider.overrideWithValue(entitlements),
       ],
       child: const CashRotateApp(),
     ),
