@@ -1,0 +1,36 @@
+import 'package:material_ui/material_ui.dart';
+
+/// Built-in line icons a home tile can show instead of its initial. Generic
+/// symbols only: no brand marks. Names are stored, so never rename one.
+const tileIcons = <String, IconData>{
+  'phone': Icons.smartphone_outlined,
+  'wifi': Icons.wifi,
+  'home': Icons.home_outlined,
+  'building': Icons.apartment_outlined,
+  'bolt': Icons.bolt_outlined,
+  'water': Icons.water_drop_outlined,
+  'fire': Icons.local_fire_department_outlined,
+  'server': Icons.dns_outlined,
+  'globe': Icons.language,
+  'cloud': Icons.cloud_outlined,
+  'code': Icons.code,
+  'ai': Icons.auto_awesome_outlined,
+  'tv': Icons.tv_outlined,
+  'movie': Icons.movie_outlined,
+  'music': Icons.music_note_outlined,
+  'game': Icons.sports_esports_outlined,
+  'book': Icons.menu_book_outlined,
+  'school': Icons.school_outlined,
+  'fitness': Icons.fitness_center_outlined,
+  'health': Icons.health_and_safety_outlined,
+  'shield': Icons.shield_outlined,
+  'car': Icons.directions_car_outlined,
+  'transit': Icons.train_outlined,
+  'card': Icons.credit_card_outlined,
+  'loan': Icons.account_balance_outlined,
+  'savings': Icons.savings_outlined,
+  'shopping': Icons.shopping_bag_outlined,
+  'family': Icons.family_restroom_outlined,
+  'pet': Icons.pets_outlined,
+  'receipt': Icons.receipt_long_outlined,
+};

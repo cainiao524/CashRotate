@@ -15,12 +15,19 @@ ItemView view({
   LocalDate? due,
   bool needsDetails = false,
   String typeFields = '{}',
+  PriceSchedule? prices,
+  int cycleIndex = 0,
+  LocalDate? paidUntil,
+  String sharing = '',
+  bool pending = true,
 }) {
+  final nextDue = due ?? today.addDays(10);
   final schedule = ItemSchedule(
-    anchor: due ?? today.addDays(10),
+    anchor: cycle.dateAt(nextDue, -cycleIndex),
     cycle: cycle,
-    prices: PriceSchedule.fixed(price),
+    prices: prices ?? PriceSchedule.fixed(price),
     status: status,
+    paidUntil: paidUntil,
   );
   final row = ItemRow(
     id: name,
@@ -33,21 +40,23 @@ ItemView view({
     status: status,
     reminderRules: '[]',
     typeFields: typeFields,
+    sharing: sharing.isEmpty ? null : sharing,
+    paidUntil: paidUntil,
     note: '',
     needsDetails: needsDetails,
     createdAt: 0,
     updatedAt: 0,
   );
   final next = OccurrenceRow(
-    id: '$name:${schedule.anchor}',
+    id: '$name:$nextDue',
     itemId: name,
-    cycleIndex: 0,
-    dueOn: schedule.anchor,
+    cycleIndex: cycleIndex,
+    dueOn: nextDue,
     expectedMinor: price.minor,
     currency: price.currency,
     state: OccurrenceState.pending,
   );
-  return ItemView(row, schedule, next);
+  return ItemView(row, schedule, pending ? next : null);
 }
 
 void main() {
@@ -139,5 +148,69 @@ void main() {
       ),
     ]);
     expect(s.dueSoon, 3);
+  });
+
+  group("this month's charges", () {
+    OccurrenceRow occ(
+      String item,
+      LocalDate due,
+      Money amount, {
+      OccurrenceState state = OccurrenceState.pending,
+    }) => OccurrenceRow(
+      id: '$item:$due',
+      itemId: item,
+      cycleIndex: 0,
+      dueOn: due,
+      expectedMinor: amount.minor,
+      currency: amount.currency,
+      state: state,
+    );
+    const twd100 = Money(10000, Currency.twd);
+    final items = [
+      view(name: 'a', price: twd100),
+      view(name: 'usd', price: const Money(1000, Currency.usd)),
+      view(name: 'parents', price: twd100, type: ItemType.transferOut),
+      view(name: 'todo', price: twd100, needsDetails: true),
+    ];
+
+    test('paid this month, still to pay through month end (overdue too)', () {
+      final m = computeMonthCharges(
+        items,
+        [
+          occ('a', LocalDate(2026, 2, 20), twd100), // overdue: to pay
+          occ('a', LocalDate(2026, 2, 1), twd100, state: OccurrenceState.paid),
+          occ('a', LocalDate(2026, 3, 1), twd100, state: OccurrenceState.paid),
+          occ('a', LocalDate(2026, 3, 31), twd100),
+          occ('a', LocalDate(2026, 4, 1), twd100), // next month
+          occ('usd', LocalDate(2026, 3, 20), const Money(1000, Currency.usd)),
+          occ('parents', LocalDate(2026, 3, 20), twd100),
+          occ('todo', LocalDate(2026, 3, 20), twd100),
+          occ(
+            'a',
+            LocalDate(2026, 3, 2),
+            twd100,
+            state: OccurrenceState.skipped,
+          ),
+        ],
+        fx: fx,
+        main: Currency.twd,
+        today: today,
+      );
+      expect(m.paid, twd100);
+      // 100 + 100 + US$10 (= NT$320).
+      expect(m.pending, const Money(10000 * 2 + 32000, Currency.twd));
+      expect(m.paidShare, closeTo(100 / 620, 1e-9));
+    });
+
+    test('nothing due: share is zero', () {
+      final m = computeMonthCharges(
+        items,
+        const [],
+        fx: fx,
+        main: Currency.twd,
+        today: today,
+      );
+      expect(m.paidShare, 0);
+    });
   });
 }

@@ -6,5 +6,7 @@ abstract final class Routes {
   static String item(String id) => '$items/$id';
   static const ledger = '/ledger';
   static const reports = '/reports';
-  static const settings = '/settings';
+
+  /// Under home: opened from its header on phones, from the rail otherwise.
+  static const settings = '/home/settings';
 }

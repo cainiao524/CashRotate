@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../helpers/pump_app.dart';
 
 Future<void> openSettings(WidgetTester tester) async {
-  await tester.tap(find.text('Settings'));
+  await tester.tap(find.byKey(const Key('nav-settings')));
   await settle(tester);
 }
 
@@ -43,7 +43,7 @@ void main() {
     await openSettings(tester);
     await tester.tap(find.byKey(const Key('settings-decimals-TWD')));
     await settle(tester);
-    await tester.tap(find.text('Home'));
+    await tester.pageBack();
     await settle(tester);
     expect(find.text(r'NT$19,044.41'), findsOneWidget);
   });

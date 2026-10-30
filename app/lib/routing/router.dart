@@ -46,11 +46,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       StatefulShellRoute.indexedStack(
         restorationScopeId: 'shell',
-        builder: (context, state, shell) => AdaptiveShell(shell: shell),
+        builder: (context, state, shell) =>
+            AdaptiveShell(shell: shell, location: state.uri.path),
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(path: Routes.home, builder: (_, _) => const HomePage()),
+              GoRoute(
+                path: Routes.home,
+                builder: (_, _) => const HomePage(),
+                routes: [
+                  GoRoute(
+                    path: 'settings',
+                    builder: (_, _) => const SettingsPage(),
+                  ),
+                ],
+              ),
             ],
           ),
           StatefulShellBranch(
@@ -93,14 +103,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.reports,
                 builder: (_, _) => const ReportsPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.settings,
-                builder: (_, _) => const SettingsPage(),
               ),
             ],
           ),

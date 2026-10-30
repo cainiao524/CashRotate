@@ -66,6 +66,7 @@ void main() {
   testApp('navigation labels follow system language', (tester) async {
     await pumpApp(tester, width: 360, locale: const Locale('zh', 'TW'));
     expect(find.text('固定支出'), findsOneWidget);
-    expect(find.text('設定'), findsOneWidget);
+    // Settings sits in the home header on phones.
+    expect(find.byTooltip('設定'), findsOneWidget);
   });
 }

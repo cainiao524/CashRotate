@@ -150,7 +150,7 @@ void main() {
       onboarded: true,
       seed: (d) => d.seedItems(),
       open: (tester) async {
-        await tester.tap(find.byIcon(Icons.settings_outlined));
+        await tester.tap(find.byKey(const Key('nav-settings')));
         await settle(tester);
       },
     ),

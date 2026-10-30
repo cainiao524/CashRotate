@@ -41,6 +41,17 @@ class SettingsPage extends ConsumerWidget {
               const BasicSettingsFields(keyPrefix: 'settings'),
               _Section(l10n.settingsAmounts),
               const _DecimalsSettings(),
+              _Section(l10n.navHome),
+              SwitchListTile(
+                key: const Key('settings-tile-colors'),
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.settingsTileColors),
+                subtitle: Text(l10n.settingsTileColorsHint),
+                value:
+                    ref.watch(userSettingsProvider).value?.tileColors ?? false,
+                onChanged: (on) =>
+                    ref.read(settingsRepositoryProvider).setTileColors(on),
+              ),
               _Section(l10n.settingsRates),
               const _RatesSettings(),
               _Section(l10n.settingsSetup),
