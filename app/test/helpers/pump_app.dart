@@ -229,7 +229,9 @@ Future<TestData> pumpApp(
       child: const CashRotateApp(),
     ),
   );
-  await settle(tester);
+  // Long enough for the home page's entrance (tiles, rings, count-up, pearl
+  // sheen) to finish before a test looks or a golden is taken.
+  await settle(tester, frames: 18);
   return data;
 }
 

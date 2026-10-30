@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cashrotate_core/cashrotate_core.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -17,12 +18,12 @@ import '../../theme/app_theme.dart';
 import '../../theme/palette.dart';
 import '../../theme/pearl_surface.dart';
 import '../../widgets/marquee_text.dart';
-import '../../widgets/money_text.dart';
 import '../../widgets/preset_badge.dart';
 import '../items/add_item_page.dart';
 import '../items/labels.dart';
 import 'countdown_ring.dart';
 import 'fixed_summary.dart';
+import 'home_motion.dart';
 import 'home_tiles.dart';
 import 'tile_icons.dart';
 
@@ -99,7 +100,25 @@ class HomePage extends ConsumerWidget {
         children: [
           if (!expanded) ...[const _TotalCard(), const SizedBox(height: 12)],
           const _Toolbar(),
-          if (searching) ...[const SizedBox(height: 8), const _SearchField()],
+          AnimatedSwitcher(
+            duration: HomeMotion.of(context, HomeMotion.fade),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SizeTransition(
+                sizeFactor: CurvedAnimation(
+                  parent: animation,
+                  curve: HomeMotion.curve,
+                ),
+                child: child,
+              ),
+            ),
+            child: searching
+                ? const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: _SearchField(),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
           const SizedBox(height: 12),
           _TileGrid(window: window),
         ],
@@ -146,7 +165,7 @@ class _TotalCard extends ConsumerWidget {
       alignment: Alignment.centerLeft,
       child: summary == null
           ? Text('—', style: tabularFigures(text.displaySmall!))
-          : MoneyText(
+          : CountingMoneyText(
               summary.monthlyTotal,
               key: const Key('home-total'),
               style: TextStyle(
@@ -188,6 +207,7 @@ class _TotalCard extends ConsumerWidget {
       return Semantics(
         container: true,
         child: PearlSurface(
+          sheen: true,
           borderRadius: const BorderRadius.all(Radius.circular(22)),
           padding: const EdgeInsets.all(18),
           child: Column(
@@ -239,6 +259,7 @@ class _TotalCard extends ConsumerWidget {
     return Semantics(
       container: true,
       child: PearlSurface(
+        sheen: true,
         borderRadius: const BorderRadius.all(Radius.circular(18)),
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -305,9 +326,17 @@ class _PaidBar extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               ColoredBox(color: palette.selected),
-              FractionallySizedBox(
-                alignment: AlignmentDirectional.centerStart,
-                widthFactor: share.clamp(0.0, 1.0),
+              // Fills from empty when the card appears, then follows
+              // each payment.
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: share.clamp(0.0, 1.0)),
+                duration: HomeMotion.of(context, HomeMotion.count),
+                curve: HomeMotion.curve,
+                builder: (context, factor, child) => FractionallySizedBox(
+                  alignment: AlignmentDirectional.centerStart,
+                  widthFactor: factor,
+                  child: child,
+                ),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: palette.primary,
@@ -565,13 +594,23 @@ class _TileMetrics {
   );
 }
 
-class _TileGrid extends ConsumerWidget {
+class _TileGrid extends ConsumerStatefulWidget {
   const _TileGrid({required this.window});
 
   final WindowClass window;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TileGrid> createState() => _TileGridState();
+}
+
+class _TileGridState extends ConsumerState<_TileGrid> {
+  /// Whether the grid has shown its first tiles: only that first fill is
+  /// staggered; tiles added later simply rise into place.
+  bool _filled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final window = widget.window;
     final l10n = AppLocalizations.of(context);
     final tiles = ref.watch(_visibleTilesProvider);
     final settings = ref.watch(userSettingsProvider).value;
@@ -603,11 +642,16 @@ class _TileGrid extends ConsumerWidget {
         // The tablet total tile grows a row when large text needs it.
         final totalRows = (scaler.scale(1) > 1.5) ? 3 : 2;
 
-        final entries = <(_Span, Widget)>[
+        final entries = <(String, _Span, Widget)>[
           if (expanded)
-            ((columns: 2, rows: totalRows), const _TotalCard(large: true)),
+            (
+              'total',
+              (columns: 2, rows: totalRows),
+              const _TotalCard(large: true),
+            ),
           for (final t in tiles)
             (
+              t.id,
               (
                 columns: settings.wideTiles.contains(t.id) || t.overdue ? 2 : 1,
                 rows: 1,
@@ -615,13 +659,20 @@ class _TileGrid extends ConsumerWidget {
               _ItemTile(tile: t, metrics: metrics),
             ),
           if (expanded) ...[
-            ((columns: 2, rows: 1), const _IncomeCard()),
-            ((columns: 2, rows: 1), const _FixedVariableCard()),
-            ((columns: 1, rows: 1), const _AddTile()),
+            ('income', (columns: 2, rows: 1), const _IncomeCard()),
+            (
+              'fixed-variable',
+              (columns: 2, rows: 1),
+              const _FixedVariableCard(),
+            ),
+            ('add', (columns: 1, rows: 1), const _AddTile()),
           ],
         ];
-        final placed = _pack([for (final (s, _) in entries) s], columns);
+        final placed = _pack([for (final (_, s, _) in entries) s], columns);
         final rows = placed.fold(0, (n, p) => math.max(n, p.row + p.span.rows));
+        final stagger = !_filled;
+        if (entries.isNotEmpty) _filled = true;
+        final move = HomeMotion.of(context, HomeMotion.move);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -630,8 +681,13 @@ class _TileGrid extends ConsumerWidget {
               height: rows * rowHeight + (rows - 1) * gap,
               child: Stack(
                 children: [
-                  for (final (i, (_, child)) in entries.indexed)
-                    Positioned(
+                  // Keyed by item: sorting, filtering, a tile turning wide
+                  // or a charge being paid glides tiles to their new place.
+                  for (final (i, (id, _, child)) in entries.indexed)
+                    AnimatedPositioned(
+                      key: ValueKey('slot-$id'),
+                      duration: move,
+                      curve: HomeMotion.curve,
                       left: placed[i].column * (cell + gap),
                       top: placed[i].row * (rowHeight + gap),
                       width:
@@ -640,16 +696,27 @@ class _TileGrid extends ConsumerWidget {
                       height:
                           placed[i].span.rows * rowHeight +
                           (placed[i].span.rows - 1) * gap,
-                      child: child,
+                      child: EntranceAnimation(
+                        delay: stagger
+                            ? HomeMotion.stagger * i > HomeMotion.maxStagger
+                                  ? HomeMotion.maxStagger
+                                  : HomeMotion.stagger * i
+                            : Duration.zero,
+                        child: child,
+                      ),
                     ),
                 ],
               ),
             ),
-            if (tiles.isEmpty)
-              _EmptyGrid(
-                title: filtered ? l10n.homeNoMatches : l10n.emptyItems,
-                body: filtered ? null : l10n.emptyItemsHint,
-              ),
+            AnimatedSwitcher(
+              duration: HomeMotion.of(context, HomeMotion.fade),
+              child: tiles.isEmpty
+                  ? _EmptyGrid(
+                      title: filtered ? l10n.homeNoMatches : l10n.emptyItems,
+                      body: filtered ? null : l10n.emptyItemsHint,
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
         );
       },
@@ -832,8 +899,10 @@ class _ItemTile extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               tapTargetSize: MaterialTapTargetSize.padded,
             ),
-            onPressed: () =>
-                ref.read(itemRepositoryProvider).markPaid(view.nextDue!.id),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              ref.read(itemRepositoryProvider).markPaid(view.nextDue!.id);
+            },
             child: Text(l10n.actionMarkPaid),
           ),
         ],
@@ -899,7 +968,27 @@ class _ItemTile extends ConsumerWidget {
         ),
       ),
     );
-    return paused || cancelled ? Opacity(opacity: 0.5, child: card) : card;
+    // A change of look (due soon, overdue, paid, colours switched)
+    // crossfades instead of snapping.
+    final look = [
+      brand,
+      tile.dueSoon,
+      tile.overdue,
+      paused || cancelled,
+      palette.brightness,
+    ].join();
+    return PressScale(
+      child: AnimatedOpacity(
+        opacity: paused || cancelled ? 0.5 : 1,
+        duration: HomeMotion.of(context, HomeMotion.fade),
+        child: AnimatedSwitcher(
+          duration: HomeMotion.of(context, HomeMotion.fade),
+          layoutBuilder: (current, previous) =>
+              Stack(fit: StackFit.expand, children: [...previous, ?current]),
+          child: KeyedSubtree(key: ValueKey(look), child: card),
+        ),
+      ),
+    );
   }
 }
 

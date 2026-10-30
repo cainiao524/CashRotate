@@ -188,4 +188,78 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  group('motion', () {
+    Future<void> addRent(TestData d) => d.items.create(
+      NewItem(
+        type: ItemType.bill,
+        name: 'Parking',
+        cycle: Cycle.monthly,
+        anchor: LocalDate(2026, 4, 1),
+        prices: PriceSchedule.fixed(const Money(300000, Currency.twd)),
+      ),
+    );
+
+    testApp('the total glides to a new amount; tiles glide to new places', (
+      tester,
+    ) async {
+      late Map<String, String> ids;
+      final data = await pumpApp(
+        tester,
+        seed: (d) async => ids = await d.seedItems(),
+      );
+      expect(find.text(r'NT$19,044'), findsOneWidget);
+      await tester.runAsync(() => addRent(data));
+      await settle(tester, frames: 2);
+      // On its way from NT$19,044 to NT$22,044.
+      expect(find.text(r'NT$19,044'), findsNothing);
+      expect(find.text(r'NT$22,044'), findsNothing);
+      await settle(tester, frames: 10);
+      expect(find.text(r'NT$22,044'), findsOneWidget);
+
+      final netflix = tile(ids['netflix']!);
+      final before = tester.getTopLeft(netflix);
+      await tester.tap(find.byKey(const Key('home-sort')));
+      await settle(tester);
+      await tester.tap(find.byKey(const ValueKey('menu-By name')));
+      // The menu closes first; then the tile starts to move.
+      var during = before;
+      for (var i = 0; i < 20 && during == before; i++) {
+        await tester.pump(const Duration(milliseconds: 30));
+        during = tester.getTopLeft(netflix);
+      }
+      await settle(tester);
+      final after = tester.getTopLeft(netflix);
+      expect(after, isNot(before));
+      expect(during, isNot(before));
+      expect(during, isNot(after), reason: 'glides, does not jump');
+    });
+
+    testApp('with animations off, long text wraps without overflow', (
+      tester,
+    ) async {
+      await pumpApp(
+        tester,
+        width: 360,
+        textScale: 2,
+        disableAnimations: true,
+        seed: (d) async {
+          await d.seedItems();
+          await seedOverdue(d);
+        },
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testApp('with animations off, changes land at once', (tester) async {
+      final data = await pumpApp(
+        tester,
+        disableAnimations: true,
+        seed: (d) => d.seedItems(),
+      );
+      await tester.runAsync(() => addRent(data));
+      await settle(tester, frames: 2);
+      expect(find.text(r'NT$22,044'), findsOneWidget);
+    });
+  });
 }
