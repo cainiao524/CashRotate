@@ -9,15 +9,19 @@ Future<void> openSettings(WidgetTester tester) async {
   await settle(tester);
 }
 
-/// Settings is a lazy list: build and show [finder] before tapping it.
-Future<void> scrollTo(WidgetTester tester, Finder finder) async {
+/// Settings pages are lazy lists: build and show [finder] before tapping
+/// it. [list] is the page's list key.
+Future<void> scrollTo(
+  WidgetTester tester,
+  Finder finder, {
+  Key list = const PageStorageKey('settings'),
+}) async {
   await tester.scrollUntilVisible(
     finder,
     200,
-    scrollable: find.descendant(
-      of: find.byKey(const PageStorageKey('settings')),
-      matching: find.byType(Scrollable),
-    ),
+    scrollable: find
+        .descendant(of: find.byKey(list), matching: find.byType(Scrollable))
+        .first,
   );
   // Built is not enough: bring it fully into the viewport, clear of the
   // bottom navigation bar.

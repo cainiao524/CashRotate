@@ -6,12 +6,13 @@ import android.os.Build
 import app.cashrotate.keystore.DatabaseKeyStore
 import app.cashrotate.reminders.ReminderActionReceiver
 import app.cashrotate.reminders.ReminderChannel
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.util.concurrent.Executors
 
-class MainActivity : FlutterActivity() {
+// FragmentActivity: local_auth (biometric unlock) needs it.
+class MainActivity : FlutterFragmentActivity() {
     private val background = Executors.newSingleThreadExecutor()
     private var remindersChannel: MethodChannel? = null
     private var pendingPermission: ((Boolean) -> Unit)? = null

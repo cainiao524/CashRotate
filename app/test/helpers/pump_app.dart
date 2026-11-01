@@ -15,6 +15,7 @@ import 'package:cashrotate/data/settings/settings_repository.dart';
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:meta/meta.dart';
@@ -180,6 +181,7 @@ Future<TestData> pumpApp(
   Future<void> Function(TestData data)? seed,
   Entitlements? entitlements,
   FakeReminderPlatform? reminders,
+  List<Override> overrides = const [],
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -231,6 +233,7 @@ Future<TestData> pumpApp(
         reminderPlatformProvider.overrideWithValue(
           reminders ?? FakeReminderPlatform(),
         ),
+        ...overrides,
       ],
       child: const CashRotateApp(),
     ),

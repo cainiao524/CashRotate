@@ -10,6 +10,7 @@ import '../features/onboarding/onboarding_flow.dart';
 import '../features/reports/reports_page.dart';
 import '../features/settings/amount_settings_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/sync/sync_settings_page.dart';
 import '../layout/window_class.dart';
 import 'adaptive_shell.dart';
 import 'routes.dart';
@@ -63,6 +64,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'amounts',
                         builder: (_, _) => const AmountSettingsPage(),
+                      ),
+                      GoRoute(
+                        path: 'sync',
+                        builder: (_, _) => const SyncSettingsPage(),
                       ),
                     ],
                   ),

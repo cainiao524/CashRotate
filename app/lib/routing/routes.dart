@@ -10,4 +10,5 @@ abstract final class Routes {
   /// Under home: opened from its header on phones, from the rail otherwise.
   static const settings = '/home/settings';
   static const settingsAmounts = '$settings/amounts';
+  static const settingsSync = '$settings/sync';
 }

@@ -14,6 +14,7 @@ import '../../theme/palette.dart';
 import '../../widgets/currency_picker.dart';
 import '../home/fixed_summary.dart';
 import '../items/fx_line.dart';
+import '../sync/sync_settings_page.dart';
 import 'amount_settings_page.dart';
 import 'basic_settings_fields.dart';
 import 'reminder_settings.dart';
@@ -53,6 +54,8 @@ class SettingsPage extends ConsumerWidget {
                 onChanged: (on) =>
                     ref.read(settingsRepositoryProvider).setTileColors(on),
               ),
+              _Section(l10n.settingsSyncSecurity),
+              const SyncSettingsTile(),
               _Section(l10n.settingsReminders),
               const ReminderSettings(),
               _Section(l10n.settingsRates),

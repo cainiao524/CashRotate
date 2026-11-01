@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sodium/sodium_sumo.dart';
 
 import '../platform/keystore.dart';
 import 'db/app_database.dart';
@@ -16,6 +17,7 @@ import 'journal.dart';
 import 'reminders/reminder_platform.dart';
 import 'reminders/reminder_service.dart';
 import 'settings/settings_repository.dart';
+import 'sync/sync_service.dart';
 
 final databaseKeySourceProvider = Provider<DatabaseKeySource>(
   (ref) => const AndroidKeystoreKeySource(),
@@ -127,4 +129,23 @@ final reminderServiceProvider = Provider<ReminderService>((ref) {
     ref.watch(reminderPlatformProvider),
     ref.watch(clockProvider),
   );
+});
+
+/// libsodium (sumo: Argon2id), loaded once.
+final sodiumProvider = FutureProvider<SodiumSumo>(
+  (ref) => SodiumSumoInit.init(),
+);
+
+final syncServiceProvider = FutureProvider<SyncService>((ref) async {
+  return SyncService(
+    ref.watch(appDatabaseProvider).requireValue,
+    ref.watch(journalProvider),
+    await ref.watch(sodiumProvider.future),
+  );
+});
+
+/// This device's sync connection, or null when not set up.
+final syncConfigProvider = StreamProvider<SyncConfig?>((ref) async* {
+  final service = await ref.watch(syncServiceProvider.future);
+  yield* service.watchConfig();
 });
