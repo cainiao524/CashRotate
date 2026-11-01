@@ -23,6 +23,11 @@ class FakeDavServer {
   final MemoryFolder folder;
   final String prefix;
   final methods = <String>[];
+
+  /// Behind-a-proxy servers: refuse an absolute Destination (Apache mod_dav
+  /// answers 502 for another scheme/port), or refuse MOVE altogether.
+  bool rejectAbsoluteDestination = false;
+  bool noMove = false;
   static const auth = 'Basic dXNlcjpwYXNz'; // user:pass
 
   Uri get base => Uri.parse('http://127.0.0.1:${_server.port}$prefix');
@@ -83,7 +88,13 @@ class FakeDavServer {
           res.statusCode = 409; // no parent collection
         }
       case 'MOVE':
-        final dest = _rel(Uri.parse(req.headers.value('Destination')!).path);
+        final header = req.headers.value('Destination')!;
+        if (noMove ||
+            (rejectAbsoluteDestination && header.startsWith('http'))) {
+          res.statusCode = 502;
+          break;
+        }
+        final dest = _rel(Uri.parse(header).path);
         try {
           await folder.move(path, dest);
           res.statusCode = 201;
@@ -136,6 +147,33 @@ void main() {
     await dav.delete('devices/a b/1.chg');
     await dav.delete('devices/a b/1.chg'); // gone already: fine
     expect(await dav.list('devices/a b'), isEmpty);
+  });
+
+  test('MOVE behind a proxy: retried with a path-only destination', () async {
+    server.rejectAbsoluteDestination = true;
+    await dav.write('m.tmp', [7]);
+    await dav.move('m.tmp', 'manifest.json');
+    expect(await dav.read('manifest.json'), [7]);
+    expect(await dav.read('m.tmp'), isNull);
+  });
+
+  test('a server without a working MOVE: copy, then delete', () async {
+    server.noMove = true;
+    await dav.write('m.tmp', [8]);
+    await dav.move('m.tmp', 'manifest.json');
+    expect(await dav.read('manifest.json'), [8]);
+    expect(await dav.read('m.tmp'), isNull);
+  });
+
+  test('errors name the request and the status', () async {
+    server.noMove = true;
+    Object? error;
+    try {
+      await dav.move('missing', 'x');
+    } on WebDavException catch (e) {
+      error = e;
+    }
+    expect((error! as WebDavException).summary, 'MOVE missing: HTTP 502');
   });
 
   test('a wrong password is reported as an auth error', () async {

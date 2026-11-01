@@ -226,7 +226,7 @@ class SyncService {
       await _save(c.copyWith(lastSyncAt: _now(), clearError: true));
       return (SyncOutcome.synced, report);
     } on WebDavException catch (e) {
-      await _save(c.copyWith(lastError: e.toString()));
+      await _save(c.copyWith(lastError: e.summary));
       return (e.isAuth ? SyncOutcome.authFailed : SyncOutcome.failed, null);
     } on SyncCipherException catch (e) {
       await _save(c.copyWith(lastError: e.toString()));

@@ -17,6 +17,9 @@ class WebDavException implements Exception {
   /// Wrong user name or (app) password.
   bool get isAuth => status == 401 || status == 403;
 
+  /// Short form for the user: "PUT manifest.json: HTTP 502".
+  String get summary => '$method $path: HTTP $status';
+
   @override
   String toString() => 'WebDavException: $method $path → $status';
 }
@@ -121,12 +124,31 @@ class WebDavFolder implements RemoteFolder {
 
   @override
   Future<void> move(String from, String to) async {
-    final (status, body) = await _send(
+    final source = _uri(from);
+    final target = _uri(to);
+    var (status, body) = await _send(
       'MOVE',
-      _uri(from),
-      headers: {'Destination': _uri(to).toString(), 'Overwrite': 'T'},
+      source,
+      headers: {'Destination': target.toString(), 'Overwrite': 'T'},
     );
-    if (status != 201 && status != 204) _fail('MOVE', from, status, body);
+    if (status == 201 || status == 204) return;
+    if (status == 401) _fail('MOVE', from, status, body);
+    // Behind an HTTPS reverse proxy the server may see itself as http:// and
+    // refuse a Destination with another scheme or port (Apache mod_dav
+    // answers 502). A path-only Destination avoids the mismatch.
+    (status, body) = await _send(
+      'MOVE',
+      source,
+      headers: {'Destination': target.path, 'Overwrite': 'T'},
+    );
+    if (status == 201 || status == 204) return;
+    if (status == 401) _fail('MOVE', from, status, body);
+    // Last resort for servers without a working MOVE: copy, then delete.
+    // Not atomic, but readers ignore files they cannot open.
+    final bytes = await read(from);
+    if (bytes == null) _fail('MOVE', from, status, body);
+    await write(to, bytes);
+    await delete(from);
   }
 
   @override

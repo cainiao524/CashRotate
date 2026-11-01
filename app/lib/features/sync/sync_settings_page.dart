@@ -102,7 +102,7 @@ class _SyncSettingsPageState extends ConsumerState<SyncSettingsPage> {
     } on WebDavException catch (e) {
       _error = e.isAuth
           ? l10n.syncAuthFailed
-          : l10n.syncConnectFailed('HTTP ${e.status}');
+          : l10n.syncConnectFailed(e.summary);
     } on SyncCipherException {
       _error = _step == _Step.recover
           ? l10n.syncWrongRecovery
