@@ -8,6 +8,7 @@ import '../features/items/items_page.dart';
 import '../features/ledger/ledger_page.dart';
 import '../features/onboarding/onboarding_flow.dart';
 import '../features/reports/reports_page.dart';
+import '../features/settings/amount_settings_page.dart';
 import '../features/settings/settings_page.dart';
 import '../layout/window_class.dart';
 import 'adaptive_shell.dart';
@@ -58,6 +59,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'settings',
                     builder: (_, _) => const SettingsPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'amounts',
+                        builder: (_, _) => const AmountSettingsPage(),
+                      ),
+                    ],
                   ),
                 ],
               ),

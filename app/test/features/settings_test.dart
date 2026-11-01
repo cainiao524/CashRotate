@@ -25,6 +25,13 @@ Future<void> scrollTo(WidgetTester tester, Finder finder) async {
   await settle(tester);
 }
 
+/// Settings › Amounts: the per-currency decimals page.
+Future<void> openAmounts(WidgetTester tester) async {
+  await openSettings(tester);
+  await tester.tap(find.byKey(const Key('settings-amounts')));
+  await settle(tester);
+}
+
 void main() {
   testApp('shows language, region, main currency and stored rates', (
     tester,
@@ -42,11 +49,46 @@ void main() {
     await pumpApp(tester, seed: (d) => d.seedItems());
     expect(find.text(r'NT$19,044'), findsOneWidget);
     await openSettings(tester);
+    // The settings row previews each currency in use.
+    expect(find.text(r'NT$1,235 · US$1,234.56'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('settings-amounts')));
+    await settle(tester);
     await tester.tap(find.byKey(const Key('settings-decimals-TWD')));
     await settle(tester);
-    await tester.pageBack();
+    await tester.pageBack(); // amounts → settings
+    await settle(tester);
+    expect(find.text(r'NT$1,234.56 · US$1,234.56'), findsOneWidget);
+    await tester.pageBack(); // settings → home
     await settle(tester);
     expect(find.text(r'NT$19,044.41'), findsOneWidget);
+  });
+
+  testApp('decimals list skips currencies that only have a rate', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      seed: (d) async {
+        await d.seedItems();
+        await d.rates.setManualRate(
+          Currency.eur,
+          Currency.twd,
+          Ratio.tryParse('35')!,
+        );
+      },
+    );
+    await openAmounts(tester);
+    expect(find.byKey(const Key('settings-decimals-TWD')), findsOneWidget);
+    expect(find.byKey(const Key('settings-decimals-USD')), findsOneWidget);
+    expect(find.byKey(const Key('settings-decimals-EUR')), findsNothing);
+  });
+
+  testApp('a currency appears once an item uses it', (tester) async {
+    await pumpApp(tester);
+    await openAmounts(tester);
+    expect(find.byKey(const Key('settings-decimals-TWD')), findsOneWidget);
+    expect(find.byKey(const Key('settings-decimals-USD')), findsNothing);
+    expect(find.textContaining('A currency appears here'), findsOneWidget);
   });
 
   testApp('free tier: add a manual rate for a non-automatic currency', (

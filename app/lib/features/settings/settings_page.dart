@@ -14,6 +14,7 @@ import '../../theme/palette.dart';
 import '../../widgets/currency_picker.dart';
 import '../home/fixed_summary.dart';
 import '../items/fx_line.dart';
+import 'amount_settings_page.dart';
 import 'basic_settings_fields.dart';
 import 'reminder_settings.dart';
 
@@ -40,8 +41,7 @@ class SettingsPage extends ConsumerWidget {
             children: [
               _Section(l10n.settingsGeneral),
               const BasicSettingsFields(keyPrefix: 'settings'),
-              _Section(l10n.settingsAmounts),
-              const _DecimalsSettings(),
+              const AmountsSettingsTile(),
               _Section(l10n.navHome),
               SwitchListTile(
                 key: const Key('settings-tile-colors'),
@@ -96,49 +96,6 @@ class _Section extends StatelessWidget {
           ?.copyWith(color: Palette.of(context).secondaryText),
     ),
   );
-}
-
-/// "Show decimals" per currency in use (main currency, item currencies,
-/// rate currencies), for currencies that have a minor unit.
-class _DecimalsSettings extends ConsumerWidget {
-  const _DecimalsSettings();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final settings = ref.watch(userSettingsProvider).value;
-    if (settings == null) return const SizedBox.shrink();
-    final items = ref.watch(itemsProvider).value ?? const [];
-    final rates = ref.watch(_ratesProvider).value ?? const [];
-    final inUse = <Currency>{
-      settings.mainCurrency,
-      for (final v in items) v.schedule.prices.stablePrice.currency,
-      for (final r in rates) ...[r.base, r.quote],
-    }.where((c) => c.minorUnits > 0).toList();
-    final locale = intlLocaleOf(context);
-
-    return Column(
-      children: [
-        for (final c in inUse)
-          SwitchListTile(
-            key: Key('settings-decimals-${c.code}'),
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.settingsShowDecimals(c.code)),
-            subtitle: Text(
-              formatMoney(
-                Money(123456, c),
-                locale: locale,
-                decimals: settings.decimalsFor(c),
-              ),
-            ),
-            value: settings.decimalsFor(c) > 0,
-            onChanged: (on) => ref
-                .read(settingsRepositoryProvider)
-                .setDecimals(c, on ? c.minorUnits : 0),
-          ),
-      ],
-    );
-  }
 }
 
 /// Exchange rates: automatic daily rates (status, source, "update now") and

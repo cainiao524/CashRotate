@@ -169,5 +169,6 @@
   "batteryGeneric": "設定 › 應用程式 › 本 App › 電池：選「不限制」。",
   "settingsOpenBatterySettings": "開啟電池設定",
   "fieldRemindDays": "提醒我",
-  "remindDaysBefore": "{count, plural, =0{當天} other{前 {count} 天}}"
+  "remindDaysBefore": "{count, plural, =0{當天} other{前 {count} 天}}",
+  "settingsAmountsHint": "其他幣別依標準小數位顯示。新增以某個幣別計價的項目後，該幣別就會出現在這裡。"
 }
