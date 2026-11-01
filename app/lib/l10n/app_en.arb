@@ -328,5 +328,7 @@
   "settingsOpenBatterySettings": "Open battery settings", "@settingsOpenBatterySettings": {"description": "Button: open the system battery optimisation settings."},
   "fieldRemindDays": "Remind me", "@fieldRemindDays": {"description": "Item editor: when to remind before each charge."},
   "remindDaysBefore": "{count, plural, =0{On the day} =1{1 day before} other{{count} days before}}", "@remindDaysBefore": {"description": "Item editor: a reminder choice.", "placeholders": {"count": {"type": "int"}}},
-  "settingsAmountsHint": "Other currencies show their usual decimals. A currency appears here once one of your items is billed in it.", "@settingsAmountsHint": {"description": "Note under the per-currency decimals switches."}
+  "settingsAmountsHint": "Other currencies show their usual decimals. A currency appears here once one of your items is billed in it.", "@settingsAmountsHint": {"description": "Note under the per-currency decimals switches."},
+  "hideAmounts": "Hide amounts", "@hideAmounts": {"description": "Button: show amounts as dots."},
+  "showAmounts": "Show amounts", "@showAmounts": {"description": "Button: show amounts again."}
 }

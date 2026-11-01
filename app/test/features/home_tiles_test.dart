@@ -3,6 +3,7 @@ import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../helpers/fake_reminder_platform.dart';
 import '../helpers/pump_app.dart';
 
 Finder tile(String id) => find.byKey(ValueKey('tile-$id'));
@@ -261,5 +262,27 @@ void main() {
       await settle(tester, frames: 2);
       expect(find.text(r'NT$22,044'), findsOneWidget);
     });
+  });
+
+  testApp('hide amounts: dots on screen, none in notifications', (
+    tester,
+  ) async {
+    final platform = FakeReminderPlatform();
+    await pumpApp(tester, reminders: platform, seed: (d) => d.seedItems());
+    expect(find.text(r'NT$19,044'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('home-hide-amounts')));
+    await settle(tester, frames: 10);
+    expect(find.text(r'NT$19,044'), findsNothing);
+    expect(find.text('••••'), findsWidgets);
+    expect(find.textContaining('≈ NT\$'), findsNothing);
+    expect(platform.reminders, isNotEmpty);
+    expect(
+      platform.reminders.every((r) => !r.body.contains(r'NT$')),
+      isTrue,
+      reason: 'amounts stay off the lock screen',
+    );
+    await tester.tap(find.byKey(const Key('home-hide-amounts')));
+    await settle(tester, frames: 10);
+    expect(find.text(r'NT$19,044'), findsOneWidget);
   });
 }

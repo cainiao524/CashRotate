@@ -8,6 +8,7 @@ import '../../data/providers.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
 import '../../theme/palette.dart';
+import '../../widgets/money_text.dart' show hiddenAmount;
 
 /// "≈ NT$652 · rate 32.59 · updated 27 Oct 2026" under a foreign amount, or
 /// a prompt to set a rate when none is known. Nothing for main-currency
@@ -62,6 +63,8 @@ class FxLine extends ConsumerWidget {
     final text = l10n.fxEstimate(
       converted == null
           ? '—'
+          : settings.hideAmounts
+          ? hiddenAmount
           : formatMoney(
               converted,
               locale: locale,

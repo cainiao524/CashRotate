@@ -18,6 +18,7 @@ import '../../theme/app_theme.dart';
 import '../../theme/palette.dart';
 import '../../theme/pearl_surface.dart';
 import '../../widgets/marquee_text.dart';
+import '../../widgets/money_text.dart' show hiddenAmount;
 import '../../widgets/preset_badge.dart';
 import '../items/add_item_page.dart';
 import '../items/labels.dart';
@@ -63,6 +64,7 @@ class HomePage extends ConsumerWidget {
     final searching =
         ref.watch(homeViewProvider.select((v) => v.query)) != null;
     final side = expanded ? 32.0 : (compact ? 16.0 : 24.0);
+    final hidden = ref.watch(userSettingsProvider).value?.hideAmounts ?? false;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -71,6 +73,15 @@ class HomePage extends ConsumerWidget {
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         actions: [
+          IconButton(
+            key: const Key('home-hide-amounts'),
+            tooltip: hidden ? l10n.showAmounts : l10n.hideAmounts,
+            isSelected: hidden,
+            icon: const Icon(Icons.visibility_outlined),
+            selectedIcon: const Icon(Icons.visibility_off_outlined),
+            onPressed: () =>
+                ref.read(settingsRepositoryProvider).setHideAmounts(!hidden),
+          ),
           // Two-pane windows reach settings from the navigation rail.
           if (compact)
             IconButton(
@@ -127,11 +138,15 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-String _format(BuildContext context, WidgetRef ref, Money money) => formatMoney(
-  money,
-  locale: intlLocaleOf(context),
-  decimals: ref.watch(userSettingsProvider).value?.decimalsFor(money.currency),
-);
+String _format(BuildContext context, WidgetRef ref, Money money) {
+  final settings = ref.watch(userSettingsProvider).value;
+  if (settings?.hideAmounts ?? false) return hiddenAmount;
+  return formatMoney(
+    money,
+    locale: intlLocaleOf(context),
+    decimals: settings?.decimalsFor(money.currency),
+  );
+}
 
 String _shortDate(BuildContext context, LocalDate d) =>
     DateFormat.Md(intlLocaleOf(context))

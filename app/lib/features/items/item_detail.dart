@@ -75,7 +75,9 @@ class ItemDetail extends ConsumerWidget {
         ? null
         : s.prices.changeAfter(s.cycle, s.anchor, next.cycleIndex);
     final upcoming = ref.watch(_upcomingProvider(id)).value ?? const [];
-    String money(Money m) => formatMoney(m, locale: locale);
+    final hidden = ref.watch(userSettingsProvider).value?.hideAmounts ?? false;
+    String money(Money m) =>
+        hidden ? hiddenAmount : formatMoney(m, locale: locale);
 
     final status = switch (v.row.status) {
       ItemStatus.active => null,

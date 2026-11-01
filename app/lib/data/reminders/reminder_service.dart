@@ -157,11 +157,14 @@ List<NativeReminder> buildNativeReminders({
         ),
   ], today: today);
 
-  String money(Money m) => formatMoney(
-    m,
-    locale: locale,
-    decimals: settings.decimalsFor(m.currency),
-  );
+  // Hidden-amounts mode keeps amounts off the lock screen too.
+  String money(Money m) => settings.hideAmounts
+      ? '••••'
+      : formatMoney(
+          m,
+          locale: locale,
+          decimals: settings.decimalsFor(m.currency),
+        );
   String date(LocalDate d) =>
       DateFormat.MMMd(locale).format(DateTime(d.year, d.month, d.day));
   final hour = settings.reminderMinutes ~/ 60;

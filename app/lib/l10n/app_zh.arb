@@ -170,5 +170,7 @@
   "settingsOpenBatterySettings": "打开电池设置",
   "fieldRemindDays": "提醒我",
   "remindDaysBefore": "{count, plural, =0{当天} other{前 {count} 天}}",
-  "settingsAmountsHint": "其他币别按标准小数位显示。新增以某个币别计价的项目后，该币别就会出现在这里。"
+  "settingsAmountsHint": "其他币别按标准小数位显示。新增以某个币别计价的项目后，该币别就会出现在这里。",
+  "hideAmounts": "隐藏金额",
+  "showAmounts": "显示金额"
 }

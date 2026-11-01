@@ -7,6 +7,9 @@ import '../l10n/locale_tags.dart';
 import '../theme/app_theme.dart';
 import '../theme/palette.dart';
 
+/// What an amount reads as in hidden-amounts mode.
+const hiddenAmount = '••••';
+
 /// An amount in tabular figures, formatted for the current locale and the
 /// user's display precision.
 class MoneyText extends ConsumerWidget {
@@ -25,15 +28,14 @@ class MoneyText extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final decimals = ref
-        .watch(userSettingsProvider)
-        .value
-        ?.decimalsFor(money.currency);
-    final text = formatMoney(
-      money,
-      locale: intlLocaleOf(context),
-      decimals: decimals,
-    );
+    final settings = ref.watch(userSettingsProvider).value;
+    final text = settings?.hideAmounts ?? false
+        ? hiddenAmount
+        : formatMoney(
+            money,
+            locale: intlLocaleOf(context),
+            decimals: settings?.decimalsFor(money.currency),
+          );
     final base = style ?? DefaultTextStyle.of(context).style;
     return Text(approximate ? '≈ $text' : text, style: tabularFigures(base));
   }
