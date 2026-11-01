@@ -12,10 +12,12 @@ import '../journal.dart';
 const syncedTables = <String, List<String>>{
   'app_settings': ['key'],
   'exchange_rates': ['base', 'quote'],
+  'accounts': ['id'],
   'items': ['id'],
   'price_phases': ['id'],
   'occurrences': ['id'],
   'price_history': ['id'],
+  'transactions': ['id'],
 };
 
 /// [SyncStore] over the encrypted drift database: the change log is the

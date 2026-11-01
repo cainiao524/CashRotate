@@ -139,6 +139,9 @@ class Accounts extends Table with _Timestamps {
 
   /// Foreign transaction fee in basis points (150 = 1.5%).
   IntColumn get fxFeeBasisPoints => integer().nullable()();
+
+  /// Last four digits of a card, to match bank notifications (v3).
+  TextColumn get cardLast4 => text().nullable()();
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
 
@@ -194,6 +197,20 @@ class Transactions extends Table with _Timestamps {
   IntColumn get occurredAt => integer()();
   TextColumn get note => text().withDefault(const Constant(''))();
   TextColumn get occurrenceId => text().nullable()();
+
+  /// The fixed expense this pays (also for irregular bills, which have no
+  /// occurrence). No foreign key: sync may deliver it first (v3).
+  TextColumn get itemId => text().nullable()();
+
+  /// What was due in the item's own currency when [currency] differs, e.g.
+  /// US$20 charged as NT$661 (v3).
+  IntColumn get originalAmountMinor => integer().nullable()();
+  TextColumn get originalCurrency =>
+      text().map(const CurrencyConverter()).nullable()();
+
+  /// The published rate (main currency per unit of [originalCurrency]) on
+  /// the day, to learn the card's markup from the rate actually charged.
+  TextColumn get marketFxRate => text().nullable()();
 
   /// Created by reconciling a balance.
   BoolColumn get isAdjustment => boolean().withDefault(const Constant(false))();

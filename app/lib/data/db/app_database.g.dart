@@ -2787,6 +2787,17 @@ class $AccountsTable extends Accounts
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _cardLast4Meta = const VerificationMeta(
+    'cardLast4',
+  );
+  @override
+  late final GeneratedColumn<String> cardLast4 = GeneratedColumn<String>(
+    'card_last4',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _archivedMeta = const VerificationMeta(
     'archived',
   );
@@ -2827,6 +2838,7 @@ class $AccountsTable extends Accounts
     statementDay,
     paymentDueDay,
     fxFeeBasisPoints,
+    cardLast4,
     archived,
     sortOrder,
   ];
@@ -2916,6 +2928,12 @@ class $AccountsTable extends Accounts
         ),
       );
     }
+    if (data.containsKey('card_last4')) {
+      context.handle(
+        _cardLast4Meta,
+        cardLast4.isAcceptableOrUnknown(data['card_last4']!, _cardLast4Meta),
+      );
+    }
     if (data.containsKey('archived')) {
       context.handle(
         _archivedMeta,
@@ -2985,6 +3003,10 @@ class $AccountsTable extends Accounts
         DriftSqlType.int,
         data['${effectivePrefix}fx_fee_basis_points'],
       ),
+      cardLast4: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}card_last4'],
+      ),
       archived: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}archived'],
@@ -3025,6 +3047,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
 
   /// Foreign transaction fee in basis points (150 = 1.5%).
   final int? fxFeeBasisPoints;
+
+  /// Last four digits of a card, to match bank notifications (v3).
+  final String? cardLast4;
   final bool archived;
   final int sortOrder;
   const AccountRow({
@@ -3039,6 +3064,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     this.statementDay,
     this.paymentDueDay,
     this.fxFeeBasisPoints,
+    this.cardLast4,
     required this.archived,
     required this.sortOrder,
   });
@@ -3070,6 +3096,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     if (!nullToAbsent || fxFeeBasisPoints != null) {
       map['fx_fee_basis_points'] = Variable<int>(fxFeeBasisPoints);
     }
+    if (!nullToAbsent || cardLast4 != null) {
+      map['card_last4'] = Variable<String>(cardLast4);
+    }
     map['archived'] = Variable<bool>(archived);
     map['sort_order'] = Variable<int>(sortOrder);
     return map;
@@ -3096,6 +3125,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       fxFeeBasisPoints: fxFeeBasisPoints == null && nullToAbsent
           ? const Value.absent()
           : Value(fxFeeBasisPoints),
+      cardLast4: cardLast4 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cardLast4),
       archived: Value(archived),
       sortOrder: Value(sortOrder),
     );
@@ -3122,6 +3154,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       statementDay: serializer.fromJson<int?>(json['statementDay']),
       paymentDueDay: serializer.fromJson<int?>(json['paymentDueDay']),
       fxFeeBasisPoints: serializer.fromJson<int?>(json['fxFeeBasisPoints']),
+      cardLast4: serializer.fromJson<String?>(json['cardLast4']),
       archived: serializer.fromJson<bool>(json['archived']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
     );
@@ -3143,6 +3176,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       'statementDay': serializer.toJson<int?>(statementDay),
       'paymentDueDay': serializer.toJson<int?>(paymentDueDay),
       'fxFeeBasisPoints': serializer.toJson<int?>(fxFeeBasisPoints),
+      'cardLast4': serializer.toJson<String?>(cardLast4),
       'archived': serializer.toJson<bool>(archived),
       'sortOrder': serializer.toJson<int>(sortOrder),
     };
@@ -3160,6 +3194,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     Value<int?> statementDay = const Value.absent(),
     Value<int?> paymentDueDay = const Value.absent(),
     Value<int?> fxFeeBasisPoints = const Value.absent(),
+    Value<String?> cardLast4 = const Value.absent(),
     bool? archived,
     int? sortOrder,
   }) => AccountRow(
@@ -3180,6 +3215,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     fxFeeBasisPoints: fxFeeBasisPoints.present
         ? fxFeeBasisPoints.value
         : this.fxFeeBasisPoints,
+    cardLast4: cardLast4.present ? cardLast4.value : this.cardLast4,
     archived: archived ?? this.archived,
     sortOrder: sortOrder ?? this.sortOrder,
   );
@@ -3206,6 +3242,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       fxFeeBasisPoints: data.fxFeeBasisPoints.present
           ? data.fxFeeBasisPoints.value
           : this.fxFeeBasisPoints,
+      cardLast4: data.cardLast4.present ? data.cardLast4.value : this.cardLast4,
       archived: data.archived.present ? data.archived.value : this.archived,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
     );
@@ -3225,6 +3262,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           ..write('statementDay: $statementDay, ')
           ..write('paymentDueDay: $paymentDueDay, ')
           ..write('fxFeeBasisPoints: $fxFeeBasisPoints, ')
+          ..write('cardLast4: $cardLast4, ')
           ..write('archived: $archived, ')
           ..write('sortOrder: $sortOrder')
           ..write(')'))
@@ -3244,6 +3282,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     statementDay,
     paymentDueDay,
     fxFeeBasisPoints,
+    cardLast4,
     archived,
     sortOrder,
   );
@@ -3262,6 +3301,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           other.statementDay == this.statementDay &&
           other.paymentDueDay == this.paymentDueDay &&
           other.fxFeeBasisPoints == this.fxFeeBasisPoints &&
+          other.cardLast4 == this.cardLast4 &&
           other.archived == this.archived &&
           other.sortOrder == this.sortOrder);
 }
@@ -3278,6 +3318,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
   final Value<int?> statementDay;
   final Value<int?> paymentDueDay;
   final Value<int?> fxFeeBasisPoints;
+  final Value<String?> cardLast4;
   final Value<bool> archived;
   final Value<int> sortOrder;
   final Value<int> rowid;
@@ -3293,6 +3334,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.statementDay = const Value.absent(),
     this.paymentDueDay = const Value.absent(),
     this.fxFeeBasisPoints = const Value.absent(),
+    this.cardLast4 = const Value.absent(),
     this.archived = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3309,6 +3351,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.statementDay = const Value.absent(),
     this.paymentDueDay = const Value.absent(),
     this.fxFeeBasisPoints = const Value.absent(),
+    this.cardLast4 = const Value.absent(),
     this.archived = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3330,6 +3373,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Expression<int>? statementDay,
     Expression<int>? paymentDueDay,
     Expression<int>? fxFeeBasisPoints,
+    Expression<String>? cardLast4,
     Expression<bool>? archived,
     Expression<int>? sortOrder,
     Expression<int>? rowid,
@@ -3347,6 +3391,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       if (statementDay != null) 'statement_day': statementDay,
       if (paymentDueDay != null) 'payment_due_day': paymentDueDay,
       if (fxFeeBasisPoints != null) 'fx_fee_basis_points': fxFeeBasisPoints,
+      if (cardLast4 != null) 'card_last4': cardLast4,
       if (archived != null) 'archived': archived,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (rowid != null) 'rowid': rowid,
@@ -3365,6 +3410,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Value<int?>? statementDay,
     Value<int?>? paymentDueDay,
     Value<int?>? fxFeeBasisPoints,
+    Value<String?>? cardLast4,
     Value<bool>? archived,
     Value<int>? sortOrder,
     Value<int>? rowid,
@@ -3381,6 +3427,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       statementDay: statementDay ?? this.statementDay,
       paymentDueDay: paymentDueDay ?? this.paymentDueDay,
       fxFeeBasisPoints: fxFeeBasisPoints ?? this.fxFeeBasisPoints,
+      cardLast4: cardLast4 ?? this.cardLast4,
       archived: archived ?? this.archived,
       sortOrder: sortOrder ?? this.sortOrder,
       rowid: rowid ?? this.rowid,
@@ -3427,6 +3474,9 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     if (fxFeeBasisPoints.present) {
       map['fx_fee_basis_points'] = Variable<int>(fxFeeBasisPoints.value);
     }
+    if (cardLast4.present) {
+      map['card_last4'] = Variable<String>(cardLast4.value);
+    }
     if (archived.present) {
       map['archived'] = Variable<bool>(archived.value);
     }
@@ -3453,6 +3503,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
           ..write('statementDay: $statementDay, ')
           ..write('paymentDueDay: $paymentDueDay, ')
           ..write('fxFeeBasisPoints: $fxFeeBasisPoints, ')
+          ..write('cardLast4: $cardLast4, ')
           ..write('archived: $archived, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('rowid: $rowid')
@@ -4166,6 +4217,45 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _originalAmountMinorMeta =
+      const VerificationMeta('originalAmountMinor');
+  @override
+  late final GeneratedColumn<int> originalAmountMinor = GeneratedColumn<int>(
+    'original_amount_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Currency?, String>
+  originalCurrency = GeneratedColumn<String>(
+    'original_currency',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<Currency?>($TransactionsTable.$converteroriginalCurrencyn);
+  static const VerificationMeta _marketFxRateMeta = const VerificationMeta(
+    'marketFxRate',
+  );
+  @override
+  late final GeneratedColumn<String> marketFxRate = GeneratedColumn<String>(
+    'market_fx_rate',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isAdjustmentMeta = const VerificationMeta(
     'isAdjustment',
   );
@@ -4199,6 +4289,10 @@ class $TransactionsTable extends Transactions
     occurredAt,
     note,
     occurrenceId,
+    itemId,
+    originalAmountMinor,
+    originalCurrency,
+    marketFxRate,
     isAdjustment,
   ];
   @override
@@ -4306,6 +4400,30 @@ class $TransactionsTable extends Transactions
         ),
       );
     }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    }
+    if (data.containsKey('original_amount_minor')) {
+      context.handle(
+        _originalAmountMinorMeta,
+        originalAmountMinor.isAcceptableOrUnknown(
+          data['original_amount_minor']!,
+          _originalAmountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('market_fx_rate')) {
+      context.handle(
+        _marketFxRateMeta,
+        marketFxRate.isAcceptableOrUnknown(
+          data['market_fx_rate']!,
+          _marketFxRateMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_adjustment')) {
       context.handle(
         _isAdjustmentMeta,
@@ -4396,6 +4514,24 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}occurrence_id'],
       ),
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      ),
+      originalAmountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}original_amount_minor'],
+      ),
+      originalCurrency: $TransactionsTable.$converteroriginalCurrencyn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}original_currency'],
+        ),
+      ),
+      marketFxRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}market_fx_rate'],
+      ),
       isAdjustment: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_adjustment'],
@@ -4420,6 +4556,10 @@ class $TransactionsTable extends Transactions
       const CurrencyConverter();
   static TypeConverter<Currency?, String?> $converterfxMainCurrencyn =
       NullAwareTypeConverter.wrap($converterfxMainCurrency);
+  static TypeConverter<Currency, String> $converteroriginalCurrency =
+      const CurrencyConverter();
+  static TypeConverter<Currency?, String?> $converteroriginalCurrencyn =
+      NullAwareTypeConverter.wrap($converteroriginalCurrency);
 }
 
 class TransactionRow extends DataClass implements Insertable<TransactionRow> {
@@ -4445,6 +4585,19 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   final String note;
   final String? occurrenceId;
 
+  /// The fixed expense this pays (also for irregular bills, which have no
+  /// occurrence). No foreign key: sync may deliver it first (v3).
+  final String? itemId;
+
+  /// What was due in the item's own currency when [currency] differs, e.g.
+  /// US$20 charged as NT$661 (v3).
+  final int? originalAmountMinor;
+  final Currency? originalCurrency;
+
+  /// The published rate (main currency per unit of [originalCurrency]) on
+  /// the day, to learn the card's markup from the rate actually charged.
+  final String? marketFxRate;
+
   /// Created by reconciling a balance.
   final bool isAdjustment;
   const TransactionRow({
@@ -4464,6 +4617,10 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     required this.occurredAt,
     required this.note,
     this.occurrenceId,
+    this.itemId,
+    this.originalAmountMinor,
+    this.originalCurrency,
+    this.marketFxRate,
     required this.isAdjustment,
   });
   @override
@@ -4511,6 +4668,20 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     if (!nullToAbsent || occurrenceId != null) {
       map['occurrence_id'] = Variable<String>(occurrenceId);
     }
+    if (!nullToAbsent || itemId != null) {
+      map['item_id'] = Variable<String>(itemId);
+    }
+    if (!nullToAbsent || originalAmountMinor != null) {
+      map['original_amount_minor'] = Variable<int>(originalAmountMinor);
+    }
+    if (!nullToAbsent || originalCurrency != null) {
+      map['original_currency'] = Variable<String>(
+        $TransactionsTable.$converteroriginalCurrencyn.toSql(originalCurrency),
+      );
+    }
+    if (!nullToAbsent || marketFxRate != null) {
+      map['market_fx_rate'] = Variable<String>(marketFxRate);
+    }
     map['is_adjustment'] = Variable<bool>(isAdjustment);
     return map;
   }
@@ -4545,6 +4716,18 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       occurrenceId: occurrenceId == null && nullToAbsent
           ? const Value.absent()
           : Value(occurrenceId),
+      itemId: itemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(itemId),
+      originalAmountMinor: originalAmountMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalAmountMinor),
+      originalCurrency: originalCurrency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalCurrency),
+      marketFxRate: marketFxRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(marketFxRate),
       isAdjustment: Value(isAdjustment),
     );
   }
@@ -4575,6 +4758,14 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       occurredAt: serializer.fromJson<int>(json['occurredAt']),
       note: serializer.fromJson<String>(json['note']),
       occurrenceId: serializer.fromJson<String?>(json['occurrenceId']),
+      itemId: serializer.fromJson<String?>(json['itemId']),
+      originalAmountMinor: serializer.fromJson<int?>(
+        json['originalAmountMinor'],
+      ),
+      originalCurrency: serializer.fromJson<Currency?>(
+        json['originalCurrency'],
+      ),
+      marketFxRate: serializer.fromJson<String?>(json['marketFxRate']),
       isAdjustment: serializer.fromJson<bool>(json['isAdjustment']),
     );
   }
@@ -4602,6 +4793,10 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       'occurredAt': serializer.toJson<int>(occurredAt),
       'note': serializer.toJson<String>(note),
       'occurrenceId': serializer.toJson<String?>(occurrenceId),
+      'itemId': serializer.toJson<String?>(itemId),
+      'originalAmountMinor': serializer.toJson<int?>(originalAmountMinor),
+      'originalCurrency': serializer.toJson<Currency?>(originalCurrency),
+      'marketFxRate': serializer.toJson<String?>(marketFxRate),
       'isAdjustment': serializer.toJson<bool>(isAdjustment),
     };
   }
@@ -4623,6 +4818,10 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     int? occurredAt,
     String? note,
     Value<String?> occurrenceId = const Value.absent(),
+    Value<String?> itemId = const Value.absent(),
+    Value<int?> originalAmountMinor = const Value.absent(),
+    Value<Currency?> originalCurrency = const Value.absent(),
+    Value<String?> marketFxRate = const Value.absent(),
     bool? isAdjustment,
   }) => TransactionRow(
     createdAt: createdAt ?? this.createdAt,
@@ -4645,6 +4844,14 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     occurredAt: occurredAt ?? this.occurredAt,
     note: note ?? this.note,
     occurrenceId: occurrenceId.present ? occurrenceId.value : this.occurrenceId,
+    itemId: itemId.present ? itemId.value : this.itemId,
+    originalAmountMinor: originalAmountMinor.present
+        ? originalAmountMinor.value
+        : this.originalAmountMinor,
+    originalCurrency: originalCurrency.present
+        ? originalCurrency.value
+        : this.originalCurrency,
+    marketFxRate: marketFxRate.present ? marketFxRate.value : this.marketFxRate,
     isAdjustment: isAdjustment ?? this.isAdjustment,
   );
   TransactionRow copyWithCompanion(TransactionsCompanion data) {
@@ -4679,6 +4886,16 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       occurrenceId: data.occurrenceId.present
           ? data.occurrenceId.value
           : this.occurrenceId,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      originalAmountMinor: data.originalAmountMinor.present
+          ? data.originalAmountMinor.value
+          : this.originalAmountMinor,
+      originalCurrency: data.originalCurrency.present
+          ? data.originalCurrency.value
+          : this.originalCurrency,
+      marketFxRate: data.marketFxRate.present
+          ? data.marketFxRate.value
+          : this.marketFxRate,
       isAdjustment: data.isAdjustment.present
           ? data.isAdjustment.value
           : this.isAdjustment,
@@ -4704,13 +4921,17 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ..write('occurredAt: $occurredAt, ')
           ..write('note: $note, ')
           ..write('occurrenceId: $occurrenceId, ')
+          ..write('itemId: $itemId, ')
+          ..write('originalAmountMinor: $originalAmountMinor, ')
+          ..write('originalCurrency: $originalCurrency, ')
+          ..write('marketFxRate: $marketFxRate, ')
           ..write('isAdjustment: $isAdjustment')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     createdAt,
     updatedAt,
     id,
@@ -4727,8 +4948,12 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     occurredAt,
     note,
     occurrenceId,
+    itemId,
+    originalAmountMinor,
+    originalCurrency,
+    marketFxRate,
     isAdjustment,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4749,6 +4974,10 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           other.occurredAt == this.occurredAt &&
           other.note == this.note &&
           other.occurrenceId == this.occurrenceId &&
+          other.itemId == this.itemId &&
+          other.originalAmountMinor == this.originalAmountMinor &&
+          other.originalCurrency == this.originalCurrency &&
+          other.marketFxRate == this.marketFxRate &&
           other.isAdjustment == this.isAdjustment);
 }
 
@@ -4769,6 +4998,10 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<int> occurredAt;
   final Value<String> note;
   final Value<String?> occurrenceId;
+  final Value<String?> itemId;
+  final Value<int?> originalAmountMinor;
+  final Value<Currency?> originalCurrency;
+  final Value<String?> marketFxRate;
   final Value<bool> isAdjustment;
   final Value<int> rowid;
   const TransactionsCompanion({
@@ -4788,6 +5021,10 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.occurredAt = const Value.absent(),
     this.note = const Value.absent(),
     this.occurrenceId = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.originalAmountMinor = const Value.absent(),
+    this.originalCurrency = const Value.absent(),
+    this.marketFxRate = const Value.absent(),
     this.isAdjustment = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -4808,6 +5045,10 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     required int occurredAt,
     this.note = const Value.absent(),
     this.occurrenceId = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.originalAmountMinor = const Value.absent(),
+    this.originalCurrency = const Value.absent(),
+    this.marketFxRate = const Value.absent(),
     this.isAdjustment = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : createdAt = Value(createdAt),
@@ -4836,6 +5077,10 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Expression<int>? occurredAt,
     Expression<String>? note,
     Expression<String>? occurrenceId,
+    Expression<String>? itemId,
+    Expression<int>? originalAmountMinor,
+    Expression<String>? originalCurrency,
+    Expression<String>? marketFxRate,
     Expression<bool>? isAdjustment,
     Expression<int>? rowid,
   }) {
@@ -4856,6 +5101,11 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       if (occurredAt != null) 'occurred_at': occurredAt,
       if (note != null) 'note': note,
       if (occurrenceId != null) 'occurrence_id': occurrenceId,
+      if (itemId != null) 'item_id': itemId,
+      if (originalAmountMinor != null)
+        'original_amount_minor': originalAmountMinor,
+      if (originalCurrency != null) 'original_currency': originalCurrency,
+      if (marketFxRate != null) 'market_fx_rate': marketFxRate,
       if (isAdjustment != null) 'is_adjustment': isAdjustment,
       if (rowid != null) 'rowid': rowid,
     });
@@ -4878,6 +5128,10 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Value<int>? occurredAt,
     Value<String>? note,
     Value<String?>? occurrenceId,
+    Value<String?>? itemId,
+    Value<int?>? originalAmountMinor,
+    Value<Currency?>? originalCurrency,
+    Value<String?>? marketFxRate,
     Value<bool>? isAdjustment,
     Value<int>? rowid,
   }) {
@@ -4898,6 +5152,10 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       occurredAt: occurredAt ?? this.occurredAt,
       note: note ?? this.note,
       occurrenceId: occurrenceId ?? this.occurrenceId,
+      itemId: itemId ?? this.itemId,
+      originalAmountMinor: originalAmountMinor ?? this.originalAmountMinor,
+      originalCurrency: originalCurrency ?? this.originalCurrency,
+      marketFxRate: marketFxRate ?? this.marketFxRate,
       isAdjustment: isAdjustment ?? this.isAdjustment,
       rowid: rowid ?? this.rowid,
     );
@@ -4964,6 +5222,22 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     if (occurrenceId.present) {
       map['occurrence_id'] = Variable<String>(occurrenceId.value);
     }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (originalAmountMinor.present) {
+      map['original_amount_minor'] = Variable<int>(originalAmountMinor.value);
+    }
+    if (originalCurrency.present) {
+      map['original_currency'] = Variable<String>(
+        $TransactionsTable.$converteroriginalCurrencyn.toSql(
+          originalCurrency.value,
+        ),
+      );
+    }
+    if (marketFxRate.present) {
+      map['market_fx_rate'] = Variable<String>(marketFxRate.value);
+    }
     if (isAdjustment.present) {
       map['is_adjustment'] = Variable<bool>(isAdjustment.value);
     }
@@ -4992,6 +5266,10 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
           ..write('occurredAt: $occurredAt, ')
           ..write('note: $note, ')
           ..write('occurrenceId: $occurrenceId, ')
+          ..write('itemId: $itemId, ')
+          ..write('originalAmountMinor: $originalAmountMinor, ')
+          ..write('originalCurrency: $originalCurrency, ')
+          ..write('marketFxRate: $marketFxRate, ')
           ..write('isAdjustment: $isAdjustment, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -10006,6 +10284,7 @@ typedef $$AccountsTableCreateCompanionBuilder = AccountsCompanion Function({
   Value<int?> statementDay,
   Value<int?> paymentDueDay,
   Value<int?> fxFeeBasisPoints,
+  Value<String?> cardLast4,
   Value<bool> archived,
   Value<int> sortOrder,
   Value<int> rowid,
@@ -10022,6 +10301,7 @@ typedef $$AccountsTableUpdateCompanionBuilder = AccountsCompanion Function({
   Value<int?> statementDay,
   Value<int?> paymentDueDay,
   Value<int?> fxFeeBasisPoints,
+  Value<String?> cardLast4,
   Value<bool> archived,
   Value<int> sortOrder,
   Value<int> rowid,
@@ -10133,6 +10413,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<int> get fxFeeBasisPoints => $composableBuilder(
     column: $table.fxFeeBasisPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cardLast4 => $composableBuilder(
+    column: $table.cardLast4,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10261,6 +10546,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get cardLast4 => $composableBuilder(
+    column: $table.cardLast4,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get archived => $composableBuilder(
     column: $table.archived,
     builder: (column) => ColumnOrderings(column),
@@ -10323,6 +10613,9 @@ class $$AccountsTableAnnotationComposer
     column: $table.fxFeeBasisPoints,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get cardLast4 =>
+      $composableBuilder(column: $table.cardLast4, builder: (column) => column);
 
   GeneratedColumn<bool> get archived =>
       $composableBuilder(column: $table.archived, builder: (column) => column);
@@ -10423,6 +10716,7 @@ class $$AccountsTableTableManager
                 Value<int?> statementDay = const Value.absent(),
                 Value<int?> paymentDueDay = const Value.absent(),
                 Value<int?> fxFeeBasisPoints = const Value.absent(),
+                Value<String?> cardLast4 = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10438,6 +10732,7 @@ class $$AccountsTableTableManager
                 statementDay: statementDay,
                 paymentDueDay: paymentDueDay,
                 fxFeeBasisPoints: fxFeeBasisPoints,
+                cardLast4: cardLast4,
                 archived: archived,
                 sortOrder: sortOrder,
                 rowid: rowid,
@@ -10455,6 +10750,7 @@ class $$AccountsTableTableManager
                 Value<int?> statementDay = const Value.absent(),
                 Value<int?> paymentDueDay = const Value.absent(),
                 Value<int?> fxFeeBasisPoints = const Value.absent(),
+                Value<String?> cardLast4 = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10470,6 +10766,7 @@ class $$AccountsTableTableManager
                 statementDay: statementDay,
                 paymentDueDay: paymentDueDay,
                 fxFeeBasisPoints: fxFeeBasisPoints,
+                cardLast4: cardLast4,
                 archived: archived,
                 sortOrder: sortOrder,
                 rowid: rowid,
@@ -10845,6 +11142,10 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       required int occurredAt,
       Value<String> note,
       Value<String?> occurrenceId,
+      Value<String?> itemId,
+      Value<int?> originalAmountMinor,
+      Value<Currency?> originalCurrency,
+      Value<String?> marketFxRate,
       Value<bool> isAdjustment,
       Value<int> rowid,
     });
@@ -10866,6 +11167,10 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<int> occurredAt,
       Value<String> note,
       Value<String?> occurrenceId,
+      Value<String?> itemId,
+      Value<int?> originalAmountMinor,
+      Value<Currency?> originalCurrency,
+      Value<String?> marketFxRate,
       Value<bool> isAdjustment,
       Value<int> rowid,
     });
@@ -11027,6 +11332,27 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get occurrenceId => $composableBuilder(
     column: $table.occurrenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get originalAmountMinor => $composableBuilder(
+    column: $table.originalAmountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Currency?, Currency, String>
+  get originalCurrency => $composableBuilder(
+    column: $table.originalCurrency,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get marketFxRate => $composableBuilder(
+    column: $table.marketFxRate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11211,6 +11537,26 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get originalAmountMinor => $composableBuilder(
+    column: $table.originalAmountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originalCurrency => $composableBuilder(
+    column: $table.originalCurrency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get marketFxRate => $composableBuilder(
+    column: $table.marketFxRate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isAdjustment => $composableBuilder(
     column: $table.isAdjustment,
     builder: (column) => ColumnOrderings(column),
@@ -11324,6 +11670,25 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get occurrenceId => $composableBuilder(
     column: $table.occurrenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<int> get originalAmountMinor => $composableBuilder(
+    column: $table.originalAmountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<Currency?, String> get originalCurrency =>
+      $composableBuilder(
+        column: $table.originalCurrency,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get marketFxRate => $composableBuilder(
+    column: $table.marketFxRate,
     builder: (column) => column,
   );
 
@@ -11478,6 +11843,10 @@ class $$TransactionsTableTableManager
                 Value<int> occurredAt = const Value.absent(),
                 Value<String> note = const Value.absent(),
                 Value<String?> occurrenceId = const Value.absent(),
+                Value<String?> itemId = const Value.absent(),
+                Value<int?> originalAmountMinor = const Value.absent(),
+                Value<Currency?> originalCurrency = const Value.absent(),
+                Value<String?> marketFxRate = const Value.absent(),
                 Value<bool> isAdjustment = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TransactionsCompanion(
@@ -11497,6 +11866,10 @@ class $$TransactionsTableTableManager
                 occurredAt: occurredAt,
                 note: note,
                 occurrenceId: occurrenceId,
+                itemId: itemId,
+                originalAmountMinor: originalAmountMinor,
+                originalCurrency: originalCurrency,
+                marketFxRate: marketFxRate,
                 isAdjustment: isAdjustment,
                 rowid: rowid,
               ),
@@ -11518,6 +11891,10 @@ class $$TransactionsTableTableManager
                 required int occurredAt,
                 Value<String> note = const Value.absent(),
                 Value<String?> occurrenceId = const Value.absent(),
+                Value<String?> itemId = const Value.absent(),
+                Value<int?> originalAmountMinor = const Value.absent(),
+                Value<Currency?> originalCurrency = const Value.absent(),
+                Value<String?> marketFxRate = const Value.absent(),
                 Value<bool> isAdjustment = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TransactionsCompanion.insert(
@@ -11537,6 +11914,10 @@ class $$TransactionsTableTableManager
                 occurredAt: occurredAt,
                 note: note,
                 occurrenceId: occurrenceId,
+                itemId: itemId,
+                originalAmountMinor: originalAmountMinor,
+                originalCurrency: originalCurrency,
+                marketFxRate: marketFxRate,
                 isAdjustment: isAdjustment,
                 rowid: rowid,
               ),

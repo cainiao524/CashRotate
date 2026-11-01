@@ -12,11 +12,20 @@ void main() {
 
   setUpAll(() => verifier = SchemaVerifier(GeneratedHelper()));
 
-  test('upgrading v1 → v2 produces exactly the v2 schema', () async {
+  // Migrations always run to the current version, so each test checks a
+  // starting version against the latest schema.
+  test('upgrading v2 → v3 produces exactly the v3 schema', () async {
+    final connection = await verifier.startAt(2);
+    final db = AppDatabase(connection);
+    addTearDown(db.close);
+    await verifier.migrateAndValidate(db, 3);
+  });
+
+  test('upgrading v1 → v3 in one go', () async {
     final connection = await verifier.startAt(1);
     final db = AppDatabase(connection);
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 2);
+    await verifier.migrateAndValidate(db, 3);
   });
 
   test('existing v1 data survives the upgrade', () async {

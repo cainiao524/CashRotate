@@ -346,28 +346,34 @@ class ItemRepository {
 
   /// Marks a charge paid, covering [cycles] cycles (e.g. a domain renewed for
   /// three years). Pushes paidUntil forward and drops covered charges.
-  Future<void> markPaid(String occurrenceId, {int cycles = 1}) =>
-      _db.transaction(() async {
-        final occ = await (_db.select(
-          _db.occurrences,
-        )..where((o) => o.id.equals(occurrenceId))).getSingle();
-        final paid = occ.copyWith(state: OccurrenceState.paid);
-        await _db.update(_db.occurrences).replace(paid);
-        await _journal.updated('occurrences', occ.id, occ, paid);
+  /// [transactionId] links the payment record (M4).
+  Future<void> markPaid(
+    String occurrenceId, {
+    int cycles = 1,
+    String? transactionId,
+  }) => _db.transaction(() async {
+    final occ = await (_db.select(
+      _db.occurrences,
+    )..where((o) => o.id.equals(occurrenceId))).getSingle();
+    final paid = occ.copyWith(
+      state: OccurrenceState.paid,
+      transactionId: transactionId == null
+          ? const Value.absent()
+          : Value(transactionId),
+    );
+    await _db.update(_db.occurrences).replace(paid);
+    await _journal.updated('occurrences', occ.id, occ, paid);
 
-        final schedule = await scheduleOf(occ.itemId);
-        final until = schedule.paidUntilAfterPaying(
-          occ.cycleIndex,
-          count: cycles,
-        );
-        if (schedule.paidUntil == null || until > schedule.paidUntil!) {
-          await _updateItem(
-            occ.itemId,
-            (row) => row.copyWith(paidUntil: Value(until)),
-          );
-        }
-        await _replan(occ.itemId);
-      });
+    final schedule = await scheduleOf(occ.itemId);
+    final until = schedule.paidUntilAfterPaying(occ.cycleIndex, count: cycles);
+    if (schedule.paidUntil == null || until > schedule.paidUntil!) {
+      await _updateItem(
+        occ.itemId,
+        (row) => row.copyWith(paidUntil: Value(until)),
+      );
+    }
+    await _replan(occ.itemId);
+  });
 
   Future<void> delete(String itemId) => _db.transaction(() async {
     final occurrences = await (_db.select(

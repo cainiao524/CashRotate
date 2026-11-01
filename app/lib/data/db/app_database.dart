@@ -36,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   /// `dart run drift_dev schema dump lib/data/db/app_database.dart drift_schemas/`
   /// so the migration test covers it.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -48,6 +48,14 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(items, items.needsDetails);
         // Occurrences are identified by due date instead of charge number.
         await m.alterTable(TableMigration(occurrences));
+      }
+      // v3 (M4): payment records and card matching.
+      if (from < 3) {
+        await m.addColumn(accounts, accounts.cardLast4);
+        await m.addColumn(transactions, transactions.itemId);
+        await m.addColumn(transactions, transactions.originalAmountMinor);
+        await m.addColumn(transactions, transactions.originalCurrency);
+        await m.addColumn(transactions, transactions.marketFxRate);
       }
     },
     beforeOpen: (details) async {
