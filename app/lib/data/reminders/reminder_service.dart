@@ -5,18 +5,28 @@ import 'package:intl/intl.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../db/app_database.dart';
 import '../items/item_repository.dart';
+import '../payments/payment_repository.dart';
 import '../settings/settings_repository.dart';
 import 'reminder_platform.dart';
 
 /// Plans reminders from the items and hands them to the platform; copies
 /// what the platform reports back into ReminderLog and applies "Paid".
 class ReminderService {
-  ReminderService(this._db, this._items, this._platform, this._now);
+  ReminderService(
+    this._db,
+    this._items,
+    this._platform,
+    this._now, {
+    this.payments,
+  });
 
   final AppDatabase _db;
   final ItemRepository _items;
   final ReminderPlatform _platform;
   final DateTime Function() _now;
+
+  /// "Paid" from a notification records the expected amount as a payment.
+  final PaymentRepository? payments;
 
   /// A reminder that arrives this much after its time counts as late.
   static const lateAfter = Duration(hours: 1);
@@ -52,7 +62,7 @@ class ReminderService {
 
   /// Copies delivery and action events into ReminderLog; settles charges
   /// marked "Paid" from a notification. Returns the number of events.
-  Future<int> applyEvents() async {
+  Future<int> applyEvents({Currency? main}) async {
     final events = await _platform.takeEvents();
     for (final e in events) {
       final existing = await (_db.select(
@@ -75,7 +85,24 @@ class ReminderService {
         )..where((o) => o.id.equals(e.occurrenceId!))).getSingleOrNull();
         // Already paid in the app, or replanned away: nothing to do.
         if (occurrence?.state == OccurrenceState.pending) {
-          await _items.markPaid(occurrence!.id);
+          final o = occurrence!;
+          final payments = this.payments;
+          if (payments == null || main == null) {
+            await _items.markPaid(o.id);
+          } else {
+            final due = Money(o.expectedMinor, o.currency);
+            await payments.record(
+              itemId: o.itemId,
+              occurrenceId: o.id,
+              expected: due,
+              paid: due,
+              paidOn: LocalDate.fromDateTime(
+                DateTime.fromMillisecondsSinceEpoch(e.at),
+              ),
+              main: main,
+              note: 'notification',
+            );
+          }
         }
       }
     }

@@ -73,6 +73,10 @@ void main() {
 
     await tester.tap(find.byKey(ValueKey('tile-paid-$phone')));
     await settle(tester);
+    // The payment sheet starts at the amount due.
+    expect(find.text('599.00'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('payment-save')));
+    await settle(tester, frames: 10);
     expect(find.text('3 days overdue'), findsNothing);
     // Paid on time for March: the next charge is 12 April.
     expect(find.text('4/12'), findsOneWidget);

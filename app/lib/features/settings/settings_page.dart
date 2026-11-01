@@ -15,6 +15,7 @@ import '../../widgets/currency_picker.dart';
 import '../backup/backup_page.dart';
 import '../home/fixed_summary.dart';
 import '../items/fx_line.dart';
+import '../payments/payment_methods_page.dart';
 import '../security/app_lock_settings.dart';
 import '../sync/sync_settings_page.dart';
 import 'amount_settings_page.dart';
@@ -45,6 +46,7 @@ class SettingsPage extends ConsumerWidget {
               _Section(l10n.settingsGeneral),
               const BasicSettingsFields(keyPrefix: 'settings'),
               const AmountsSettingsTile(),
+              const PaymentMethodsTile(),
               _Section(l10n.navHome),
               SwitchListTile(
                 key: const Key('settings-tile-colors'),

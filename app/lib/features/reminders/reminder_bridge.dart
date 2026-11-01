@@ -113,7 +113,9 @@ class _ReminderBridgeState extends ConsumerState<ReminderBridge>
 
   Future<void> _applyEvents() async {
     if (!mounted) return;
-    await ref.read(reminderServiceProvider).applyEvents();
+    await ref
+        .read(reminderServiceProvider)
+        .applyEvents(main: ref.read(userSettingsProvider).value?.mainCurrency);
   }
 
   Future<void> _openTappedItem() async {

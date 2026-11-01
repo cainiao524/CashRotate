@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../data/db/app_database.dart';
 import '../../data/items/item_repository.dart';
+import '../../data/payments/payment_repository.dart';
 import '../../data/presets.dart';
 import '../../data/providers.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -14,11 +15,16 @@ import '../../widgets/marquee_text.dart';
 import '../../widgets/money_text.dart';
 import '../../widgets/preset_badge.dart';
 import '../../widgets/state_views.dart';
+import '../payments/payment_sheet.dart';
 import 'item_editor_page.dart';
 import 'labels.dart';
 
 final _itemProvider = StreamProvider.family<ItemView?, String>(
   (ref, id) => ref.watch(itemRepositoryProvider).watchOne(id),
+);
+
+final _paymentsProvider = StreamProvider.family<List<Payment>, String>(
+  (ref, id) => ref.watch(paymentRepositoryProvider).watchForItem(id),
 );
 
 final _upcomingProvider = StreamProvider.family<List<OccurrenceRow>, String>((
@@ -75,6 +81,7 @@ class ItemDetail extends ConsumerWidget {
         ? null
         : s.prices.changeAfter(s.cycle, s.anchor, next.cycleIndex);
     final upcoming = ref.watch(_upcomingProvider(id)).value ?? const [];
+    final payments = ref.watch(_paymentsProvider(id)).value ?? const [];
     final hidden = ref.watch(userSettingsProvider).value?.hideAmounts ?? false;
     String money(Money m) =>
         hidden ? hiddenAmount : formatMoney(m, locale: locale);
@@ -192,6 +199,31 @@ class ItemDetail extends ConsumerWidget {
               trailing: MoneyText(Money(o.expectedMinor, o.currency)),
             ),
         ],
+        if (payments.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(l10n.paymentHistory, style: text.titleSmall),
+          for (final p in payments.take(12))
+            ListTile(
+              key: ValueKey('payment-${p.row.id}'),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              leading: const Icon(Icons.check_circle_outline),
+              title: Text(formatDate(context, p.paidOn)),
+              subtitle: p.original == null
+                  ? null
+                  : Text(
+                      [
+                        l10n.paymentForeign(
+                          money(p.original!),
+                          p.actualRate?.toDecimalString(maxDecimals: 4) ?? '—',
+                        ),
+                        if (p.markupBasisPoints case final m? when m > 0)
+                          l10n.paymentMarkup((m / 100).toStringAsFixed(1)),
+                      ].join(' · '),
+                    ),
+              trailing: MoneyText(p.paid),
+            ),
+        ],
         if (v.row.note.isNotEmpty) ...[
           const SizedBox(height: 16),
           Text(v.row.note),
@@ -201,6 +233,13 @@ class ItemDetail extends ConsumerWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
+            if (v.row.status == ItemStatus.active && !v.row.needsDetails)
+              FilledButton.icon(
+                key: const Key('detail-pay'),
+                icon: const Icon(Icons.check),
+                label: Text(l10n.paymentRecord),
+                onPressed: () => showPaymentSheet(context, v),
+              ),
             FilledButton.icon(
               key: const Key('detail-edit'),
               icon: const Icon(Icons.edit_outlined),

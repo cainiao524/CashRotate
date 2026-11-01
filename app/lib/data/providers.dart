@@ -16,6 +16,7 @@ import 'fx/exchange_rate_repository.dart';
 import 'fx/rate_fetcher.dart';
 import 'items/item_repository.dart';
 import 'journal.dart';
+import 'payments/payment_repository.dart';
 import 'reminders/reminder_platform.dart';
 import 'reminders/reminder_service.dart';
 import 'security/app_lock.dart';
@@ -131,6 +132,7 @@ final reminderServiceProvider = Provider<ReminderService>((ref) {
     ref.watch(itemRepositoryProvider),
     ref.watch(reminderPlatformProvider),
     ref.watch(clockProvider),
+    payments: ref.watch(paymentRepositoryProvider),
   );
 });
 
@@ -189,3 +191,24 @@ final autoBackupProvider = FutureProvider<bool>(
 
 /// Save and open dialogs for backup files; faked in tests.
 final filePickerProvider = Provider<FilePicker>((ref) => SystemFilePicker());
+
+final paymentMethodsProvider = Provider<PaymentMethods>(
+  (ref) => PaymentMethods(
+    ref.watch(appDatabaseProvider).requireValue,
+    ref.watch(journalProvider),
+  ),
+);
+
+final paymentRepositoryProvider = Provider<PaymentRepository>(
+  (ref) => PaymentRepository(
+    ref.watch(appDatabaseProvider).requireValue,
+    ref.watch(journalProvider),
+    ref.watch(itemRepositoryProvider),
+    ref.watch(paymentMethodsProvider),
+  ),
+);
+
+/// Payment methods to choose from (not archived, not "unassigned").
+final paymentMethodListProvider = StreamProvider<List<AccountRow>>(
+  (ref) => ref.watch(paymentMethodsProvider).watchAll(),
+);

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:cashrotate_core/cashrotate_core.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -22,6 +21,7 @@ import '../../widgets/money_text.dart' show hiddenAmount;
 import '../../widgets/preset_badge.dart';
 import '../items/add_item_page.dart';
 import '../items/labels.dart';
+import '../payments/payment_sheet.dart';
 import 'countdown_ring.dart';
 import 'fixed_summary.dart';
 import 'home_motion.dart';
@@ -914,10 +914,7 @@ class _ItemTile extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               tapTargetSize: MaterialTapTargetSize.padded,
             ),
-            onPressed: () {
-              HapticFeedback.mediumImpact();
-              ref.read(itemRepositoryProvider).markPaid(view.nextDue!.id);
-            },
+            onPressed: () => showPaymentSheet(context, view),
             child: Text(l10n.actionMarkPaid),
           ),
         ],
@@ -1129,8 +1126,8 @@ class _TileMenu extends ConsumerWidget {
                 title: Text(l10n.actionMarkPaid),
                 subtitle: Text(_shortDate(context, next.dueOn)),
                 onTap: () {
-                  ref.read(itemRepositoryProvider).markPaid(next.id);
                   Navigator.of(context).pop();
+                  showPaymentSheet(context, tile.view);
                 },
               ),
             ListTile(
