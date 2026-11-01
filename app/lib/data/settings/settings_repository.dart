@@ -17,6 +17,8 @@ class UserSettings {
     this.tileColors = false,
     this.wideTiles = const {},
     this.tileIcons = const {},
+    this.remindersOn = true,
+    this.reminderMinutes = 9 * 60,
   });
 
   /// Defaults for a fresh install, from the system locale's region.
@@ -50,6 +52,12 @@ class UserSettings {
   /// Built-in icon name per item id; items without one show their initial.
   final Map<String, String> tileIcons;
 
+  /// Notifications before charges, trial ends and the like.
+  final bool remindersOn;
+
+  /// Time of day reminders show, in minutes after midnight (local time).
+  final int reminderMinutes;
+
   int decimalsFor(Currency c) =>
       decimalsOverride[c.code] ?? c.defaultDisplayDecimals;
 }
@@ -73,6 +81,8 @@ class SettingsRepository {
   static const tileColorsKey = 'home_tile_colors';
   static const wideTilesKey = 'home_wide_tiles';
   static const tileIconsKey = 'home_tile_icons';
+  static const remindersOnKey = 'reminders_on';
+  static const reminderMinutesKey = 'reminder_minutes';
 
   /// Current settings, falling back to [defaults] for keys never written.
   Stream<UserSettings> watch(UserSettings defaults) =>
@@ -90,6 +100,9 @@ class SettingsRepository {
   Future<void> setAutoRateCurrencies(List<Currency> currencies) =>
       _set(autoRateCurrenciesKey, [for (final c in currencies) c.code]);
   Future<void> setTileColors(bool on) => _set(tileColorsKey, on);
+  Future<void> setRemindersOn(bool on) => _set(remindersOnKey, on);
+  Future<void> setReminderMinutes(int minutes) =>
+      _set(reminderMinutesKey, minutes.clamp(0, 24 * 60 - 1));
   Future<void> setWideTile(String itemId, {required bool wide}) async {
     final current = await read(UserSettings.defaultsFor(null));
     final ids = {...current.wideTiles};
@@ -167,6 +180,11 @@ class SettingsRepository {
             }
           : const {},
       tileColors: map[tileColorsKey] == true,
+      remindersOn: map[remindersOnKey] != false,
+      reminderMinutes: switch (map[reminderMinutesKey]) {
+        final int m when m >= 0 && m < 24 * 60 => m,
+        _ => 9 * 60,
+      },
       wideTiles: wide is List ? {...wide.whereType<String>()} : const {},
       tileIcons: icons is Map
           ? {

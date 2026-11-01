@@ -3,6 +3,11 @@
          currency-api). Only the main currency code is sent. Later: the
          user's WebDAV server and AI provider of choice. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Reminders: show notifications (asked at runtime on Android 13+),
+         and re-arm the inexact alarms after a reboot. No exact-alarm
+         permission: see CLAUDE.md. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:label="${appName}"
         android:name="${applicationName}"
@@ -34,6 +39,21 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".reminders.ReminderReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".reminders.ReminderActionReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".reminders.RescheduleReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

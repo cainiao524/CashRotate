@@ -65,6 +65,12 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('field-intro')));
     await tester.tap(find.byKey(const Key('field-intro')));
     await settle(tester);
+    // The intro price field appears above, out of view: back to the top.
+    await tester.drag(
+      find.byKey(const PageStorageKey('item-editor')),
+      const Offset(0, 800),
+    );
+    await settle(tester);
     await tester.enterText(find.byKey(const Key('field-introAmount')), '5');
     await tester.tap(find.byKey(const Key('editor-save')));
     await settle(tester);

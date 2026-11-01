@@ -29,6 +29,9 @@ enum DraftField {
 enum DraftError { required, amount, renewalRequired, periods }
 
 /// One person in a shared subscription.
+/// Reminder choices offered per item, in days before each charge.
+const remindDayChoices = [0, 1, 3, 7, 14, 30];
+
 class SharingMember {
   SharingMember({required this.name, this.paid = false});
   String name;

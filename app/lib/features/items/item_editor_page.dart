@@ -249,6 +249,27 @@ class _ItemEditorPageState extends ConsumerState<ItemEditorPage> {
           error: _error(DraftField.nextCharge),
           onChanged: (date) => update(() => d.nextCharge = date),
         ),
+        const SizedBox(height: 8),
+        _Label(l10n.fieldRemindDays),
+        // Several at once: e.g. a week before and on the day.
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final days in remindDayChoices)
+              FilterChip(
+                key: ValueKey('remind-$days'),
+                label: Text(l10n.remindDaysBefore(days)),
+                selected: d.remindDays.contains(days),
+                onSelected: (on) => update(() {
+                  d.remindDays = on
+                      ? ({...d.remindDays, days}.toList()..sort())
+                      : (d.remindDays.where((x) => x != days).toList());
+                }),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
         for (final group in d.groups) ..._group(context, d, group),
         const SizedBox(height: 8),
         TextField(

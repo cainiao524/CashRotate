@@ -16,6 +16,7 @@ export 'src/money/symbol_resolver.dart';
 export 'src/presets/han_readings.dart';
 export 'src/presets/preset.dart';
 export 'src/presets/preset_search.dart';
+export 'src/reminders/reminder_planner.dart';
 export 'src/schedule/cycle.dart';
 export 'src/schedule/occurrence_planner.dart';
 export 'src/schedule/price_schedule.dart';

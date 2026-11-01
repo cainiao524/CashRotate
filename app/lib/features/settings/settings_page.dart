@@ -15,6 +15,7 @@ import '../../widgets/currency_picker.dart';
 import '../home/fixed_summary.dart';
 import '../items/fx_line.dart';
 import 'basic_settings_fields.dart';
+import 'reminder_settings.dart';
 
 final _ratesProvider = StreamProvider<List<ExchangeRate>>(
   (ref) => ref.watch(exchangeRateRepositoryProvider).watchRates(),
@@ -52,6 +53,8 @@ class SettingsPage extends ConsumerWidget {
                 onChanged: (on) =>
                     ref.read(settingsRepositoryProvider).setTileColors(on),
               ),
+              _Section(l10n.settingsReminders),
+              const ReminderSettings(),
               _Section(l10n.settingsRates),
               const _RatesSettings(),
               _Section(l10n.settingsSetup),

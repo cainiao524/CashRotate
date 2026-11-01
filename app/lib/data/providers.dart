@@ -13,6 +13,8 @@ import 'fx/exchange_rate_repository.dart';
 import 'fx/rate_fetcher.dart';
 import 'items/item_repository.dart';
 import 'journal.dart';
+import 'reminders/reminder_platform.dart';
+import 'reminders/reminder_service.dart';
 import 'settings/settings_repository.dart';
 
 final databaseKeySourceProvider = Provider<DatabaseKeySource>(
@@ -112,3 +114,17 @@ final autoRateServiceProvider = Provider<AutoRateService>((ref) {
 final autoRateStartupProvider = FutureProvider<AutoRateResult>(
   (ref) => ref.watch(autoRateServiceProvider).refresh(),
 );
+
+/// The native reminder scheduler; replaced by a fake in tests.
+final reminderPlatformProvider = Provider<ReminderPlatform>(
+  (ref) => MethodChannelReminderPlatform(),
+);
+
+final reminderServiceProvider = Provider<ReminderService>((ref) {
+  return ReminderService(
+    ref.watch(appDatabaseProvider).requireValue,
+    ref.watch(itemRepositoryProvider),
+    ref.watch(reminderPlatformProvider),
+    ref.watch(clockProvider),
+  );
+});

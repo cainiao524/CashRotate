@@ -34,6 +34,7 @@ void main() {
     expect(find.byKey(const Key('settings-language')), findsOneWidget);
     expect(find.text('Taiwan (TW)'), findsOneWidget);
     expect(find.textContaining(r'NT$ · New Taiwan dollar'), findsOneWidget);
+    await scrollTo(tester, find.text('1 USD = 32.59 TWD'));
     expect(find.text('1 USD = 32.59 TWD'), findsOneWidget);
   });
 
@@ -53,6 +54,7 @@ void main() {
   ) async {
     await pumpApp(tester, entitlements: Entitlements.free);
     await openSettings(tester);
+    await scrollTo(tester, find.textContaining('No exchange rates yet'));
     expect(find.textContaining('No exchange rates yet'), findsOneWidget);
     await scrollTo(tester, find.byKey(const Key('settings-add-rate')));
     await tester.tap(find.byKey(const Key('settings-add-rate')));
@@ -94,6 +96,10 @@ void main() {
     addTearDown(() => testRateResponses = (uri) => throw Exception('offline'));
     await pumpApp(tester, seed: (d) => d.seedItems());
     await openSettings(tester);
+    await scrollTo(
+      tester,
+      find.text('Every currency updates automatically each day'),
+    );
     expect(
       find.text('Every currency updates automatically each day'),
       findsOneWidget,

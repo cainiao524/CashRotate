@@ -48,3 +48,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Daily safety net that re-arms reminder alarms (Apache-2.0, AndroidX).
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
+}

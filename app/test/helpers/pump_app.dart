@@ -19,6 +19,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:meta/meta.dart';
 
+import 'fake_reminder_platform.dart';
+
 /// Golden matrix required by CLAUDE.md: widths × text scales × brightness.
 const goldenWidths = [360.0, 411.0, 600.0, 840.0, 1280.0];
 const goldenTextScales = [1.0, 1.3, 2.0];
@@ -177,6 +179,7 @@ Future<TestData> pumpApp(
   String region = 'TW',
   Future<void> Function(TestData data)? seed,
   Entitlements? entitlements,
+  FakeReminderPlatform? reminders,
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -225,6 +228,9 @@ Future<TestData> pumpApp(
         ),
         if (entitlements != null)
           entitlementsProvider.overrideWithValue(entitlements),
+        reminderPlatformProvider.overrideWithValue(
+          reminders ?? FakeReminderPlatform(),
+        ),
       ],
       child: const CashRotateApp(),
     ),
