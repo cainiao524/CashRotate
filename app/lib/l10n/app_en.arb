@@ -392,5 +392,18 @@
   "appLockImmediately": "Immediately", "@appLockImmediately": {"description": "App lock."},
   "appLockAfterMinutes": "{count, plural, =1{After 1 minute} other{After {count} minutes}}", "@appLockAfterMinutes": {"description": "App lock.", "placeholders": {"count": {"type": "int"}}},
   "appLockChangePin": "Change PIN", "@appLockChangePin": {"description": "App lock."},
-  "appLockForgotHint": "Forgot the PIN? The only way back in is to clear the app's data; with sync on, everything comes back from the cloud.", "@appLockForgotHint": {"description": "App lock."}
+  "appLockForgotHint": "Forgot the PIN? The only way back in is to clear the app's data; with sync on, everything comes back from the cloud.", "@appLockForgotHint": {"description": "App lock."},
+  "backupTitle": "Backup & restore", "@backupTitle": {"description": "Backup and restore."},
+  "backupAutoHint": "A backup is made on this phone every day, and the last 7 are kept.", "@backupAutoHint": {"description": "Backup and restore."},
+  "backupNow": "Back up now", "@backupNow": {"description": "Backup and restore."},
+  "backupNone": "No backups yet", "@backupNone": {"description": "Backup and restore."},
+  "backupRestore": "Restore", "@backupRestore": {"description": "Backup and restore."},
+  "backupRestoreConfirm": "Restore {date}? Changes made since then are replaced. With sync on, your other devices get the restored version too.", "@backupRestoreConfirm": {"description": "Backup and restore.", "placeholders": {"date": {"type": "String"}}},
+  "backupRestored": "Restored", "@backupRestored": {"description": "Backup and restore."},
+  "backupExport": "Export an encrypted backup file", "@backupExport": {"description": "Backup and restore."},
+  "backupExportHint": "Save it to Downloads or a cloud drive. Opening it needs the password you set.", "@backupExportHint": {"description": "Backup and restore."},
+  "backupImport": "Restore from a backup file", "@backupImport": {"description": "Backup and restore."},
+  "backupFilePassword": "Backup file password", "@backupFilePassword": {"description": "Backup and restore."},
+  "backupWrongPassword": "Wrong password, or not a CashRotate backup", "@backupWrongPassword": {"description": "Backup and restore."},
+  "backupSaved": "Backup file saved", "@backupSaved": {"description": "Backup and restore."}
 }

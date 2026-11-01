@@ -11,4 +11,5 @@ abstract final class Routes {
   static const settings = '/home/settings';
   static const settingsAmounts = '$settings/amounts';
   static const settingsSync = '$settings/sync';
+  static const settingsBackup = '$settings/backup';
 }

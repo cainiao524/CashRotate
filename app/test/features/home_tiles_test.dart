@@ -172,7 +172,7 @@ void main() {
     expect(find.byKey(const Key('home-add')), findsNothing);
     await tester.tap(find.byKey(const Key('nav-settings')));
     await settle(tester);
-    expect(find.byKey(const Key('settings-reminders-on')), findsOneWidget);
+    expect(find.byKey(const Key('settings-sync')), findsOneWidget);
   });
 
   for (final width in [360.0, 600.0, 1280.0]) {

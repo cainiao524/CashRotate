@@ -51,10 +51,68 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
         remindersChannel = reminders
+
+        // Exported backups: the system picker chooses where (Downloads, a
+        // cloud drive …); no storage permission is needed.
+        MethodChannel(messenger, FILES_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "saveFile" -> {
+                    pendingSave = call.argument<ByteArray>("bytes")
+                    pendingFileResult = result
+                    startActivityForResult(
+                        Intent(Intent.ACTION_CREATE_DOCUMENT)
+                            .addCategory(Intent.CATEGORY_OPENABLE)
+                            .setType("application/octet-stream")
+                            .putExtra(Intent.EXTRA_TITLE, call.argument<String>("name")),
+                        SAVE_REQUEST,
+                    )
+                }
+                "openFile" -> {
+                    pendingFileResult = result
+                    startActivityForResult(
+                        Intent(Intent.ACTION_OPEN_DOCUMENT)
+                            .addCategory(Intent.CATEGORY_OPENABLE)
+                            .setType("*/*"),
+                        OPEN_REQUEST,
+                    )
+                }
+                else -> result.notImplemented()
+            }
+        }
         openedItem = intent?.getStringExtra(EXTRA_OPEN_ITEM)
         // "Paid" tapped while the app is open: let Dart apply it now.
         ReminderActionReceiver.onAction = {
             runOnUiThread { remindersChannel?.invokeMethod("eventsAvailable", null) }
+        }
+    }
+
+    private var pendingSave: ByteArray? = null
+    private var pendingFileResult: MethodChannel.Result? = null
+
+    @Deprecated("Activity result API; fine for two one-off pickers")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != SAVE_REQUEST && requestCode != OPEN_REQUEST) return
+        val result = pendingFileResult ?: return
+        pendingFileResult = null
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) {
+            result.success(null)
+            return
+        }
+        background.execute {
+            try {
+                if (requestCode == SAVE_REQUEST) {
+                    contentResolver.openOutputStream(uri, "wt")!!.use { it.write(pendingSave) }
+                    pendingSave = null
+                    runOnUiThread { result.success(true) }
+                } else {
+                    val bytes = contentResolver.openInputStream(uri)!!.use { it.readBytes() }
+                    runOnUiThread { result.success(bytes) }
+                }
+            } catch (e: Exception) {
+                runOnUiThread { result.error("FILE", e.message, null) }
+            }
         }
     }
 
@@ -102,5 +160,8 @@ class MainActivity : FlutterFragmentActivity() {
         private const val KEYSTORE_CHANNEL = "app.cashrotate/keystore"
         private const val REMINDERS_CHANNEL = "app.cashrotate/reminders"
         private const val PERMISSION_REQUEST = 41
+        private const val FILES_CHANNEL = "app.cashrotate/files"
+        private const val SAVE_REQUEST = 42
+        private const val OPEN_REQUEST = 43
     }
 }

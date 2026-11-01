@@ -88,6 +88,8 @@ class _StartupGate extends ConsumerWidget {
     // Today's exchange rates, in the background (once a day; offline keeps
     // the cached ones).
     ref.watch(autoRateStartupProvider);
+    // Today's automatic backup on the phone (once a day).
+    ref.watch(autoBackupProvider);
     return switch (ref.watch(userSettingsProvider)) {
       AsyncData() => AppLockGate(
         child: SyncBridge(child: ReminderBridge(child: child)),

@@ -92,6 +92,14 @@ class Journal {
     return _log(entity, rowId, changed);
   }
 
+  /// Logs [fields] (SQL values by column) as changed now, e.g. rows put
+  /// back by restoring a backup, so they win over older synced values.
+  Future<void> rewritten(
+    String entity,
+    String rowId,
+    Map<String, Object?> fields,
+  ) => _log(entity, rowId, fields);
+
   Future<void> deleted(String entity, String rowId) =>
       _log(entity, rowId, {tombstone: true});
 

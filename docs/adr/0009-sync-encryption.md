@@ -5,7 +5,7 @@
 
 ## 決定
 
-- **函式庫**：libsodium（經過審計、持續維護），透過 `sodium_libs` 套件呼叫。
+- **函式庫**：libsodium（經過審計、持續維護），透過 `sodium` 4.1.2 呼叫（BSD-3）。原本規劃的 `sodium_libs` 已在 2026-07 停止維護，於 2026-11-01 由專案擁有者確認改用 `sodium`（ADR 0013）。
 - **加密**：XChaCha20-Poly1305 IETF。每個檔案用隨機的 24 bytes nonce；附加認證資料（AAD）是檔案在 WebDAV 上的相對路徑，檔案被搬到別的路徑就無法解密。
 - **壓縮**：先用 gzip 壓縮再加密（密文無法壓縮），變更批次通常能縮小 70～90%。
 - **金鑰衍生**：Argon2id，64 MiB、3 次（libsodium MODERATE 等級），鹽值 16 bytes，參數寫在 `manifest.json`。

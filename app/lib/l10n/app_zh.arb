@@ -234,5 +234,18 @@
   "appLockImmediately": "立即",
   "appLockAfterMinutes": "{count} 分钟后",
   "appLockChangePin": "更改 PIN",
-  "appLockForgotHint": "忘记 PIN 只能清除 App 数据重新开始；开启同步的话，数据可从云端恢复。"
+  "appLockForgotHint": "忘记 PIN 只能清除 App 数据重新开始；开启同步的话，数据可从云端恢复。",
+  "backupTitle": "备份与恢复",
+  "backupAutoHint": "每天自动在手机上备份一次，保留最近 7 份。",
+  "backupNow": "立即备份",
+  "backupNone": "还没有备份",
+  "backupRestore": "恢复",
+  "backupRestoreConfirm": "要恢复“{date}”吗？之后的更改会被替换；开启同步的话，其他设备也会一起恢复。",
+  "backupRestored": "已恢复",
+  "backupExport": "导出加密备份文件",
+  "backupExportHint": "可存到下载文件夹或云端硬盘，打开时需要你设置的密码。",
+  "backupImport": "从备份文件恢复",
+  "backupFilePassword": "备份文件密码",
+  "backupWrongPassword": "密码错误，或不是 CashRotate 备份文件",
+  "backupSaved": "已保存备份文件"
 }

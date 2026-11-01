@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/providers.dart';
+import '../features/backup/backup_page.dart';
 import '../features/home/home_page.dart';
 import '../features/items/items_page.dart';
 import '../features/ledger/ledger_page.dart';
@@ -68,6 +69,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'sync',
                         builder: (_, _) => const SyncSettingsPage(),
+                      ),
+                      GoRoute(
+                        path: 'backup',
+                        builder: (_, _) => const BackupPage(),
                       ),
                     ],
                   ),

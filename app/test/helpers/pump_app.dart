@@ -233,6 +233,8 @@ Future<TestData> pumpApp(
         reminderPlatformProvider.overrideWithValue(
           reminders ?? FakeReminderPlatform(),
         ),
+        // No automatic backup files in widget tests.
+        autoBackupProvider.overrideWith((ref) async => false),
         ...overrides,
       ],
       child: const CashRotateApp(),

@@ -12,6 +12,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
 import '../../theme/palette.dart';
 import '../../widgets/currency_picker.dart';
+import '../backup/backup_page.dart';
 import '../home/fixed_summary.dart';
 import '../items/fx_line.dart';
 import '../security/app_lock_settings.dart';
@@ -58,6 +59,7 @@ class SettingsPage extends ConsumerWidget {
               _Section(l10n.settingsSyncSecurity),
               const SyncSettingsTile(),
               const AppLockSettings(),
+              const BackupSettingsTile(),
               _Section(l10n.settingsReminders),
               const ReminderSettings(),
               _Section(l10n.settingsRates),

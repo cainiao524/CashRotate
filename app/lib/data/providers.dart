@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sodium/sodium_sumo.dart';
 
+import '../platform/files.dart';
 import '../platform/keystore.dart';
+import 'backup/backup_service.dart';
 import 'db/app_database.dart';
 import 'entitlements.dart';
 import 'fx/auto_rate_service.dart';
@@ -168,3 +170,22 @@ final appLockConfigProvider = StreamProvider<AppLockConfig?>((ref) async* {
 final biometricAuthProvider = Provider<BiometricAuth>(
   (ref) => LocalBiometricAuth(),
 );
+
+final backupServiceProvider = FutureProvider<BackupService>((ref) async {
+  final dir = await getApplicationSupportDirectory();
+  return BackupService(
+    ref.watch(appDatabaseProvider).requireValue,
+    ref.watch(journalProvider),
+    await ref.watch(sodiumProvider.future),
+    Directory('${dir.path}/backups'),
+    now: ref.watch(clockProvider),
+  );
+});
+
+/// Today's automatic backup, in the background once the database is open.
+final autoBackupProvider = FutureProvider<bool>(
+  (ref) async => (await ref.watch(backupServiceProvider.future)).backUpIfDue(),
+);
+
+/// Save and open dialogs for backup files; faked in tests.
+final filePickerProvider = Provider<FilePicker>((ref) => SystemFilePicker());
