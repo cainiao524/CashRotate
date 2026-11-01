@@ -60,6 +60,19 @@ class Journal {
     return next;
   }
 
+  /// Advances the clock past a change merged from another device, so later
+  /// local edits are newer than everything already seen.
+  Future<void> receive(Hlc remote) async {
+    await _load();
+    final next = _clock!.receive(remote, _nowMillis());
+    _clock = next;
+    await _db
+        .into(_db.meta)
+        .insertOnConflictUpdate(
+          MetaCompanion.insert(key: _hlcKey, value: next.pack()),
+        );
+  }
+
   /// Logs every column of a new row.
   Future<void> inserted(String entity, String rowId, Insertable<Object?> row) =>
       _log(entity, rowId, sqlValues(row));
