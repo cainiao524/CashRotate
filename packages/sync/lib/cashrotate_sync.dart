@@ -10,3 +10,4 @@ export 'src/engine/merge.dart';
 export 'src/engine/sync_engine.dart';
 export 'src/hlc/hlc.dart';
 export 'src/remote/remote_folder.dart';
+export 'src/remote/webdav_folder.dart';
