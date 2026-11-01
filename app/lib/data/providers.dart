@@ -16,6 +16,7 @@ import 'items/item_repository.dart';
 import 'journal.dart';
 import 'reminders/reminder_platform.dart';
 import 'reminders/reminder_service.dart';
+import 'security/app_lock.dart';
 import 'settings/settings_repository.dart';
 import 'sync/sync_service.dart';
 
@@ -149,3 +150,21 @@ final syncConfigProvider = StreamProvider<SyncConfig?>((ref) async* {
   final service = await ref.watch(syncServiceProvider.future);
   yield* service.watchConfig();
 });
+
+final appLockRepositoryProvider = FutureProvider<AppLockRepository>(
+  (ref) async => AppLockRepository(
+    ref.watch(appDatabaseProvider).requireValue,
+    await ref.watch(sodiumProvider.future),
+  ),
+);
+
+/// The app lock on this device, or null when it is off.
+final appLockConfigProvider = StreamProvider<AppLockConfig?>((ref) async* {
+  final repo = await ref.watch(appLockRepositoryProvider.future);
+  yield* repo.watch();
+});
+
+/// Fingerprint / face; replaced by a fake in tests.
+final biometricAuthProvider = Provider<BiometricAuth>(
+  (ref) => LocalBiometricAuth(),
+);

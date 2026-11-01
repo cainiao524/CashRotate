@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'brand.dart';
 import 'data/providers.dart';
 import 'features/reminders/reminder_bridge.dart';
+import 'features/security/lock_screen.dart';
 import 'features/sync/sync_bridge.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'l10n/locale_resolution.dart';
@@ -88,7 +89,9 @@ class _StartupGate extends ConsumerWidget {
     // the cached ones).
     ref.watch(autoRateStartupProvider);
     return switch (ref.watch(userSettingsProvider)) {
-      AsyncData() => SyncBridge(child: ReminderBridge(child: child)),
+      AsyncData() => AppLockGate(
+        child: SyncBridge(child: ReminderBridge(child: child)),
+      ),
       AsyncError(:final error) => Scaffold(body: ErrorState(message: '$error')),
       _ => const Scaffold(body: SizedBox.expand()),
     };
