@@ -339,5 +339,15 @@
   "owedByMe": "我欠别人",
   "owedReceived": "已收到",
   "owedNothing": "目前没有欠款。",
-  "owedDue": "{name} · {date} 到期"
+  "owedDue": "{name} · {date} 到期",
+  "planChangeTitle": "换方案",
+  "planChangeCurrent": "目前每期 {price}",
+  "planChangeNewPrice": "新方案每期价格",
+  "planChangeFrom": "生效日",
+  "planModePay": "立即升级，补剩余期间的差价",
+  "planModeConvert": "立即切换，剩余天数按比例换算（改变下次扣款日）",
+  "planModeRenewal": "下次续费才切换",
+  "planPreviewPay": "现在补 {amount}，下次扣款起改收新价格。",
+  "planPreviewConvert": "新方案已付至 {date}，之后从这天起扣款。",
+  "planPreviewRenewal": "{date} 起每期 {price}。"
 }

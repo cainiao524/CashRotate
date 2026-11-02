@@ -342,6 +342,54 @@ class ItemRepository {
     await _replan(itemId);
   });
 
+  /// Changes plan (upgrade or downgrade) to [newPrice] from [on], settled
+  /// by [mode] (CLAUDE.md item 16). Records the change in PriceHistory and
+  /// sets the plan name to [planId]. Returns the result; a prorated
+  /// difference to pay now is the caller's to record as a payment.
+  Future<PlanChangeResult> switchPlan(
+    String itemId, {
+    required Money newPrice,
+    required LocalDate on,
+    required PlanChangeMode mode,
+    String? planId,
+  }) => _db.transaction(() async {
+    final row = await _item(itemId);
+    final schedule = _schedule(row, await _phases(itemId));
+    final result = changePlan(schedule, newPrice: newPrice, on: on, mode: mode);
+    final from = result.fromIndex;
+    final old = from == null
+        ? schedule.prices.stablePrice
+        : schedule.prices.priceAt(schedule.cycle, schedule.anchor, from);
+    final history = PriceHistoryCompanion.insert(
+      id: _uuid.v7(),
+      itemId: itemId,
+      fromCycleIndex: from ?? 0,
+      effectiveOn: from == null
+          ? result.anchor
+          : schedule.cycle.dateAt(schedule.anchor, from),
+      oldMinor: old.minor,
+      newMinor: newPrice.minor,
+      currency: newPrice.currency,
+      recordedAt: _nowMillis(),
+    );
+    await _db.into(_db.priceHistory).insert(history);
+    await _journal.inserted('price_history', history.id.value, history);
+    await _writePhases(itemId, result.prices);
+    final fields = (jsonDecode(row.typeFields) as Map).cast<String, Object?>();
+    if (planId != null) fields['plan'] = planId;
+    await _updateItem(
+      itemId,
+      (r) => r.copyWith(
+        anchorOn: result.anchor,
+        paidUntil: Value(result.paidUntil),
+        typeFields: jsonEncode(fields),
+        currency: newPrice.currency,
+      ),
+    );
+    await _replan(itemId);
+    return result;
+  });
+
   /// Pauses, cancels or resumes from [since]. A paused span is never billed,
   /// even after resuming.
   Future<void> setStatus(String itemId, ItemStatus status, LocalDate since) =>

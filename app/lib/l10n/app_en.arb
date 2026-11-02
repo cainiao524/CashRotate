@@ -497,5 +497,15 @@
   "owedByMe": "I owe", "@owedByMe": {"description": "Shared plans."},
   "owedReceived": "Received", "@owedReceived": {"description": "Shared plans."},
   "owedNothing": "Nobody owes anything right now.", "@owedNothing": {"description": "Shared plans."},
-  "owedDue": "{name} · due {date}", "@owedDue": {"description": "Shared plans.", "placeholders": {"name": {"type": "String"}, "date": {"type": "String"}}}
+  "owedDue": "{name} · due {date}", "@owedDue": {"description": "Shared plans.", "placeholders": {"name": {"type": "String"}, "date": {"type": "String"}}},
+  "planChangeTitle": "Change plan", "@planChangeTitle": {"description": "Plan change."},
+  "planChangeCurrent": "Now {price} per charge", "@planChangeCurrent": {"description": "Plan change.", "placeholders": {"price": {"type": "String"}}},
+  "planChangeNewPrice": "New price per charge", "@planChangeNewPrice": {"description": "Plan change."},
+  "planChangeFrom": "Change on", "@planChangeFrom": {"description": "Plan change."},
+  "planModePay": "Switch now, pay the difference for the time left", "@planModePay": {"description": "Plan change."},
+  "planModeConvert": "Switch now, convert the time left (moves the next charge)", "@planModeConvert": {"description": "Plan change."},
+  "planModeRenewal": "Switch at the next renewal", "@planModeRenewal": {"description": "Plan change."},
+  "planPreviewPay": "Pay {amount} now; the new price applies from the next charge.", "@planPreviewPay": {"description": "Plan change.", "placeholders": {"amount": {"type": "String"}}},
+  "planPreviewConvert": "Paid until {date} on the new plan; charges continue from then.", "@planPreviewConvert": {"description": "Plan change.", "placeholders": {"date": {"type": "String"}}},
+  "planPreviewRenewal": "From {date}: {price} per charge.", "@planPreviewRenewal": {"description": "Plan change.", "placeholders": {"date": {"type": "String"}, "price": {"type": "String"}}}
 }

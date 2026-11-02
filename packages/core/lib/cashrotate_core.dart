@@ -21,6 +21,7 @@ export 'src/presets/preset_search.dart';
 export 'src/reminders/reminder_planner.dart';
 export 'src/schedule/cycle.dart';
 export 'src/schedule/occurrence_planner.dart';
+export 'src/schedule/plan_change.dart';
 export 'src/schedule/price_schedule.dart';
 export 'src/sharing/sharing_plan.dart';
 export 'src/time/local_date.dart';

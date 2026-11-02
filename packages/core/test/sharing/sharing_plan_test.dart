@@ -14,7 +14,10 @@ void main() {
     }, Currency.twd);
     expect(plan.role, SharingRole.organizer);
     expect(plan.members, hasLength(3));
-    expect(plan.myCost(twd(390), dueOn: today), const Money(9750, Currency.twd));
+    expect(
+      plan.myCost(twd(390), dueOn: today),
+      const Money(9750, Currency.twd),
+    );
   });
 
   test('a member pays the organizer: the item price is my cost', () {

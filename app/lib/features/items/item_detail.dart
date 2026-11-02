@@ -18,6 +18,7 @@ import '../../widgets/state_views.dart';
 import '../payments/payment_sheet.dart';
 import 'item_editor_page.dart';
 import 'labels.dart';
+import 'plan_change_sheet.dart';
 
 final _itemProvider = StreamProvider.family<ItemView?, String>(
   (ref, id) => ref.watch(itemRepositoryProvider).watchOne(id),
@@ -239,6 +240,13 @@ class ItemDetail extends ConsumerWidget {
                 icon: const Icon(Icons.check),
                 label: Text(l10n.paymentRecord),
                 onPressed: () => showPaymentSheet(context, v),
+              ),
+            if (v.row.status == ItemStatus.active && !v.irregular)
+              OutlinedButton.icon(
+                key: const Key('detail-change-plan'),
+                icon: const Icon(Icons.swap_vert),
+                label: Text(l10n.planChangeTitle),
+                onPressed: () => showPlanChangeSheet(context, v),
               ),
             FilledButton.icon(
               key: const Key('detail-edit'),
