@@ -301,5 +301,10 @@
   "detectConfirmFor": "记为“{name}”的付款",
   "detectUnknownMerchant": "未知商家",
   "detectSuggestions": "可能的新订阅",
-  "detectSuggestionHint": "定期扣款但不在清单中"
+  "detectSuggestionHint": "定期扣款但不在清单中",
+  "fieldIrregular": "不固定周期（充值、自动充值等）",
+  "tileIrregular": "不固定",
+  "tileLastPaid": "上次 {date}",
+  "tileNoPayments": "尚无付款记录",
+  "tilePerMonth": "{amount}/月"
 }

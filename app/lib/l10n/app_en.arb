@@ -459,5 +459,10 @@
   "detectConfirmFor": "Payment for {name}", "@detectConfirmFor": {"description": "Charge detection.", "placeholders": {"name": {"type": "String"}}},
   "detectUnknownMerchant": "Unknown merchant", "@detectUnknownMerchant": {"description": "Charge detection."},
   "detectSuggestions": "Possible new subscriptions", "@detectSuggestions": {"description": "Charge detection."},
-  "detectSuggestionHint": "Charged regularly but not on your list", "@detectSuggestionHint": {"description": "Charge detection."}
+  "detectSuggestionHint": "Charged regularly but not on your list", "@detectSuggestionHint": {"description": "Charge detection."},
+  "fieldIrregular": "No fixed date or amount (top-ups, auto-reload)", "@fieldIrregular": {"description": "Irregular bills."},
+  "tileIrregular": "Irregular", "@tileIrregular": {"description": "Irregular bills."},
+  "tileLastPaid": "last paid {date}", "@tileLastPaid": {"description": "Irregular bills.", "placeholders": {"date": {"type": "String"}}},
+  "tileNoPayments": "no payments yet", "@tileNoPayments": {"description": "Irregular bills."},
+  "tilePerMonth": "{amount}/mo", "@tilePerMonth": {"description": "Monthly average of an irregular bill.", "placeholders": {"amount": {"type": "String"}}}
 }

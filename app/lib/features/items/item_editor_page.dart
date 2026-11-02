@@ -235,41 +235,44 @@ class _ItemEditorPageState extends ConsumerState<ItemEditorPage> {
           value: d.intro,
           onChanged: (v) => update(() => d.intro = v),
         ),
-        const SizedBox(height: 8),
-        _Label(l10n.fieldCycle),
-        _CyclePicker(
-          cycle: d.cycle,
-          onChanged: (c) => update(() => d.cycle = c),
-        ),
-        const SizedBox(height: 8),
-        _DateTile(
-          key: const Key('field-nextCharge'),
-          label: l10n.fieldNextCharge,
-          date: d.nextCharge,
-          error: _error(DraftField.nextCharge),
-          onChanged: (date) => update(() => d.nextCharge = date),
-        ),
-        const SizedBox(height: 8),
-        _Label(l10n.fieldRemindDays),
-        // Several at once: e.g. a week before and on the day.
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final days in remindDayChoices)
-              FilterChip(
-                key: ValueKey('remind-$days'),
-                label: Text(l10n.remindDaysBefore(days)),
-                selected: d.remindDays.contains(days),
-                onSelected: (on) => update(() {
-                  d.remindDays = on
-                      ? ({...d.remindDays, days}.toList()..sort())
-                      : (d.remindDays.where((x) => x != days).toList());
-                }),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
+        // An irregular bill has no cycle, next charge or reminders.
+        if (!d.irregular) ...[
+          const SizedBox(height: 8),
+          _Label(l10n.fieldCycle),
+          _CyclePicker(
+            cycle: d.cycle,
+            onChanged: (c) => update(() => d.cycle = c),
+          ),
+          const SizedBox(height: 8),
+          _DateTile(
+            key: const Key('field-nextCharge'),
+            label: l10n.fieldNextCharge,
+            date: d.nextCharge,
+            error: _error(DraftField.nextCharge),
+            onChanged: (date) => update(() => d.nextCharge = date),
+          ),
+          const SizedBox(height: 8),
+          _Label(l10n.fieldRemindDays),
+          // Several at once: e.g. a week before and on the day.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final days in remindDayChoices)
+                FilterChip(
+                  key: ValueKey('remind-$days'),
+                  label: Text(l10n.remindDaysBefore(days)),
+                  selected: d.remindDays.contains(days),
+                  onSelected: (on) => update(() {
+                    d.remindDays = on
+                        ? ({...d.remindDays, days}.toList()..sort())
+                        : (d.remindDays.where((x) => x != days).toList());
+                  }),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
         for (final group in d.groups) ..._group(context, d, group),
         const SizedBox(height: 8),
         TextField(
@@ -385,7 +388,11 @@ class _ItemEditorPageState extends ConsumerState<ItemEditorPage> {
         toggle('autoRenew', l10n.fieldAutoRenew),
         text('cancelUrl', l10n.fieldCancelUrl, keyboard: TextInputType.url),
       ],
-      FieldGroup.bill => [toggle('variableAmount', l10n.fieldVariableAmount)],
+      FieldGroup.bill => [
+        toggle('irregular', l10n.fieldIrregular),
+        if (d.fields['irregular'] != true)
+          toggle('variableAmount', l10n.fieldVariableAmount),
+      ],
       FieldGroup.trial => [date('trialEndsOn', l10n.fieldTrialEnds)],
       FieldGroup.contract => [date('contractEndsOn', l10n.fieldContractEnds)],
       FieldGroup.repayment => [

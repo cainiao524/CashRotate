@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/db/app_database.dart';
 import '../../data/items/item_repository.dart';
+import '../../data/payments/payment_repository.dart';
 import '../../data/providers.dart';
 
 /// "How much a month, what's due soon, what's still to fill in."
@@ -33,8 +34,10 @@ FixedSummary computeFixedSummary(
   required FxConverter fx,
   required Currency main,
   required LocalDate today,
+  Map<String, Money?> irregularAverages = const {},
 }) {
   var total = Money.zero(main);
+  var unknownIrregular = 0;
   var missing = 0;
   var dueSoon = 0;
   final soon = today.addDays(7);
@@ -47,10 +50,20 @@ FixedSummary computeFixedSummary(
         v.typeFields['runsOnItemId'] != null) {
       continue;
     }
-    final perCharge = next == null
-        ? v.schedule.prices.stablePrice
-        : Money(next.expectedMinor, next.currency);
-    final monthly = v.schedule.cycle.monthlyEquivalent(perCharge);
+    final Money monthly;
+    if (v.irregular) {
+      final average = irregularAverages[v.row.id];
+      if (average == null) {
+        unknownIrregular++; // no payments yet: "to fill in"
+        continue;
+      }
+      monthly = average;
+    } else {
+      final perCharge = next == null
+          ? v.schedule.prices.stablePrice
+          : Money(next.expectedMinor, next.currency);
+      monthly = v.schedule.cycle.monthlyEquivalent(perCharge);
+    }
     final converted = fx.convert(monthly, main);
     if (converted == null) {
       missing++;
@@ -62,7 +75,8 @@ FixedSummary computeFixedSummary(
     monthlyTotal: total,
     missingRates: missing,
     dueSoon: dueSoon,
-    needsDetails: items.where((v) => v.row.needsDetails).length,
+    needsDetails:
+        items.where((v) => v.row.needsDetails).length + unknownIrregular,
   );
 }
 
@@ -116,6 +130,44 @@ MonthCharges computeMonthCharges(
   return MonthCharges(paid: paid, pending: pending);
 }
 
+/// Every payment record, newest first.
+final allPaymentsProvider = StreamProvider<List<Payment>>(
+  (ref) => ref.watch(paymentRepositoryProvider).watchAll(),
+);
+
+/// Irregular bills: monthly average of their payments (null before any),
+/// and each item's latest payment date.
+final irregularStatsProvider =
+    Provider<({Map<String, Money?> averages, Map<String, LocalDate> lastPaid})>(
+      (ref) {
+        final items = ref.watch(itemsProvider).value ?? const [];
+        final payments = ref.watch(allPaymentsProvider).value ?? const [];
+        final today = todayFrom(ref.watch(clockProvider));
+        final byItem = <String, List<Payment>>{};
+        for (final p in payments) {
+          if (p.row.itemId case final id?) {
+            byItem.putIfAbsent(id, () => []).add(p);
+          }
+        }
+        final averages = <String, Money?>{};
+        for (final v in items.where((v) => v.irregular)) {
+          final currency = v.schedule.prices.stablePrice.currency;
+          averages[v.row.id] = irregularMonthly([
+            for (final p in byItem[v.row.id] ?? const <Payment>[])
+              if ((p.original ?? p.paid).currency == currency)
+                (p.paidOn, p.original ?? p.paid),
+          ], today: today);
+        }
+        return (
+          averages: averages,
+          lastPaid: {
+            for (final MapEntry(:key, :value) in byItem.entries)
+              key: value.first.paidOn,
+          },
+        );
+      },
+    );
+
 final itemsProvider = StreamProvider<List<ItemView>>(
   (ref) => ref.watch(itemRepositoryProvider).watchAll(),
 );
@@ -133,6 +185,7 @@ final fixedSummaryProvider = Provider<AsyncValue<FixedSummary>>((ref) {
             fx: converter,
             main: s.mainCurrency,
             today: todayFrom(ref.watch(clockProvider)),
+            irregularAverages: ref.watch(irregularStatsProvider).averages,
           ),
         );
       }

@@ -16,6 +16,7 @@ class ChargeCandidate {
     this.occurrenceId,
     this.cardLast4,
     this.accountFeeBasisPoints = 0,
+    this.anyAmount = false,
   });
 
   final String itemId;
@@ -31,6 +32,9 @@ class ChargeCandidate {
 
   /// That card's markup for foreign charges (set fee or learned).
   final int accountFeeBasisPoints;
+
+  /// An irregular bill: any amount on any day fits, but only by name.
+  final bool anyAmount;
 }
 
 /// How sure a match is.
@@ -92,11 +96,12 @@ ChargeMatch? matchCharge(
         });
     if (named) score += 0.45;
 
-    final amountFit = _amountFit(charge.amount, c, fx);
+    if (c.anyAmount && !named) continue;
+    final amountFit = c.anyAmount ? 0.35 : _amountFit(charge.amount, c, fx);
     score += amountFit;
 
     final days = c.dueOn.daysUntil(on).abs();
-    final inWindow = days <= matchWindowDays;
+    final inWindow = c.anyAmount || days <= matchWindowDays;
     if (inWindow) score += 0.15;
 
     if (charge.last4 != null && c.cardLast4 != null) {

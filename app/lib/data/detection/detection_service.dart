@@ -252,7 +252,8 @@ class DetectionService {
     if (match?.confidence == MatchConfidence.high) {
       await _record(
         detection,
-        candidates[match!.candidate]!,
+        match!.candidate.itemId,
+        candidates[match.candidate],
         accounts,
         main,
         fx,
@@ -262,7 +263,9 @@ class DetectionService {
     return detection;
   }
 
-  Future<Map<ChargeCandidate, OccurrenceRow>> _candidates(
+  /// Pending charges near [on] (value: the charge), plus irregular bills
+  /// (value: null), which match by name alone.
+  Future<Map<ChargeCandidate, OccurrenceRow?>> _candidates(
     LocalDate on,
     List<AccountRow> accounts,
     PresetLibrary? presets,
@@ -272,7 +275,7 @@ class DetectionService {
         .watchDue(on.addDays(-40), on.addDays(matchWindowDays))
         .first;
     final byId = {for (final v in items) v.row.id: v};
-    final result = <ChargeCandidate, OccurrenceRow>{};
+    final result = <ChargeCandidate, OccurrenceRow?>{};
     for (final o in due) {
       if (o.state != OccurrenceState.pending) continue;
       final v = byId[o.itemId];
@@ -301,25 +304,41 @@ class DetectionService {
           )] =
           o;
     }
+    for (final v in items) {
+      if (!v.irregular || v.row.status != ItemStatus.active) continue;
+      final preset = presets?.byId[v.row.presetId];
+      result[ChargeCandidate(
+            itemId: v.row.id,
+            names: [v.row.name, ...?preset?.name.all, ...?preset?.aliases],
+            expected: v.schedule.prices.stablePrice,
+            dueOn: on,
+            anyAmount: true,
+          )] =
+          null;
+    }
     return result;
   }
 
   Future<void> _record(
     Detection d,
-    OccurrenceRow occurrence,
+    String itemId,
+    OccurrenceRow? occurrence,
     List<AccountRow> accounts,
     Currency main,
     FxConverter fx,
   ) async {
-    final view = await _items.view(occurrence.itemId);
+    final view = await _items.view(itemId);
     d.previousPaidUntil = view.schedule.paidUntil;
     final byCard = d.last4 == null
         ? null
         : accounts.where((a) => a.cardLast4 == d.last4).firstOrNull;
-    final expected = Money(occurrence.expectedMinor, occurrence.currency);
+    // An irregular bill expects whatever was charged.
+    final expected = occurrence == null
+        ? d.amount
+        : Money(occurrence.expectedMinor, occurrence.currency);
     d.transactionId = await _payments.record(
-      itemId: occurrence.itemId,
-      occurrenceId: occurrence.id,
+      itemId: itemId,
+      occurrenceId: occurrence?.id,
       expected: expected,
       paid: d.amount,
       paidOn: d.on,
@@ -330,8 +349,8 @@ class DetectionService {
           : fx.rate(expected.currency, d.amount.currency)?.rate,
       note: 'notification',
     );
-    d.itemId = occurrence.itemId;
-    d.occurrenceId = occurrence.id;
+    d.itemId = itemId;
+    d.occurrenceId = occurrence?.id;
   }
 
   Future<void> _update(
@@ -365,9 +384,9 @@ class DetectionService {
   }) => _update(id, (d) async {
     final view = await _items.view(itemId);
     final next = view.nextDue;
-    if (next == null) return;
+    if (next == null && !view.irregular) return;
     final accounts = await _db.select(_db.accounts).get();
-    await _record(d, next, accounts, main, fx);
+    await _record(d, itemId, view.irregular ? null : next, accounts, main, fx);
     d.status = DetectionStatus.assigned;
   });
 

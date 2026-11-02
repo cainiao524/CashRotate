@@ -9,6 +9,7 @@ enum TileSort { dueDate, amount, name }
 class HomeTile {
   HomeTile._({
     required this.view,
+    this.lastPaid,
     required this.daysLeft,
     required this.periodDays,
     required this.amount,
@@ -22,10 +23,14 @@ class HomeTile {
     required LocalDate today,
     required FxConverter? fx,
     required Currency main,
+    Money? irregularAverage,
+    LocalDate? lastPaid,
   }) {
     final next = view.nextDue;
     final schedule = view.schedule;
-    final amount = next == null
+    final amount = view.irregular
+        ? irregularAverage ?? Money.zero(schedule.prices.stablePrice.currency)
+        : next == null
         ? schedule.prices.stablePrice
         : Money(next.expectedMinor, next.currency);
     Money? inMain(Money m) =>
@@ -45,8 +50,9 @@ class HomeTile {
               ) !=
               null;
     }
-    final monthly = view.stableMonthly;
+    final monthly = view.irregular ? amount : view.stableMonthly;
     return HomeTile._(
+      lastPaid: lastPaid,
       view: view,
       daysLeft: next == null ? null : today.daysUntil(next.dueOn),
       periodDays: periodDays,
@@ -60,6 +66,12 @@ class HomeTile {
   }
 
   final ItemView view;
+
+  /// For an irregular bill: the latest payment (its [amount] is the monthly
+  /// average of its payments).
+  final LocalDate? lastPaid;
+
+  bool get irregular => view.irregular;
 
   /// Days to the next pending charge, negative once overdue; null without one.
   final int? daysLeft;
@@ -118,6 +130,8 @@ List<HomeTile> homeTiles(
   TileSort sort = TileSort.dueDate,
   ItemType? type,
   String query = '',
+  Map<String, Money?> irregularAverages = const {},
+  Map<String, LocalDate> lastPaid = const {},
 }) {
   final q = query.trim().toLowerCase();
   final tiles = [
@@ -125,7 +139,14 @@ List<HomeTile> homeTiles(
       if (v.schedule.isUsableOn(today) &&
           (type == null || v.row.type == type) &&
           (q.isEmpty || v.row.name.toLowerCase().contains(q)))
-        HomeTile.of(v, today: today, fx: fx, main: main),
+        HomeTile.of(
+          v,
+          today: today,
+          fx: fx,
+          main: main,
+          irregularAverage: irregularAverages[v.row.id],
+          lastPaid: lastPaid[v.row.id],
+        ),
   ];
   int byName(HomeTile a, HomeTile b) =>
       a.view.row.name.toLowerCase().compareTo(b.view.row.name.toLowerCase());

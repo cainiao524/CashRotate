@@ -58,7 +58,8 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
     final today = todayFrom(ref.read(clockProvider));
     _date = charge == null || charge.dueOn > today ? today : charge.dueOn;
     _accountId = widget.view.row.accountId;
-    _amount.text = _plain(_expected);
+    // An irregular bill has no expected amount: type what was charged.
+    _amount.text = widget.view.irregular ? '' : _plain(_expected);
   }
 
   @override
@@ -112,7 +113,10 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
     if (paid == null) return;
     final l10n = AppLocalizations.of(context);
     var updatePrice = false;
-    if (!_inMain && paid != _expected && widget.charge != null) {
+    if (!_inMain &&
+        paid != _expected &&
+        widget.charge != null &&
+        !widget.view.irregular) {
       final choice = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -136,19 +140,20 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
     }
     setState(() => _saving = true);
     final fx = ref.read(fxConverterProvider).value;
+    final expected = widget.view.irregular ? paid : _expected;
     await ref
         .read(paymentRepositoryProvider)
         .record(
           itemId: widget.view.row.id,
-          occurrenceId: widget.charge?.id,
-          expected: _expected,
+          occurrenceId: widget.view.irregular ? null : widget.charge?.id,
+          expected: expected,
           paid: paid,
           paidOn: _date,
           main: _main,
           accountId: _accountId,
-          marketRate: paid.currency == _expected.currency
+          marketRate: paid.currency == expected.currency
               ? null
-              : fx?.rate(_expected.currency, paid.currency)?.rate,
+              : fx?.rate(expected.currency, paid.currency)?.rate,
           updateFuturePrice: updatePrice,
         );
     await HapticFeedback.mediumImpact();

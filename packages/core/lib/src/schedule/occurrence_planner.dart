@@ -19,6 +19,7 @@ final class ItemSchedule {
     this.paidUntil,
     this.status = ItemStatus.active,
     this.statusSince,
+    this.irregular = false,
   });
 
   /// Due date of the first charge; every later date derives from it.
@@ -38,6 +39,10 @@ final class ItemSchedule {
   /// pause are never planned, even after resuming.
   final LocalDate? statusSince;
 
+  /// A bill with no fixed date or amount (API top-ups, auto-reload): no
+  /// charges are planned; payments are recorded as they happen.
+  final bool irregular;
+
   /// Still usable on [today]: active, paused, or cancelled but already paid
   /// through a later date.
   bool isUsableOn(LocalDate today) => switch (status) {
@@ -56,6 +61,7 @@ final class ItemSchedule {
     LocalDate? paidUntil,
     ItemStatus? status,
     LocalDate? statusSince,
+    bool? irregular,
   }) => ItemSchedule(
     anchor: anchor ?? this.anchor,
     cycle: cycle ?? this.cycle,
@@ -63,6 +69,7 @@ final class ItemSchedule {
     paidUntil: paidUntil ?? this.paidUntil,
     status: status ?? this.status,
     statusSince: statusSince ?? this.statusSince,
+    irregular: irregular ?? this.irregular,
   );
 }
 
@@ -137,6 +144,7 @@ List<PlannedOccurrence> expectedOccurrences(
   required LocalDate today,
   int horizonMonths = occurrenceHorizonMonths,
 }) {
+  if (item.irregular) return const [];
   var from = item.anchor;
   if (item.paidUntil case final paid?) from = LocalDate.max(from, paid);
   final horizon = today.addMonths(horizonMonths);
@@ -208,4 +216,28 @@ OccurrencePlan planOccurrences(
     toUpdate: toUpdate,
     toDelete: toDelete,
   );
+}
+
+/// Average monthly cost of an irregular bill from its [payments] (amounts in
+/// the bill's currency): the last 12 months' total divided by the months
+/// since the first of them, at least 3 so one top-up is not taken as a
+/// monthly cost. Null before any payment, which shows as "to fill in".
+Money? irregularMonthly(
+  Iterable<(LocalDate, Money)> payments, {
+  required LocalDate today,
+}) {
+  final since = today.addMonths(-12);
+  final recent = [
+    for (final p in payments)
+      if (p.$1 > since && p.$1 <= today) p,
+  ];
+  if (recent.isEmpty) return null;
+  final first = recent.map((p) => p.$1).reduce((a, b) => a < b ? a : b);
+  final months =
+      ((today.year - first.year) * 12 + today.month - first.month + 1).clamp(
+        3,
+        12,
+      );
+  final total = recent.fold(0, (sum, p) => sum + p.$2.minor);
+  return Money((total / months).round(), recent.first.$2.currency);
 }

@@ -109,7 +109,7 @@ class _DetectionPageState extends ConsumerState<DetectionPage>
           title: Text(l10n.detectChooseItem),
           children: [
             for (final v in items)
-              if (v.nextDue != null)
+              if (v.nextDue != null || v.irregular)
                 SimpleDialogOption(
                   key: ValueKey('detect-item-${v.row.id}'),
                   onPressed: () => Navigator.pop(context, v.row.id),

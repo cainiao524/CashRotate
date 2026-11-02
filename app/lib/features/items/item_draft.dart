@@ -223,11 +223,11 @@ class ItemDraft {
 
   Map<DraftField, DraftError> validate() => {
     if (name.trim().isEmpty) DraftField.name: DraftError.required,
-    if (amountText.trim().isEmpty)
+    if (amountText.trim().isEmpty && !irregular)
       DraftField.amount: intro
           ? DraftError.renewalRequired
           : DraftError.required
-    else if (amount == null)
+    else if (amountText.trim().isNotEmpty && amount == null)
       DraftField.amount: DraftError.amount,
     if (intro && introAmount == null)
       DraftField.introAmount: introAmountText.trim().isEmpty
@@ -235,13 +235,17 @@ class ItemDraft {
           : DraftError.amount,
     if (intro && introPeriods == null)
       DraftField.introPeriods: DraftError.periods,
-    if (nextCharge == null) DraftField.nextCharge: DraftError.required,
+    if (nextCharge == null && !irregular)
+      DraftField.nextCharge: DraftError.required,
   };
+
+  /// A bill with no fixed date or amount: no cycle, date or reminders.
+  bool get irregular => type == ItemType.bill && fields['irregular'] == true;
 
   bool get isValid => validate().isEmpty;
 
   PriceSchedule get prices {
-    final price = amount!;
+    final price = amount ?? Money.zero(currency);
     if (intro) {
       return PriceSchedule.intro(
         intro: introAmount!,
@@ -258,7 +262,8 @@ class ItemDraft {
   /// new items; when editing, the original anchor is kept if the next charge
   /// still falls on its schedule so charge numbering stays stable.
   NewItem toNewItem() {
-    final next = nextCharge!;
+    // An irregular bill has no next charge; its anchor is just today.
+    final next = nextCharge ?? LocalDate.fromDateTime(DateTime.now());
     var anchor = next;
     final original = _anchor;
     if (original != null && next >= original) {

@@ -75,6 +75,9 @@ class ItemView {
       if (r is Map && r['daysBefore'] is int) r['daysBefore'] as int,
   ];
 
+  /// A bill with no fixed date or amount (CLAUDE.md item 1).
+  bool get irregular => schedule.irregular;
+
   /// Average monthly cost of the long-term price.
   Money get stableMonthly =>
       schedule.cycle.monthlyEquivalent(schedule.prices.stablePrice);
@@ -527,6 +530,8 @@ ItemSchedule _schedule(ItemRow row, List<PricePhaseRow> phases) => ItemSchedule(
   paidUntil: row.paidUntil,
   status: row.status,
   statusSince: row.statusSince,
+  irregular:
+      row.type == ItemType.bill && row.typeFields.contains('"irregular":true'),
 );
 
 PricePhaseRow phaseToRow(String itemId, int seq, PricePhase phase) {

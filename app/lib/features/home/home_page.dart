@@ -534,6 +534,8 @@ final _visibleTilesProvider = Provider<List<HomeTile>?>((ref) {
     sort: view.sort,
     type: view.type,
     query: view.query ?? '',
+    irregularAverages: ref.watch(irregularStatsProvider).averages,
+    lastPaid: ref.watch(irregularStatsProvider).lastPaid,
   );
 });
 
@@ -834,11 +836,15 @@ class _ItemTile extends ConsumerWidget {
         : fg.withValues(alpha: 0.72);
 
     final foreign = main != null && tile.amount.currency != main;
-    final amountText = tile.needsDetails
-        ? '—'
-        : tile.converted != null
+    final shown = tile.converted != null
         ? '≈ ${_format(context, ref, tile.converted!)}'
         : _format(context, ref, tile.amount);
+    final amountText = tile.needsDetails
+        ? '—'
+        : tile.irregular
+        // An irregular bill shows its monthly average, once it has one.
+        ? (tile.lastPaid == null ? '—' : l10n.tilePerMonth(shown))
+        : shown;
     final sub = switch (tile.status) {
       ItemStatus.paused => l10n.statusPaused,
       ItemStatus.cancelled when view.schedule.paidUntil != null =>
@@ -847,6 +853,13 @@ class _ItemTile extends ConsumerWidget {
         ),
       ItemStatus.cancelled => l10n.statusCancelled,
       _ when tile.needsDetails => l10n.detailNeedsDetails,
+      _ when tile.irregular => [
+        l10n.tileIrregular,
+        if (tile.lastPaid case final last?)
+          l10n.tileLastPaid(_shortDate(context, last))
+        else
+          l10n.tileNoPayments,
+      ].join(' · '),
       _ => [
         if (tile.overdue) l10n.tileOverdue(-tile.daysLeft!),
         if (tile.newPrice)
@@ -1118,13 +1131,16 @@ class _TileMenu extends ConsumerWidget {
               value: settings?.wideTiles.contains(id) ?? false,
               onChanged: (wide) => repo.setWideTile(id, wide: wide),
             ),
-            if (next != null && tile.status == ItemStatus.active)
+            if ((next != null || tile.irregular) &&
+                tile.status == ItemStatus.active)
               ListTile(
                 key: const Key('tile-mark-paid'),
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.check_circle_outline),
                 title: Text(l10n.actionMarkPaid),
-                subtitle: Text(_shortDate(context, next.dueOn)),
+                subtitle: next == null
+                    ? null
+                    : Text(_shortDate(context, next.dueOn)),
                 onTap: () {
                   Navigator.of(context).pop();
                   showPaymentSheet(context, tile.view);
