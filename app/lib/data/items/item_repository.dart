@@ -344,6 +344,27 @@ class ItemRepository {
         await _replan(itemId);
       });
 
+  /// Undoes [markPaid]: the charge is due again and paidUntil goes back to
+  /// [paidUntil] (its value before). For "undo" on an automatic match.
+  Future<void> reopen(String occurrenceId, LocalDate? paidUntil) =>
+      _db.transaction(() async {
+        final occ = await (_db.select(
+          _db.occurrences,
+        )..where((o) => o.id.equals(occurrenceId))).getSingleOrNull();
+        if (occ == null) return;
+        final pending = occ.copyWith(
+          state: OccurrenceState.pending,
+          transactionId: const Value(null),
+        );
+        await _db.update(_db.occurrences).replace(pending);
+        await _journal.updated('occurrences', occ.id, occ, pending);
+        await _updateItem(
+          occ.itemId,
+          (row) => row.copyWith(paidUntil: Value(paidUntil)),
+        );
+        await _replan(occ.itemId);
+      });
+
   /// Marks a charge paid, covering [cycles] cycles (e.g. a domain renewed for
   /// three years). Pushes paidUntil forward and drops covered charges.
   /// [transactionId] links the payment record (M4).

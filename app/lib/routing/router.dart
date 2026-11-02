@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/providers.dart';
 import '../features/backup/backup_page.dart';
+import '../features/detection/detection_page.dart';
 import '../features/home/home_page.dart';
 import '../features/items/items_page.dart';
 import '../features/ledger/ledger_page.dart';
@@ -78,6 +79,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'payment-methods',
                         builder: (_, _) => const PaymentMethodsPage(),
+                      ),
+                      GoRoute(
+                        path: 'detection',
+                        builder: (_, _) => const DetectionPage(),
                       ),
                     ],
                   ),

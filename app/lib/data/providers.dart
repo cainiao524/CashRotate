@@ -10,6 +10,8 @@ import '../platform/files.dart';
 import '../platform/keystore.dart';
 import 'backup/backup_service.dart';
 import 'db/app_database.dart';
+import 'detection/detection_service.dart';
+import 'detection/notice_platform.dart';
 import 'entitlements.dart';
 import 'fx/auto_rate_service.dart';
 import 'fx/exchange_rate_repository.dart';
@@ -211,4 +213,27 @@ final paymentRepositoryProvider = Provider<PaymentRepository>(
 /// Payment methods to choose from (not archived, not "unassigned").
 final paymentMethodListProvider = StreamProvider<List<AccountRow>>(
   (ref) => ref.watch(paymentMethodsProvider).watchAll(),
+);
+
+/// The native notification listener; faked in tests.
+final noticePlatformProvider = Provider<NoticePlatform>(
+  (ref) => MethodChannelNoticePlatform(),
+);
+
+final detectionServiceProvider = Provider<DetectionService>(
+  (ref) => DetectionService(
+    ref.watch(appDatabaseProvider).requireValue,
+    ref.watch(itemRepositoryProvider),
+    ref.watch(paymentRepositoryProvider),
+    ref.watch(noticePlatformProvider),
+  ),
+);
+
+final detectionSettingsProvider = StreamProvider<DetectionSettings>(
+  (ref) => ref.watch(detectionServiceProvider).watchSettings(),
+);
+
+/// Charges read from notifications, newest first.
+final detectionsProvider = StreamProvider<List<Detection>>(
+  (ref) => ref.watch(detectionServiceProvider).watch(),
 );

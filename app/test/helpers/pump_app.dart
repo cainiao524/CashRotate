@@ -20,6 +20,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:meta/meta.dart';
 
+import 'fake_notice_platform.dart';
 import 'fake_reminder_platform.dart';
 
 /// Golden matrix required by CLAUDE.md: widths × text scales × brightness.
@@ -182,6 +183,7 @@ Future<TestData> pumpApp(
   Entitlements? entitlements,
   FakeReminderPlatform? reminders,
   List<Override> overrides = const [],
+  FakeNoticePlatform? notices,
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -232,6 +234,9 @@ Future<TestData> pumpApp(
           entitlementsProvider.overrideWithValue(entitlements),
         reminderPlatformProvider.overrideWithValue(
           reminders ?? FakeReminderPlatform(),
+        ),
+        noticePlatformProvider.overrideWithValue(
+          notices ?? FakeNoticePlatform(),
         ),
         // No automatic backup files in widget tests.
         autoBackupProvider.overrideWith((ref) async => false),

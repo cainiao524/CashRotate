@@ -38,7 +38,25 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- A bank SMS or notification shared to the app, to detect a charge. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
+        <!-- Automatic charge detection (ADR 0010): reads only the bank and
+             payment apps the user picks; the user grants access in system
+             settings. -->
+        <service
+            android:name=".notices.ChargeListenerService"
+            android:label="${appName}"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
         <receiver
             android:name=".reminders.ReminderReceiver"
             android:exported="false" />
@@ -69,6 +87,11 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Launchable apps, to pick which bank and wallet apps to read. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
         </intent>
     </queries>
 </manifest>
