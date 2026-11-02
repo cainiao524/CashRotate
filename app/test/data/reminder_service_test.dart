@@ -75,6 +75,47 @@ void main() {
     expect(later.first.at, DateTime(2026, 3, 15, 20, 30));
   });
 
+  test('large icon and Go cancel on renewals, not on bills', () async {
+    final id = await netflix();
+    final rent = await items.create(
+      NewItem(
+        type: ItemType.bill,
+        name: 'Rent',
+        cycle: Cycle.monthly,
+        anchor: LocalDate(2026, 3, 17),
+        prices: PriceSchedule.fixed(const Money(1800000, Currency.twd)),
+      ),
+    );
+    const badge = NotificationBadge(
+      letter: 'N',
+      background: 0xFF111111,
+      foreground: 0xFFFFFFFF,
+      iconCodePoint: 0xe40a,
+    );
+    final rs = await service.sync(
+      items: await items.watchAll().first,
+      occurrences: await items
+          .watchDue(today.addDays(-366), today.addDays(60))
+          .first,
+      settings: settings,
+      l10n: en,
+      locale: 'en_US',
+      badges: {id: badge},
+      cancelUrls: {id: 'https://netflix.example/cancel', rent: 'https://x'},
+    );
+    final renewal = rs.firstWhere((r) => r.itemId == id);
+    expect(renewal.badge, badge);
+    expect(renewal.cancelUrl, 'https://netflix.example/cancel');
+    expect(renewal.toJson()['badge'], {
+      'letter': 'N',
+      'background': 0xFF111111,
+      'foreground': 0xFFFFFFFF,
+      'icon': 0xe40a,
+    });
+    expect(rs.firstWhere((r) => r.itemId == rent).cancelUrl, isNull);
+    expect(platform.labels['goCancel'], 'Go cancel');
+  });
+
   test('the charge before an intro price ends says what it becomes', () async {
     await items.create(
       NewItem(

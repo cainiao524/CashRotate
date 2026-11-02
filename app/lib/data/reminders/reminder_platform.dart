@@ -3,6 +3,31 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
+/// A notification's large icon: the item's chosen line icon (a Material
+/// Icons code point) or else its initial, on a round badge.
+class NotificationBadge {
+  const NotificationBadge({
+    required this.letter,
+    required this.background,
+    required this.foreground,
+    this.iconCodePoint,
+  });
+
+  final String letter;
+
+  /// ARGB colours.
+  final int background;
+  final int foreground;
+  final int? iconCodePoint;
+
+  Map<String, Object?> toJson() => {
+    'letter': letter,
+    'background': background,
+    'foreground': foreground,
+    'icon': iconCodePoint,
+  };
+}
+
 /// A reminder ready for the platform: when, and the localised text.
 class NativeReminder {
   const NativeReminder({
@@ -13,6 +38,8 @@ class NativeReminder {
     required this.itemId,
     required this.kind,
     this.occurrenceId,
+    this.badge,
+    this.cancelUrl,
   });
 
   final String id;
@@ -27,6 +54,11 @@ class NativeReminder {
   /// The charge "Paid" on the notification settles.
   final String? occurrenceId;
 
+  final NotificationBadge? badge;
+
+  /// Trials and renewals: "Go cancel" opens this page.
+  final String? cancelUrl;
+
   Map<String, Object?> toJson() => {
     'id': id,
     'at': at.millisecondsSinceEpoch,
@@ -35,6 +67,8 @@ class NativeReminder {
     'itemId': itemId,
     'occurrenceId': occurrenceId,
     'kind': kind,
+    'badge': badge?.toJson(),
+    'cancelUrl': cancelUrl,
   };
 }
 
@@ -77,7 +111,7 @@ class ReminderEvent {
 /// WorkManager), behind an interface so tests can fake it.
 abstract interface class ReminderPlatform {
   /// Replaces the planned reminders. [labels]: `paid`, `snooze`,
-  /// `channelName`, `channelDescription`.
+  /// `goCancel`, `channelName`, `channelDescription`.
   Future<void> setReminders(
     List<NativeReminder> reminders,
     Map<String, String> labels,

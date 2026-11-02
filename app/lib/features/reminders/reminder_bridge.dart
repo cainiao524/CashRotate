@@ -2,14 +2,43 @@ import 'dart:async';
 
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/db/app_database.dart';
+import '../../data/items/item_repository.dart';
+import '../../data/presets.dart';
 import '../../data/providers.dart';
+import '../../data/reminders/reminder_platform.dart';
+import '../../data/settings/settings_repository.dart';
+import '../../features.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
 import '../../routing/router.dart';
+import '../../widgets/preset_badge.dart';
 import '../home/fixed_summary.dart';
+import '../home/tile_icons.dart';
+
+/// The notification's large icon for [v], like its home tile: the chosen
+/// line icon or the initial; monochrome unless tiles use service colours.
+NotificationBadge notificationBadge(
+  ItemView v,
+  UserSettings settings,
+  Map<String, Preset> presets,
+) {
+  final name = v.row.name.trim();
+  final background = settings.tileColors
+      ? InitialBadge.parse(presets[v.row.presetId]?.color ?? '#64748B')
+      : const Color(0xFF111111);
+  return NotificationBadge(
+    letter: name.isEmpty
+        ? '?'
+        : String.fromCharCode(name.runes.first).toUpperCase(),
+    background: background.toARGB32(),
+    foreground: InitialBadge.foregroundFor(background).toARGB32(),
+    iconCodePoint: tileIcons[settings.tileIcons[v.row.id]]?.codePoint,
+  );
+}
 
 /// Pending and recent charges the reminder planner looks at.
 final reminderOccurrencesProvider = StreamProvider<List<OccurrenceRow>>((ref) {
@@ -49,10 +78,11 @@ class _ReminderBridgeState extends ConsumerState<ReminderBridge>
     _subscriptions
       ..add(platform.eventsAvailable.listen((_) => _applyEvents()))
       ..add(platform.itemOpened.listen((_) => _openTappedItem()));
-    for (final p in [
+    for (final p in <ProviderListenable<AsyncValue<Object?>>>[
       itemsProvider,
       reminderOccurrencesProvider,
       userSettingsProvider,
+      presetLibraryProvider, // cancel links and badge colours
     ]) {
       ref.listenManual(p, (_, _) => _schedule());
     }
@@ -101,12 +131,25 @@ class _ReminderBridgeState extends ConsumerState<ReminderBridge>
     final l10n = AppLocalizations.of(context);
     final locale = intlLocaleOf(context);
     final service = ref.read(reminderServiceProvider);
+    final presets = ref.read(presetLibraryProvider).value?.byId ?? const {};
     final planned = await service.sync(
       items: items,
       occurrences: occurrences,
       settings: settings,
       l10n: l10n,
       locale: locale,
+      badges: {
+        for (final v in items)
+          v.row.id: notificationBadge(v, settings, presets),
+      },
+      cancelUrls: {
+        if (Features.goCancel)
+          for (final v in items)
+            if ((v.typeFields['cancelUrl'] as String?) ??
+                    presets[v.row.presetId]?.cancelUrl
+                case final url? when url.isNotEmpty)
+              v.row.id: url,
+      },
     );
     if (planned.isNotEmpty) await service.askPermissionOnce();
   }

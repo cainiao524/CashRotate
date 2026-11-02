@@ -39,6 +39,8 @@ class ReminderService {
     required UserSettings settings,
     required AppLocalizations l10n,
     required String locale,
+    Map<String, NotificationBadge> badges = const {},
+    Map<String, String> cancelUrls = const {},
   }) async {
     final today = LocalDate.fromDateTime(_now());
     final reminders = settings.remindersOn
@@ -49,11 +51,14 @@ class ReminderService {
             l10n: l10n,
             locale: locale,
             today: today,
+            badges: badges,
+            cancelUrls: cancelUrls,
           )
         : const <NativeReminder>[];
     await _platform.setReminders(reminders, {
       'paid': l10n.actionMarkPaid,
       'snooze': l10n.reminderSnooze,
+      'goCancel': l10n.actionGoCancel,
       'channelName': l10n.reminderChannelName,
       'channelDescription': l10n.reminderChannelDescription,
     });
@@ -144,7 +149,8 @@ class ReminderService {
 }
 
 /// The reminders for [items], worded for the notification shade. Pure, so
-/// planning and wording are unit-tested without a platform.
+/// planning and wording are unit-tested without a platform. [badges] and
+/// [cancelUrls] are by item id.
 List<NativeReminder> buildNativeReminders({
   required List<ItemView> items,
   required List<OccurrenceRow> occurrences,
@@ -152,6 +158,8 @@ List<NativeReminder> buildNativeReminders({
   required AppLocalizations l10n,
   required String locale,
   required LocalDate today,
+  Map<String, NotificationBadge> badges = const {},
+  Map<String, String> cancelUrls = const {},
 }) {
   final pending = <String, List<OccurrenceRow>>{};
   for (final o in occurrences) {
@@ -211,6 +219,17 @@ List<NativeReminder> buildNativeReminders({
             ReminderKind.charge ||
             ReminderKind.confirmAmount ||
             ReminderKind.graceEnd => r.charge?.occurrenceId,
+            _ => null,
+          },
+          badge: badges[r.itemId],
+          // "Go cancel" on trials and on renewals of subscriptions and
+          // annual fees.
+          cancelUrl: switch (r.kind) {
+            ReminderKind.trialEnd => cancelUrls[r.itemId],
+            ReminderKind.charge
+                when view.row.type == ItemType.subscription ||
+                    view.row.type == ItemType.insuranceAndFees =>
+              cancelUrls[r.itemId],
             _ => null,
           },
         ),

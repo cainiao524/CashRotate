@@ -13,6 +13,10 @@ data class Reminder(
     val itemId: String,
     val occurrenceId: String?,
     val kind: String,
+    /** Large icon: {letter, background, foreground, icon?}. */
+    val badge: JSONObject? = null,
+    /** "Go cancel" opens this page (trials and renewals). */
+    val cancelUrl: String? = null,
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("id", id)
@@ -22,6 +26,8 @@ data class Reminder(
         .put("itemId", itemId)
         .put("occurrenceId", occurrenceId ?: JSONObject.NULL)
         .put("kind", kind)
+        .put("badge", badge ?: JSONObject.NULL)
+        .put("cancelUrl", cancelUrl ?: JSONObject.NULL)
 
     companion object {
         fun fromJson(o: JSONObject) = Reminder(
@@ -32,6 +38,8 @@ data class Reminder(
             itemId = o.getString("itemId"),
             occurrenceId = if (o.isNull("occurrenceId")) null else o.getString("occurrenceId"),
             kind = o.optString("kind", "charge"),
+            badge = o.optJSONObject("badge"),
+            cancelUrl = if (o.isNull("cancelUrl")) null else o.optString("cancelUrl"),
         )
     }
 }

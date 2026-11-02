@@ -150,4 +150,24 @@ void main() {
     expect(lines.first.difference.minor, 3900);
     expect(lines.first.percent, closeTo(10, 1e-9));
   });
+
+  test('10,000 charges: the chart data takes well under a second', () {
+    final items = [
+      for (var i = 0; i < 200; i++)
+        view(name: 'item$i', price: const Money(10000, Currency.twd)),
+    ];
+    final charges = [
+      for (var i = 0; i < 10000; i++)
+        charge(
+          'item${i % 200}',
+          LocalDate(2025, 4, 1).addDays(i % 365),
+          10000 + i,
+        ),
+    ];
+    final watch = Stopwatch()..start();
+    lastTwelveMonths(items, charges, fx, Currency.twd, today);
+    monthsOfYear(items, charges, fx, Currency.twd, 2025);
+    chargesByDay(charges, 2026, 3);
+    expect(watch.elapsedMilliseconds, lessThan(500));
+  });
 }
