@@ -772,6 +772,14 @@ class _MonthCalendarState extends ConsumerState<_MonthCalendar> {
     final first = LocalDate(widget.today.year - 1, 1, 1);
     final last = LocalDate(widget.today.year + 1, 12, 1);
     final compact = NumberFormat.compact(locale: locale);
+    final settings = ref.watch(userSettingsProvider).value;
+    // Short day totals ("1.2K"), rounded like other amounts of the currency.
+    String compactAmount(Money m) {
+      final major = m.minor / m.currency.minorPerMajor;
+      final decimals =
+          settings?.decimalsFor(m.currency) ?? m.currency.minorUnits;
+      return compact.format(decimals == 0 ? major.round() : major);
+    }
 
     Money? dayTotal(List<OccurrenceRow> list) {
       if (fx == null || main == null) return null;
@@ -870,13 +878,9 @@ class _MonthCalendarState extends ConsumerState<_MonthCalendar> {
                           Text('+${list.length - 2}', style: text.labelSmall),
                       ],
                     ),
-                    if (total != null)
+                    if (total != null && total.minor != 0)
                       Text(
-                        hidden
-                            ? '••'
-                            : compact.format(
-                                total.minor / total.currency.minorPerMajor,
-                              ),
+                        hidden ? '••' : compactAmount(total),
                         style: tabularFigures(
                           text.labelSmall!.copyWith(
                             color: palette.secondaryText,
@@ -1196,7 +1200,7 @@ class _MiniMonth extends StatelessWidget {
                 const SizedBox(height: 6),
                 for (var r = 0; r < cells.length; r += 7)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
+                    padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       children: [
                         for (final d in cells.sublist(r, r + 7))
