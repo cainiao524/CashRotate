@@ -33,11 +33,39 @@ enum DraftError { required, amount, renewalRequired, periods }
 const remindDayChoices = [0, 1, 3, 7, 14, 30];
 
 class SharingMember {
-  SharingMember({required this.name, this.paid = false});
+  SharingMember({
+    required this.name,
+    this.paid = false,
+    this.shareText = '',
+    this.shareCurrency,
+    this.paidUntil,
+    this.joinedOn,
+    this.leftOn,
+  });
+
   String name;
   bool paid;
 
-  Map<String, Object?> toJson() => {'name': name, 'paid': paid};
+  /// Custom split: what they pay per charge, in [shareCurrency].
+  String shareText;
+  Currency? shareCurrency;
+
+  /// Paid ahead through this date (e.g. a year at once).
+  LocalDate? paidUntil;
+  LocalDate? joinedOn;
+  LocalDate? leftOn;
+
+  SharingMemberPlan plan(Currency itemCurrency) {
+    final currency = shareCurrency ?? itemCurrency;
+    return SharingMemberPlan(
+      name: name.trim(),
+      share: parseMoney(shareText, currency),
+      paid: paid,
+      paidUntil: paidUntil,
+      joinedOn: joinedOn,
+      leftOn: leftOn,
+    );
+  }
 }
 
 /// Mutable editor state for one fixed expense, with validation and
@@ -130,23 +158,30 @@ class ItemDraft {
     }
     draft._anchor = item.anchor;
     if (item.sharing case final s?) {
+      final plan = SharingPlan.fromJson(s, draft.currency);
+      String text(Money? m) => m == null
+          ? ''
+          : formatAmount(m, locale: 'en', decimals: m.currency.minorUnits);
       draft
         ..sharing = true
-        ..sharingPeople = (s['people'] as int?) ?? 2
-        ..sharingTotalText = s['total'] is int
-            ? formatAmount(
-                Money(s['total']! as int, draft.currency),
-                locale: 'en',
-                decimals: draft.currency.minorUnits,
-              )
-            : ''
+        ..sharingRole = plan.role
+        ..sharingSplit = plan.split
+        ..myShareText = text(plan.myShare)
+        ..followPrice = plan.followPrice
+        ..payee = plan.payee ?? ''
+        ..payeeMethod = plan.payeeMethod ?? ''
+        ..myTurnFirst = plan.myTurnFirst
         ..members = [
-          for (final m in (s['members'] as List? ?? const []))
-            if (m is Map)
-              SharingMember(
-                name: '${m['name'] ?? ''}',
-                paid: m['paid'] == true,
-              ),
+          for (final m in plan.members)
+            SharingMember(
+              name: m.name,
+              paid: m.paid,
+              shareText: text(m.share),
+              shareCurrency: m.share?.currency,
+              paidUntil: m.paidUntil,
+              joinedOn: m.joinedOn,
+              leftOn: m.leftOn,
+            ),
         ];
     }
     return draft;
@@ -169,9 +204,34 @@ class ItemDraft {
   String introPeriodsText = '1';
 
   bool sharing = false;
-  String sharingTotalText = '';
-  int sharingPeople = 2;
+  SharingRole sharingRole = SharingRole.organizer;
+  SharingSplit sharingSplit = SharingSplit.equal;
   List<SharingMember> members = [];
+
+  /// Custom split: my share per charge.
+  String myShareText = '';
+  bool followPrice = true;
+
+  /// Member role: who I pay, and how.
+  String payee = '';
+  String payeeMethod = '';
+  bool myTurnFirst = true;
+
+  int get sharingPeople => 1 + members.length;
+
+  SharingPlan get sharingPlan => SharingPlan(
+    role: sharingRole,
+    split: sharingSplit,
+    members: [for (final m in members) m.plan(currency)],
+    myShare: sharingSplit == SharingSplit.custom
+        ? parseMoney(myShareText, currency)
+        : null,
+    basePriceMinor: amount?.minor,
+    followPrice: followPrice,
+    payee: payee.trim().isEmpty ? null : payee.trim(),
+    payeeMethod: payeeMethod.trim().isEmpty ? null : payeeMethod.trim(),
+    myTurnFirst: myTurnFirst,
+  );
 
   /// Type-specific values keyed as stored in Items.typeFields.
   final Map<String, Object?> fields;
@@ -214,11 +274,16 @@ class ItemDraft {
     return n != null && n >= 1 ? n : null;
   }
 
-  /// My share when sharing: an even split of the total by default.
+  /// What a charge costs me, by role and split (rotating: on average).
   Money? get myShare {
-    final total = parseMoney(sharingTotalText, currency) ?? amount;
-    if (total == null || sharingPeople < 1) return null;
-    return Money(divideRoundHalfEven(total.minor, sharingPeople), currency);
+    final price = amount;
+    if (price == null) return null;
+    final plan = sharingPlan;
+    if (plan.role == SharingRole.organizer &&
+        plan.split == SharingSplit.rotating) {
+      return Money(divideRoundHalfEven(price.minor, sharingPeople), currency);
+    }
+    return plan.myCost(price, dueOn: nextCharge ?? LocalDate(2000, 1, 1));
   }
 
   Map<DraftField, DraftError> validate() => {
@@ -285,14 +350,7 @@ class ItemDraft {
         for (final MapEntry(:key, :value) in fields.entries)
           if (value != null && value != '') key: value,
       },
-      sharing: sharing
-          ? {
-              'people': sharingPeople,
-              'total': ?parseMoney(sharingTotalText, currency)?.minor,
-              'myShare': ?myShare?.minor,
-              'members': [for (final m in members) m.toJson()],
-            }
-          : null,
+      sharing: sharing ? sharingPlan.toJson() : null,
       remindDays: remindDays,
     );
   }

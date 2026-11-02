@@ -51,7 +51,7 @@ void main() {
 
   testApp('showing TWD decimals changes amounts everywhere', (tester) async {
     await pumpApp(tester, seed: (d) => d.seedItems());
-    expect(find.text(r'NT$19,044'), findsOneWidget);
+    expect(find.text(r'NT$18,752'), findsOneWidget);
     await openSettings(tester);
     // The settings row previews each currency in use.
     expect(find.text(r'NT$1,235 · US$1,234.56'), findsOneWidget);
@@ -64,7 +64,7 @@ void main() {
     expect(find.text(r'NT$1,234.56 · US$1,234.56'), findsOneWidget);
     await tester.pageBack(); // settings → home
     await settle(tester);
-    expect(find.text(r'NT$19,044.41'), findsOneWidget);
+    expect(find.text(r'NT$18,751.91'), findsOneWidget);
   });
 
   testApp('decimals list skips currencies that only have a rate', (

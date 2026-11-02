@@ -169,16 +169,27 @@ void main() {
               fields: {'plan': 'premium', 'cancelUrl': ''},
             )
             ..sharing = true
-            ..sharingPeople = 4
-            ..sharingTotalText = '390'
-            ..members = [SharingMember(name: 'Amy', paid: true)];
+            ..members = [
+              SharingMember(name: 'Amy', paid: true),
+              SharingMember(name: 'Ben'),
+              SharingMember(name: 'Cat'),
+            ];
+      expect(d.myShare, const Money(9750, Currency.twd));
       final item = d.toNewItem();
       expect(item.typeFields, {'plan': 'premium'});
+      expect(item.sharing!['role'], 'organizer');
+      expect(item.sharing!['split'], 'equal');
       expect(item.sharing!['people'], 4);
-      expect(item.sharing!['myShare'], 9750);
-      expect(item.sharing!['members'], [
-        {'name': 'Amy', 'paid': true},
-      ]);
+      expect((item.sharing!['members']! as List).first, {
+        'name': 'Amy',
+        'paid': true,
+      });
+
+      d
+        ..sharingRole = SharingRole.member
+        ..payee = 'Amy';
+      expect(d.myShare, const Money(39000, Currency.twd));
+      expect(d.toNewItem().sharing!['payee'], 'Amy');
     });
   });
 }

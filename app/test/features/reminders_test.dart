@@ -44,7 +44,7 @@ void main() {
       seed: (d) async => ids = await d.seedItems(),
     );
     final id = ids['netflix']!;
-    expect(find.text('3/18 · Shared by 4'), findsOneWidget);
+    expect(find.text('3/18 · Organizer · split 4 ways'), findsOneWidget);
     final at = DateTime(2026, 3, 15, 9).millisecondsSinceEpoch;
     platform.emit(
       ReminderEvent(
@@ -58,7 +58,7 @@ void main() {
       ),
     );
     await settle(tester, frames: 10);
-    expect(find.text('4/18 · Shared by 4'), findsOneWidget);
+    expect(find.text('4/18 · Organizer · split 4 ways'), findsOneWidget);
   });
 
   testApp('tapping a notification opens its item', (tester) async {

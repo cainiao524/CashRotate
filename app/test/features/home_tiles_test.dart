@@ -29,7 +29,7 @@ void main() {
       expect(tile(id), findsOneWidget);
     }
     // Netflix, 18 March, shared by four.
-    expect(find.text('3/18 · Shared by 4'), findsOneWidget);
+    expect(find.text('3/18 · Organizer · split 4 ways'), findsOneWidget);
     // ChatGPT is billed in USD: the main currency large, the original small.
     expect(find.text('≈ NT\$652'), findsOneWidget);
     expect(find.text('US\$20.00 · 3/20'), findsOneWidget);
@@ -213,14 +213,14 @@ void main() {
         tester,
         seed: (d) async => ids = await d.seedItems(),
       );
-      expect(find.text(r'NT$19,044'), findsOneWidget);
+      expect(find.text(r'NT$18,752'), findsOneWidget);
       await tester.runAsync(() => addRent(data));
       await settle(tester, frames: 2);
-      // On its way from NT$19,044 to NT$22,044.
-      expect(find.text(r'NT$19,044'), findsNothing);
-      expect(find.text(r'NT$22,044'), findsNothing);
+      // On its way from NT$18,752 to NT$21,752.
+      expect(find.text(r'NT$18,752'), findsNothing);
+      expect(find.text(r'NT$21,752'), findsNothing);
       await settle(tester, frames: 10);
-      expect(find.text(r'NT$22,044'), findsOneWidget);
+      expect(find.text(r'NT$21,752'), findsOneWidget);
 
       final netflix = tile(ids['netflix']!);
       final before = tester.getTopLeft(netflix);
@@ -264,7 +264,7 @@ void main() {
       );
       await tester.runAsync(() => addRent(data));
       await settle(tester, frames: 2);
-      expect(find.text(r'NT$22,044'), findsOneWidget);
+      expect(find.text(r'NT$21,752'), findsOneWidget);
     });
   });
 
@@ -273,10 +273,10 @@ void main() {
   ) async {
     final platform = FakeReminderPlatform();
     await pumpApp(tester, reminders: platform, seed: (d) => d.seedItems());
-    expect(find.text(r'NT$19,044'), findsOneWidget);
+    expect(find.text(r'NT$18,752'), findsOneWidget);
     await tester.tap(find.byKey(const Key('home-hide-amounts')));
     await settle(tester, frames: 10);
-    expect(find.text(r'NT$19,044'), findsNothing);
+    expect(find.text(r'NT$18,752'), findsNothing);
     expect(find.text('••••'), findsWidgets);
     expect(find.textContaining('≈ NT\$'), findsNothing);
     expect(platform.reminders, isNotEmpty);
@@ -287,6 +287,6 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('home-hide-amounts')));
     await settle(tester, frames: 10);
-    expect(find.text(r'NT$19,044'), findsOneWidget);
+    expect(find.text(r'NT$18,752'), findsOneWidget);
   });
 }

@@ -75,6 +75,12 @@ class ItemView {
       if (r is Map && r['daysBefore'] is int) r['daysBefore'] as int,
   ];
 
+  /// The shared-plan settings, if the item is shared.
+  SharingPlan? get sharingPlan => switch (sharing) {
+    final s? => SharingPlan.fromJson(s, schedule.prices.stablePrice.currency),
+    null => null,
+  };
+
   /// A bill with no fixed date or amount (CLAUDE.md item 1).
   bool get irregular => schedule.irregular;
 
@@ -367,6 +373,15 @@ class ItemRepository {
         );
         await _replan(occ.itemId);
       });
+
+  /// Replaces an item's shared-plan settings (e.g. a member paid me).
+  Future<void> updateSharing(String itemId, SharingPlan plan) =>
+      _db.transaction(
+        () => _updateItem(
+          itemId,
+          (row) => row.copyWith(sharing: Value(jsonEncode(plan.toJson()))),
+        ),
+      );
 
   /// Marks a charge paid, covering [cycles] cycles (e.g. a domain renewed for
   /// three years). Pushes paidUntil forward and drops covered charges.

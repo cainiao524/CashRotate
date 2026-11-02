@@ -18,6 +18,7 @@ import '../home/fixed_summary.dart';
 import '../items/fx_line.dart';
 import '../payments/payment_methods_page.dart';
 import '../security/app_lock_settings.dart';
+import '../sharing/owed_page.dart';
 import '../sync/sync_settings_page.dart';
 import 'amount_settings_page.dart';
 import 'basic_settings_fields.dart';
@@ -49,6 +50,7 @@ class SettingsPage extends ConsumerWidget {
               const AmountsSettingsTile(),
               const PaymentMethodsTile(),
               const DetectionSettingsTile(),
+              const OwedTile(),
               _Section(l10n.navHome),
               SwitchListTile(
                 key: const Key('settings-tile-colors'),

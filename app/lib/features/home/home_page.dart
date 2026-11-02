@@ -870,8 +870,21 @@ class _ItemTile extends ConsumerWidget {
           _shortDate(context, tile.dueOn!),
         if (view.schedule.cycle != Cycle.monthly)
           l10n.cycle(view.schedule.cycle),
-        if (view.sharing?['people'] case final int people when people > 1)
-          l10n.tileSharedBy(people),
+        if (view.sharingPlan case final plan?)
+          switch (plan) {
+            SharingPlan(role: SharingRole.member, :final payee?) =>
+              l10n.tileMemberOf(payee),
+            SharingPlan(role: SharingRole.member) => l10n.tileMemberRole,
+            SharingPlan(split: SharingSplit.rotating) => switch (plan.payerOf(
+              view.nextDue?.cycleIndex ?? 0,
+            )) {
+              null => l10n.tileYourTurn,
+              final name => l10n.tileTurnOf(name),
+            },
+            _ => l10n.tileOrganizerOf(
+              plan.peopleOn(tile.dueOn ?? LocalDate(2000, 1, 1)),
+            ),
+          },
       ].join(' · '),
     };
     final due = switch (tile.daysLeft) {

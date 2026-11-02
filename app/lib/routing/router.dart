@@ -13,6 +13,7 @@ import '../features/payments/payment_methods_page.dart';
 import '../features/reports/reports_page.dart';
 import '../features/settings/amount_settings_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/sharing/owed_page.dart';
 import '../features/sync/sync_settings_page.dart';
 import '../layout/window_class.dart';
 import 'adaptive_shell.dart';
@@ -83,6 +84,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'detection',
                         builder: (_, _) => const DetectionPage(),
+                      ),
+                      GoRoute(
+                        path: 'owed',
+                        builder: (_, _) => const OwedPage(),
                       ),
                     ],
                   ),

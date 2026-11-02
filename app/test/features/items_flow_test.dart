@@ -140,8 +140,9 @@ void main() {
 
   testApp('home shows the monthly total and items to fill in', (tester) async {
     await pumpApp(tester, seed: (d) => d.seedItems());
-    // 390 + 20×32.59 + (1/12 US$ → 8¢ × 32.59) + 18,000 = NT$19,044.41
-    expect(find.text(r'NT$19,044'), findsOneWidget);
+    // My share of Netflix (390 ÷ 4) + 20×32.59 + (1/12 US$ → 8¢ × 32.59)
+    // + 18,000 = NT$18,751.91
+    expect(find.text(r'NT$18,752'), findsOneWidget);
     expect(find.text('1 item still needs details'), findsOneWidget);
     // Netflix (18 Mar) and ChatGPT (20 Mar) are due within 7 days of 15 Mar.
     expect(find.text('Netflix'), findsOneWidget);

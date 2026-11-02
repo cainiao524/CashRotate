@@ -452,7 +452,10 @@ class _ItemEditorPageState extends ConsumerState<ItemEditorPage> {
 
   List<Widget> _sharing(BuildContext context, ItemDraft d) {
     final l10n = AppLocalizations.of(context);
+    final palette = Palette.of(context);
     final share = d.myShare;
+    final locale = intlLocaleOf(context);
+    final organizer = d.sharingRole == SharingRole.organizer;
     return [
       SwitchListTile(
         key: const Key('field-sharing'),
@@ -462,73 +465,296 @@ class _ItemEditorPageState extends ConsumerState<ItemEditorPage> {
         onChanged: (v) => setState(() {
           d.sharing = v;
           if (v && d.members.isEmpty) {
-            d.members = [
-              for (var i = 2; i <= d.sharingPeople; i++)
-                SharingMember(name: l10n.sharingMember(i)),
-            ];
+            d.members = [SharingMember(name: l10n.sharingMember(2))];
           }
         }),
       ),
       if (d.sharing) ...[
-        TextField(
-          controller: _controller('sharingTotal', d.sharingTotalText),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            labelText: l10n.sharingTotal,
-            suffixText: d.currency.code,
-          ),
-          onChanged: (v) => setState(() => d.sharingTotalText = v),
-        ),
-        const SizedBox(height: 8),
-        Row(
+        _Label(l10n.sharingRole),
+        Wrap(
+          spacing: 8,
           children: [
-            Expanded(child: Text(l10n.sharingPeople)),
-            IconButton(
-              tooltip: '-',
-              onPressed: d.sharingPeople <= 2
-                  ? null
-                  : () => setState(() {
-                      d.sharingPeople--;
-                      if (d.members.length > d.sharingPeople - 1) {
-                        d.members.removeLast();
-                      }
-                    }),
-              icon: const Icon(Icons.remove),
-            ),
-            Text(
-              '${d.sharingPeople}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            IconButton(
-              tooltip: '+',
-              onPressed: () => setState(() {
-                d.sharingPeople++;
-                d.members.add(
-                  SharingMember(name: l10n.sharingMember(d.sharingPeople)),
-                );
-              }),
-              icon: const Icon(Icons.add),
-            ),
+            for (final r in SharingRole.values)
+              ChoiceChip(
+                key: ValueKey('sharing-role-${r.name}'),
+                label: Text(switch (r) {
+                  SharingRole.organizer => l10n.sharingOrganizer,
+                  SharingRole.member => l10n.sharingMemberRole,
+                }),
+                selected: d.sharingRole == r,
+                onSelected: (_) => setState(() => d.sharingRole = r),
+              ),
           ],
         ),
-        if (share != null)
+        const SizedBox(height: 8),
+        if (!organizer) ...[
           Text(
-            '${l10n.sharingMyShare}: ${formatMoney(share, locale: intlLocaleOf(context))}',
+            l10n.sharingMemberHint,
+            style: TextStyle(color: palette.secondaryText),
           ),
-        for (final (i, m) in d.members.indexed)
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            value: m.paid,
-            title: TextField(
-              controller: _controller('member$i', m.name),
-              decoration: InputDecoration(labelText: l10n.sharingMember(i + 2)),
-              onChanged: (v) => m.name = v,
+          TextField(
+            key: const Key('sharing-payee'),
+            controller: _controller('payee', d.payee),
+            decoration: InputDecoration(labelText: l10n.sharingPayee),
+            onChanged: (v) => d.payee = v,
+          ),
+          TextField(
+            key: const Key('sharing-payee-method'),
+            controller: _controller('payeeMethod', d.payeeMethod),
+            decoration: InputDecoration(labelText: l10n.sharingPayeeMethod),
+            onChanged: (v) => d.payeeMethod = v,
+          ),
+        ] else ...[
+          _Label(l10n.sharingSplit),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final s in SharingSplit.values)
+                ChoiceChip(
+                  key: ValueKey('sharing-split-${s.name}'),
+                  label: Text(switch (s) {
+                    SharingSplit.equal => l10n.sharingSplitEqual,
+                    SharingSplit.custom => l10n.sharingSplitCustom,
+                    SharingSplit.rotating => l10n.sharingSplitRotating,
+                  }),
+                  selected: d.sharingSplit == s,
+                  onSelected: (_) => setState(() => d.sharingSplit = s),
+                ),
+            ],
+          ),
+          if (d.sharingSplit == SharingSplit.custom) ...[
+            TextField(
+              key: const Key('sharing-my-share'),
+              controller: _controller('myShare', d.myShareText),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: l10n.sharingMyShare,
+                suffixText: d.currency.code,
+              ),
+              onChanged: (v) => setState(() => d.myShareText = v),
             ),
-            subtitle: Text(l10n.sharingPaid),
-            onChanged: (v) => setState(() => m.paid = v ?? false),
+            SwitchListTile(
+              key: const Key('sharing-follow-price'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.sharingFollowPrice),
+              value: d.followPrice,
+              onChanged: (v) => setState(() => d.followPrice = v),
+            ),
+          ],
+          if (d.sharingSplit == SharingSplit.rotating)
+            SwitchListTile(
+              key: const Key('sharing-my-turn-first'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.sharingMyTurnFirst),
+              value: d.myTurnFirst,
+              onChanged: (v) => setState(() => d.myTurnFirst = v),
+            ),
+          if (share != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                '${l10n.sharingMyShare}: ${formatMoney(share, locale: locale)}',
+                key: const Key('sharing-my-share-result'),
+              ),
+            ),
+          for (final (i, m) in d.members.indexed)
+            ListTile(
+              key: ValueKey('sharing-member-$i'),
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                m.paid ? Icons.check_circle : Icons.person_outline,
+                color: m.paid ? palette.primary : null,
+              ),
+              title: Text(m.name.isEmpty ? l10n.sharingMember(i + 2) : m.name),
+              subtitle: Text(
+                [
+                  if (d.sharingSplit == SharingSplit.custom &&
+                      m.shareText.isNotEmpty)
+                    '${m.shareText} ${(m.shareCurrency ?? d.currency).code}',
+                  if (m.paidUntil case final until?)
+                    l10n.sharingPaidUntil(until.toString()),
+                  if (m.leftOn case final left?)
+                    l10n.sharingLeftOn(left.toString()),
+                  if (m.paidUntil == null)
+                    m.paid ? l10n.sharingPaid : l10n.sharingNotPaid,
+                ].join(' · '),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _editMember(context, d, i),
+            ),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: const Key('sharing-add-member'),
+              icon: const Icon(Icons.person_add_alt),
+              label: Text(l10n.sharingAddMember),
+              onPressed: () => setState(
+                () => d.members.add(
+                  SharingMember(name: l10n.sharingMember(d.sharingPeople + 1)),
+                ),
+              ),
+            ),
           ),
+        ],
       ],
     ];
+  }
+
+  /// One member: name, share and its currency, paid / paid ahead, joined
+  /// and left dates; or remove them.
+  Future<void> _editMember(BuildContext context, ItemDraft d, int i) async {
+    final l10n = AppLocalizations.of(context);
+    final m = d.members[i];
+    final name = TextEditingController(text: m.name);
+    final share = TextEditingController(text: m.shareText);
+    final region = ref.read(userSettingsProvider).value?.region ?? 'US';
+    var removed = false;
+    Future<LocalDate?> pick(LocalDate? initial) async {
+      final now = DateTime.now();
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: initial == null
+            ? now
+            : DateTime(initial.year, initial.month, initial.day),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100),
+      );
+      return picked == null ? null : LocalDate.fromDateTime(picked);
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheet) {
+          Widget dateRow(
+            String key,
+            String label,
+            LocalDate? value,
+            void Function(LocalDate?) set,
+          ) => ListTile(
+            key: Key(key),
+            contentPadding: EdgeInsets.zero,
+            title: Text(label),
+            trailing: Text(value?.toString() ?? '—'),
+            onTap: () async {
+              final picked = await pick(value);
+              setSheet(() => set(picked));
+            },
+            onLongPress: () => setSheet(() => set(null)),
+          );
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                16 + MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    key: const Key('member-name'),
+                    controller: name,
+                    decoration: InputDecoration(labelText: l10n.sharingName),
+                  ),
+                  if (d.sharingSplit == SharingSplit.custom)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            key: const Key('member-share'),
+                            controller: share,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: l10n.sharingTheirShare,
+                              helperText: l10n.sharingFreeSeatHint,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            final c = await showCurrencyPicker(
+                              context,
+                              region: region,
+                              selected: m.shareCurrency ?? d.currency,
+                            );
+                            if (c != null) setSheet(() => m.shareCurrency = c);
+                          },
+                          child: Text((m.shareCurrency ?? d.currency).code),
+                        ),
+                      ],
+                    ),
+                  CheckboxListTile(
+                    key: const Key('member-paid'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.sharingPaid),
+                    value: m.paid,
+                    onChanged: (v) => setSheet(() => m.paid = v ?? false),
+                  ),
+                  dateRow(
+                    'member-paid-until',
+                    l10n.sharingPaidAhead,
+                    m.paidUntil,
+                    (v) => m.paidUntil = v,
+                  ),
+                  dateRow(
+                    'member-joined',
+                    l10n.sharingJoined,
+                    m.joinedOn,
+                    (v) => m.joinedOn = v,
+                  ),
+                  dateRow(
+                    'member-left',
+                    l10n.sharingLeft,
+                    m.leftOn,
+                    (v) => m.leftOn = v,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      TextButton(
+                        key: const Key('member-remove'),
+                        onPressed: () {
+                          removed = true;
+                          Navigator.pop(context);
+                        },
+                        child: Text(l10n.actionDelete),
+                      ),
+                      const Spacer(),
+                      FilledButton(
+                        key: const Key('member-done'),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(l10n.actionDone),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      if (removed) {
+        d.members.removeAt(i);
+      } else {
+        m
+          ..name = name.text
+          ..shareText = share.text;
+      }
+    });
+    name.dispose();
+    share.dispose();
   }
 }
 

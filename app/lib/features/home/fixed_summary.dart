@@ -62,7 +62,15 @@ FixedSummary computeFixedSummary(
       final perCharge = next == null
           ? v.schedule.prices.stablePrice
           : Money(next.expectedMinor, next.currency);
-      monthly = v.schedule.cycle.monthlyEquivalent(perCharge);
+      // Shared plans count my share only (CLAUDE.md item 4).
+      monthly = switch (v.sharingPlan) {
+        final plan? => plan.myMonthly(
+          perCharge,
+          v.schedule.cycle,
+          on: next?.dueOn ?? today,
+        ),
+        null => v.schedule.cycle.monthlyEquivalent(perCharge),
+      };
     }
     final converted = fx.convert(monthly, main);
     if (converted == null) {
