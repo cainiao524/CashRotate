@@ -22,6 +22,7 @@ import '../../widgets/preset_badge.dart';
 import '../items/add_item_page.dart';
 import '../items/labels.dart';
 import '../payments/payment_sheet.dart';
+import '../reports/reports_page.dart';
 import 'countdown_ring.dart';
 import 'fixed_summary.dart';
 import 'home_motion.dart';
@@ -676,12 +677,8 @@ class _TileGridState extends ConsumerState<_TileGrid> {
               _ItemTile(tile: t, metrics: metrics),
             ),
           if (expanded) ...[
-            ('income', (columns: 2, rows: 1), const _IncomeCard()),
-            (
-              'fixed-variable',
-              (columns: 2, rows: 1),
-              const _FixedVariableCard(),
-            ),
+            ('last-12', (columns: 2, rows: 1), const _Last12Card()),
+            ('categories', (columns: 2, rows: 1), const _CategoryCard()),
             ('add', (columns: 1, rows: 1), const _AddTile()),
           ],
         ];
@@ -1249,82 +1246,26 @@ class _DashCard extends StatelessWidget {
   }
 }
 
-/// This month's income, spending and balance; filled in by the ledger (M4).
-class _IncomeCard extends StatelessWidget {
-  const _IncomeCard();
+/// Fixed spending of the last 12 months (CLAUDE.md: tablet home card).
+class _Last12Card extends StatelessWidget {
+  const _Last12Card();
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final palette = Palette.of(context);
-    final text = Theme.of(context).textTheme;
-    Widget figure(String label) => Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          MarqueeText(
-            label,
-            style: text.bodySmall?.copyWith(color: palette.secondaryText),
-          ),
-          Text('—', style: text.titleMedium),
-        ],
-      ),
-    );
-    return _DashCard(
-      title: l10n.homeIncomeExpense,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              figure(l10n.homeIncome),
-              figure(l10n.homeSpending),
-              figure(l10n.homeBalance),
-            ],
-          ),
-          MarqueeText(
-            l10n.homeNeedsLedger,
-            style: text.bodySmall?.copyWith(color: palette.secondaryText),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => _DashCard(
+    title: AppLocalizations.of(context).reportsLast12,
+    child: const MonthBars(height: 48),
+  );
 }
 
-/// Fixed versus variable share of spending; filled in by the ledger (M4).
-class _FixedVariableCard extends StatelessWidget {
-  const _FixedVariableCard();
+/// The top categories by monthly cost.
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard();
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final palette = Palette.of(context);
-    final text = Theme.of(context).textTheme;
-    return _DashCard(
-      title: l10n.homeFixedVsVariable,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            height: 12,
-            decoration: BoxDecoration(
-              color: palette.selected,
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-          const SizedBox(height: 8),
-          MarqueeText(
-            l10n.homeNeedsLedger,
-            style: text.bodySmall?.copyWith(color: palette.secondaryText),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => _DashCard(
+    title: AppLocalizations.of(context).reportsByCategory,
+    child: const CategoryBars(limit: 3),
+  );
 }
 
 /// The last tablet tile: add an item.

@@ -82,7 +82,13 @@ class MainActivity : FlutterFragmentActivity() {
                     startActivityForResult(
                         Intent(Intent.ACTION_CREATE_DOCUMENT)
                             .addCategory(Intent.CATEGORY_OPENABLE)
-                            .setType("application/octet-stream")
+                            .setType(
+                                if (call.argument<String>("name").orEmpty().endsWith(".csv")) {
+                                    "text/csv"
+                                } else {
+                                    "application/octet-stream"
+                                },
+                            )
                             .putExtra(Intent.EXTRA_TITLE, call.argument<String>("name")),
                         SAVE_REQUEST,
                     )

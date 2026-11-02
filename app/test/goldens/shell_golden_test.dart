@@ -2,6 +2,7 @@
 library;
 
 import 'package:cashrotate/data/settings/settings_repository.dart';
+import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -41,6 +42,24 @@ Future<void> _draft(TestData d, int step) =>
         _row('icloud-plus', 'iCloud+', amount: '90', date: '2026-03-25'),
       ],
     });
+
+Future<void> _seedReports(TestData d) async {
+  final ids = await d.seedItems();
+  await d.items.changePrice(
+    ids['rent']!,
+    fromIndex: 2,
+    amount: const Money(1980000, Currency.twd),
+  );
+}
+
+Future<void> _openReports(WidgetTester tester, [Key? tab]) async {
+  await tester.tap(find.byIcon(Icons.insert_chart_outlined));
+  await settle(tester);
+  if (tab != null) {
+    await tester.tap(find.byKey(tab));
+    await settle(tester);
+  }
+}
 
 Future<void> _openFixed(WidgetTester tester) async {
   await tester.tap(find.byIcon(Icons.event_repeat_outlined));
@@ -153,6 +172,21 @@ void main() {
         await tester.tap(find.byKey(const Key('nav-settings')));
         await settle(tester);
       },
+    ),
+    'reports': (onboarded: true, seed: _seedReports, open: _openReports),
+    'reports_month': (
+      onboarded: true,
+      seed: _seedReports,
+      open: (tester) async {
+        await _openReports(tester, const Key('reports-tab-month'));
+        await tester.tap(find.byKey(const ValueKey('calendar-day-18')));
+        await settle(tester);
+      },
+    ),
+    'reports_year': (
+      onboarded: true,
+      seed: _seedReports,
+      open: (tester) => _openReports(tester, const Key('reports-tab-year')),
     ),
     'onboarding_basics': (onboarded: false, seed: null, open: null),
     'onboarding_import': (

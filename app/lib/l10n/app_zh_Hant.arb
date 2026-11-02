@@ -349,5 +349,21 @@
   "planModeRenewal": "下次續費才切換",
   "planPreviewPay": "現在補 {amount}，下次扣款起改收新價格。",
   "planPreviewConvert": "新方案已付至 {date}，之後從這天起扣款。",
-  "planPreviewRenewal": "{date} 起每期 {price}。"
+  "planPreviewRenewal": "{date} 起每期 {price}。",
+  "reportsOverview": "概覽",
+  "reportsMonth": "月曆",
+  "reportsYear": "年曆",
+  "reportsLast12": "近 12 月固定支出",
+  "reportsByCategory": "分類排行",
+  "reportsPriceChanges": "漲價歷史",
+  "reportsNoPriceChanges": "還沒有價格變動",
+  "reportsNoData": "還沒有資料",
+  "reportsPriceDiff": "{amount}（{percent}）",
+  "reportsExportCsv": "匯出付款紀錄（CSV）",
+  "reportsExported": "已匯出付款紀錄",
+  "reportsNoPayments": "還沒有付款紀錄可匯出",
+  "reportsDayCharges": "{count, plural, =0{沒有扣款} other{{count} 筆扣款}}",
+  "reportsPrevious": "上一個",
+  "reportsNext": "下一個",
+  "reportsMonthTotal": "本月合計"
 }

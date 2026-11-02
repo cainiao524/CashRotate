@@ -50,28 +50,15 @@ FixedSummary computeFixedSummary(
         v.typeFields['runsOnItemId'] != null) {
       continue;
     }
-    final Money monthly;
-    if (v.irregular) {
-      final average = irregularAverages[v.row.id];
-      if (average == null) {
-        unknownIrregular++; // no payments yet: "to fill in"
-        continue;
-      }
-      monthly = average;
-    } else {
-      final perCharge = next == null
-          ? v.schedule.prices.stablePrice
-          : Money(next.expectedMinor, next.currency);
-      // Shared plans count my share only (CLAUDE.md item 4).
-      monthly = switch (v.sharingPlan) {
-        final plan? => plan.myMonthly(
-          perCharge,
-          v.schedule.cycle,
-          on: next?.dueOn ?? today,
-        ),
-        null => v.schedule.cycle.monthlyEquivalent(perCharge),
-      };
+    if (v.irregular && irregularAverages[v.row.id] == null) {
+      unknownIrregular++; // no payments yet: "to fill in"
+      continue;
     }
+    final monthly = monthlyCostOf(
+      v,
+      today: today,
+      irregularAverage: irregularAverages[v.row.id],
+    )!;
     final converted = fx.convert(monthly, main);
     if (converted == null) {
       missing++;
@@ -86,6 +73,44 @@ FixedSummary computeFixedSummary(
     needsDetails:
         items.where((v) => v.row.needsDetails).length + unknownIrregular,
   );
+}
+
+/// Average monthly cost of one item in its own currency, at my share for
+/// shared plans; null for an irregular bill with no payments yet.
+Money? monthlyCostOf(
+  ItemView v, {
+  required LocalDate today,
+  Money? irregularAverage,
+}) {
+  if (v.irregular) return irregularAverage;
+  final next = v.nextDue;
+  final perCharge = next == null
+      ? v.schedule.prices.stablePrice
+      : Money(next.expectedMinor, next.currency);
+  // Shared plans count my share only (CLAUDE.md item 4).
+  return switch (v.sharingPlan) {
+    final plan? => plan.myMonthly(
+      perCharge,
+      v.schedule.cycle,
+      on: next?.dueOn ?? today,
+    ),
+    null => v.schedule.cycle.monthlyEquivalent(perCharge),
+  };
+}
+
+/// What a charge cost me in the main currency (my share of a shared plan),
+/// or null without a rate.
+Money? myChargeCost(
+  ItemView v,
+  OccurrenceRow o,
+  FxConverter fx,
+  Currency main,
+) {
+  final price = Money(o.expectedMinor, o.currency);
+  final mine =
+      v.sharingPlan?.myCost(price, dueOn: o.dueOn, index: o.cycleIndex) ??
+      price;
+  return fx.convert(mine, main)?.amount;
 }
 
 /// This month's actual charges: what is paid and what is still to pay
@@ -114,18 +139,18 @@ MonthCharges computeMonthCharges(
 }) {
   final monthStart = LocalDate(today.year, today.month, 1);
   final monthEnd = monthStart.addMonths(1).addDays(-1);
-  final counted = {
+  final byId = {
     for (final v in items)
       if (!v.row.needsDetails &&
           v.row.type != ItemType.transferOut &&
           v.typeFields['runsOnItemId'] == null)
-        v.row.id,
+        v.row.id: v,
   };
   var paid = Money.zero(main);
   var pending = Money.zero(main);
   for (final o in occurrences) {
-    if (!counted.contains(o.itemId) || o.dueOn > monthEnd) continue;
-    final amount = fx.convert(Money(o.expectedMinor, o.currency), main)?.amount;
+    if (!byId.containsKey(o.itemId) || o.dueOn > monthEnd) continue;
+    final amount = myChargeCost(byId[o.itemId]!, o, fx, main);
     if (amount == null) continue;
     switch (o.state) {
       case OccurrenceState.paid when o.dueOn >= monthStart:

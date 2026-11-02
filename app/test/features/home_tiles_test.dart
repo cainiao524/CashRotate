@@ -36,8 +36,9 @@ void main() {
     // Spotify still needs its amount.
     expect(find.text('To fill in'), findsWidgets);
     expect(find.text('5 items'), findsOneWidget);
-    // Nothing paid yet this month: Netflix and ChatGPT are still to pay.
-    expect(find.text('To pay NT\$1,042'), findsOneWidget);
+    // Nothing paid yet this month: my share of Netflix (NT\$97.50) and
+    // ChatGPT are still to pay.
+    expect(find.text('To pay NT\$749'), findsOneWidget);
 
     // Soonest first.
     final netflix = tester.getTopLeft(tile(ids['netflix']!));

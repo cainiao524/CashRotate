@@ -498,6 +498,14 @@ class ItemRepository {
     return q.watch();
   }
 
+  /// Recorded price changes, newest first.
+  Stream<List<PriceHistoryRow>> watchPriceHistory() =>
+      (_db.select(_db.priceHistory)..orderBy([
+            (h) => OrderingTerm.desc(h.effectiveOn),
+            (h) => OrderingTerm.desc(h.recordedAt),
+          ]))
+          .watch();
+
   // --- internals -----------------------------------------------------------
 
   Future<ItemRow> _item(String id) =>

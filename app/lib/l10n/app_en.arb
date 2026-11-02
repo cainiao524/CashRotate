@@ -507,5 +507,21 @@
   "planModeRenewal": "Switch at the next renewal", "@planModeRenewal": {"description": "Plan change."},
   "planPreviewPay": "Pay {amount} now; the new price applies from the next charge.", "@planPreviewPay": {"description": "Plan change.", "placeholders": {"amount": {"type": "String"}}},
   "planPreviewConvert": "Paid until {date} on the new plan; charges continue from then.", "@planPreviewConvert": {"description": "Plan change.", "placeholders": {"date": {"type": "String"}}},
-  "planPreviewRenewal": "From {date}: {price} per charge.", "@planPreviewRenewal": {"description": "Plan change.", "placeholders": {"date": {"type": "String"}, "price": {"type": "String"}}}
+  "planPreviewRenewal": "From {date}: {price} per charge.", "@planPreviewRenewal": {"description": "Plan change.", "placeholders": {"date": {"type": "String"}, "price": {"type": "String"}}},
+  "reportsOverview": "Overview", "@reportsOverview": {"description": "Reports tab: charts."},
+  "reportsMonth": "Month", "@reportsMonth": {"description": "Reports tab: month calendar of payment days."},
+  "reportsYear": "Year", "@reportsYear": {"description": "Reports tab: year calendar."},
+  "reportsLast12": "Last 12 months", "@reportsLast12": {"description": "Chart of fixed spending per month."},
+  "reportsByCategory": "By category", "@reportsByCategory": {"description": "Ranking of monthly cost by category."},
+  "reportsPriceChanges": "Price changes", "@reportsPriceChanges": {"description": "List of recorded price changes."},
+  "reportsNoPriceChanges": "No price changes yet", "@reportsNoPriceChanges": {"description": "Empty price history."},
+  "reportsNoData": "Nothing to show yet", "@reportsNoData": {"description": "Empty chart."},
+  "reportsPriceDiff": "{amount} ({percent})", "@reportsPriceDiff": {"description": "Price change difference, e.g. +NT$40 (+10%).", "placeholders": {"amount": {"type": "String"}, "percent": {"type": "String"}}},
+  "reportsExportCsv": "Export payments (CSV)", "@reportsExportCsv": {"description": "Action: save payment records as CSV."},
+  "reportsExported": "Payments exported", "@reportsExported": {"description": "Snackbar after CSV export."},
+  "reportsNoPayments": "No payments to export yet", "@reportsNoPayments": {"description": "Snackbar when there is nothing to export."},
+  "reportsDayCharges": "{count, plural, =0{Nothing due} =1{1 charge} other{{count} charges}}", "@reportsDayCharges": {"description": "Number of charges on a calendar day.", "placeholders": {"count": {"type": "int"}}},
+  "reportsPrevious": "Previous", "@reportsPrevious": {"description": "Calendar: go to the previous month or year."},
+  "reportsNext": "Next", "@reportsNext": {"description": "Calendar: go to the next month or year."},
+  "reportsMonthTotal": "Month total", "@reportsMonthTotal": {"description": "Calendar: total of the shown month."}
 }
