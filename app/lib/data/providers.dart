@@ -8,6 +8,7 @@ import 'package:sodium/sodium_sumo.dart';
 
 import '../platform/files.dart';
 import '../platform/keystore.dart';
+import '../platform/links.dart';
 import 'backup/backup_service.dart';
 import 'db/app_database.dart';
 import 'detection/detection_service.dart';
@@ -193,6 +194,8 @@ final autoBackupProvider = FutureProvider<bool>(
 
 /// Save and open dialogs for backup files; faked in tests.
 final filePickerProvider = Provider<FilePicker>((ref) => SystemFilePicker());
+
+final linkOpenerProvider = Provider<LinkOpener>((ref) => SystemLinkOpener());
 
 final paymentMethodsProvider = Provider<PaymentMethods>(
   (ref) => PaymentMethods(

@@ -422,6 +422,47 @@ class ItemRepository {
         await _replan(occ.itemId);
       });
 
+  /// Sets (or, with a null value, removes) keys of an item's type-specific
+  /// fields, e.g. the "rarely used" mark.
+  Future<void> setTypeFields(String itemId, Map<String, Object?> changes) =>
+      _db.transaction(
+        () => _updateItem(itemId, (row) {
+          final fields = {
+            ...(jsonDecode(row.typeFields) as Map).cast<String, Object?>(),
+          };
+          for (final MapEntry(:key, :value) in changes.entries) {
+            if (value == null) {
+              fields.remove(key);
+            } else {
+              fields[key] = value;
+            }
+          }
+          return row.copyWith(typeFields: jsonEncode(fields));
+        }),
+      );
+
+  /// Batch edit: gives every item in [ids] the category and / or payment
+  /// method given (null leaves it as it is).
+  Future<void> editMany(
+    List<String> ids, {
+    String? categoryId,
+    String? accountId,
+  }) => _db.transaction(() async {
+    for (final id in ids) {
+      await _updateItem(
+        id,
+        (row) => row.copyWith(
+          categoryId: categoryId == null
+              ? const Value.absent()
+              : Value(categoryId),
+          accountId: accountId == null
+              ? const Value.absent()
+              : Value(accountId),
+        ),
+      );
+    }
+  });
+
   /// Replaces an item's shared-plan settings (e.g. a member paid me).
   Future<void> updateSharing(String itemId, SharingPlan plan) =>
       _db.transaction(

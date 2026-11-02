@@ -98,6 +98,13 @@ Money? monthlyCostOf(
   };
 }
 
+/// A monthly cost over a year.
+Money yearlyCost(Money monthly) => Money(monthly.minor * 12, monthly.currency);
+
+/// A monthly cost per day (a year's cost over 365 days).
+Money dailyCost(Money monthly) =>
+    Money(divideRoundHalfEven(monthly.minor * 12, 365), monthly.currency);
+
 /// What a charge cost me in the main currency (my share of a shared plan),
 /// or null without a rate.
 Money? myChargeCost(

@@ -8,6 +8,7 @@ import '../../data/items/item_repository.dart';
 import '../../data/payments/payment_repository.dart';
 import '../../data/presets.dart';
 import '../../data/providers.dart';
+import '../../features.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
 import '../../theme/palette.dart';
@@ -15,7 +16,9 @@ import '../../widgets/marquee_text.dart';
 import '../../widgets/money_text.dart';
 import '../../widgets/preset_badge.dart';
 import '../../widgets/state_views.dart';
+import '../home/fixed_summary.dart';
 import '../payments/payment_sheet.dart';
+import '../reports/report_data.dart';
 import 'item_editor_page.dart';
 import 'labels.dart';
 import 'plan_change_sheet.dart';
@@ -86,6 +89,27 @@ class ItemDetail extends ConsumerWidget {
     final hidden = ref.watch(userSettingsProvider).value?.hideAmounts ?? false;
     String money(Money m) =>
         hidden ? hiddenAmount : formatMoney(m, locale: locale);
+    // My monthly cost (my share; the payment average for irregular bills),
+    // for the yearly and daily figures.
+    final myMonthly = monthlyCostOf(
+      v,
+      today: today,
+      irregularAverage: ref.watch(irregularStatsProvider).averages[id],
+    );
+    final priceLines = Features.priceComparison
+        ? priceChanges(
+            [
+              for (final h
+                  in ref.watch(priceHistoryProvider).value ??
+                      const <PriceHistoryRow>[])
+                if (h.itemId == id) h,
+            ],
+            [v],
+          )
+        : const <PriceChangeLine>[];
+    final cancelUrl =
+        (v.typeFields['cancelUrl'] as String?) ?? preset?.cancelUrl;
+    final rarelyUsed = v.typeFields['rarelyUsed'] == true;
 
     final status = switch (v.row.status) {
       ItemStatus.active => null,
@@ -159,6 +183,18 @@ class ItemDetail extends ConsumerWidget {
         _Row(l10n.detailMonthlyCost, money(s.cycle.monthlyEquivalent(current))),
         if (s.prices.phases.length > 1)
           _Row(l10n.detailStableMonthly, money(v.stableMonthly)),
+        if (Features.costConversion && myMonthly != null) ...[
+          _Row(
+            l10n.costPerYear,
+            money(yearlyCost(myMonthly)),
+            key: const Key('detail-yearly'),
+          ),
+          _Row(
+            l10n.costPerDay,
+            money(dailyCost(myMonthly)),
+            key: const Key('detail-daily'),
+          ),
+        ],
         if (v.sharing case final sharing? when sharing['myShare'] is int)
           _Row(
             l10n.sharingMyShare,
@@ -183,6 +219,29 @@ class ItemDetail extends ConsumerWidget {
                 ),
                 OpenEnded() => l10n.detailPhaseThen(money(p.amount)),
               }),
+            ),
+        ],
+        if (priceLines.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(l10n.reportsPriceChanges, style: text.titleSmall),
+          for (final (i, l) in priceLines.indexed)
+            ListTile(
+              key: ValueKey('detail-price-change-$i'),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              leading: Icon(
+                l.difference.minor >= 0
+                    ? Icons.trending_up
+                    : Icons.trending_down,
+              ),
+              title: Text('${money(l.from)} → ${money(l.to)}'),
+              subtitle: Text(formatDate(context, l.effectiveOn)),
+              trailing: Text(
+                priceDiffLabel(l10n, l, locale, hidden: hidden),
+                style: TextStyle(
+                  color: l.difference.minor > 0 ? palette.warning : null,
+                ),
+              ),
             ),
         ],
         if (upcoming.isNotEmpty) ...[
@@ -225,6 +284,20 @@ class ItemDetail extends ConsumerWidget {
               trailing: MoneyText(p.paid),
             ),
         ],
+        if (Features.idleReminder && v.row.status == ItemStatus.active)
+          SwitchListTile(
+            key: const Key('detail-rarely-used'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.rarelyUsed),
+            subtitle: Text(l10n.rarelyUsedHint),
+            value: rarelyUsed,
+            onChanged: (on) =>
+                ref.read(itemRepositoryProvider).setTypeFields(id, {
+                  'rarelyUsed': on ? true : null,
+                  // First asked a quarter from now.
+                  'idleAskedOn': on ? today.toString() : null,
+                }),
+          ),
         if (v.row.note.isNotEmpty) ...[
           const SizedBox(height: 16),
           Text(v.row.note),
@@ -282,6 +355,16 @@ class ItemDetail extends ConsumerWidget {
                     .read(itemRepositoryProvider)
                     .setStatus(id, ItemStatus.active, today),
               ),
+            if (Features.goCancel &&
+                cancelUrl != null &&
+                cancelUrl.isNotEmpty &&
+                v.row.status != ItemStatus.cancelled)
+              OutlinedButton.icon(
+                key: const Key('detail-go-cancel'),
+                icon: const Icon(Icons.open_in_new),
+                label: Text(l10n.actionGoCancel),
+                onPressed: () => openCancelPage(context, ref, cancelUrl),
+              ),
             if (v.row.status != ItemStatus.cancelled)
               OutlinedButton.icon(
                 icon: const Icon(Icons.block_outlined),
@@ -328,7 +411,7 @@ class ItemDetail extends ConsumerWidget {
 }
 
 class _Row extends StatelessWidget {
-  const _Row(this.label, this.value);
+  const _Row(this.label, this.value, {super.key});
   final String label;
   final String value;
 
@@ -344,4 +427,17 @@ class _Row extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Opens a service's cancel page, or says it couldn't.
+Future<void> openCancelPage(
+  BuildContext context,
+  WidgetRef ref,
+  String url,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final failed = AppLocalizations.of(context).goCancelFailed;
+  if (!await ref.read(linkOpenerProvider).open(url)) {
+    messenger.showSnackBar(SnackBar(content: Text(failed)));
+  }
 }

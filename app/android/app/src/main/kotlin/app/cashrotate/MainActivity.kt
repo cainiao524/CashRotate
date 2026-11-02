@@ -72,6 +72,29 @@ class MainActivity : FlutterFragmentActivity() {
             runOnUiThread { noticesChannel?.invokeMethod("noticesAvailable", null) }
         }
 
+        // "Go cancel": the service's cancel page in the browser. Web links only.
+        MethodChannel(messenger, LINKS_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "openUrl" -> {
+                    val uri = android.net.Uri.parse(call.argument<String>("url").orEmpty())
+                    if (uri.scheme != "https" && uri.scheme != "http") {
+                        result.success(false)
+                    } else {
+                        try {
+                            startActivity(
+                                Intent(Intent.ACTION_VIEW, uri)
+                                    .addCategory(Intent.CATEGORY_BROWSABLE),
+                            )
+                            result.success(true)
+                        } catch (e: android.content.ActivityNotFoundException) {
+                            result.success(false)
+                        }
+                    }
+                }
+                else -> result.notImplemented()
+            }
+        }
+
         // Exported backups: the system picker chooses where (Downloads, a
         // cloud drive …); no storage permission is needed.
         MethodChannel(messenger, FILES_CHANNEL).setMethodCallHandler { call, result ->
@@ -202,6 +225,7 @@ class MainActivity : FlutterFragmentActivity() {
         private const val REMINDERS_CHANNEL = "app.cashrotate/reminders"
         private const val PERMISSION_REQUEST = 41
         private const val FILES_CHANNEL = "app.cashrotate/files"
+        private const val LINKS_CHANNEL = "app.cashrotate/links"
         private const val NOTICES_CHANNEL = "app.cashrotate/notices"
         private const val SAVE_REQUEST = 42
         private const val OPEN_REQUEST = 43

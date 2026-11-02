@@ -12,6 +12,7 @@ import '../../brand.dart';
 import '../../data/db/app_database.dart';
 import '../../data/items/item_repository.dart';
 import '../../data/providers.dart';
+import '../../features.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
 import '../../routing/routes.dart';
@@ -134,7 +135,12 @@ class _Overview extends ConsumerWidget {
         final sections = [
           const _ThisMonth(),
           _Section(title: l10n.reportsLast12, child: const MonthBars()),
-          _Section(title: l10n.reportsByCategory, child: const CategoryBars()),
+          _Section(
+            title: l10n.reportsByCategory,
+            child: Features.costConversion
+                ? const _CategoryPeriods()
+                : const CategoryBars(),
+          ),
           _Section(
             title: l10n.reportsPriceChanges,
             child: const _PriceChanges(),
@@ -277,6 +283,32 @@ class _ThisMonth extends ConsumerWidget {
               ),
             ),
           ],
+          if (Features.costConversion && summary != null) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 16,
+              children: [
+                for (final p in [CostPeriod.year, CostPeriod.day])
+                  Wrap(
+                    spacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    children: [
+                      Text(
+                        p.label(l10n),
+                        style: text.bodySmall?.copyWith(
+                          color: palette.secondaryText,
+                        ),
+                      ),
+                      MoneyText(
+                        p.of(summary.monthlyTotal),
+                        key: ValueKey('reports-total-${p.name}'),
+                        style: text.bodyMedium,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
           Text(
             l10n.obSummaryDueSoon(summary?.dueSoon ?? 0),
@@ -412,6 +444,64 @@ class _MonthBarsState extends ConsumerState<MonthBars> {
   }
 }
 
+/// Cost per month, year or day (CLAUDE.md item 18).
+enum CostPeriod {
+  month,
+  year,
+  day;
+
+  Money of(Money monthly) => switch (this) {
+    CostPeriod.month => monthly,
+    CostPeriod.year => yearlyCost(monthly),
+    CostPeriod.day => dailyCost(monthly),
+  };
+
+  String label(AppLocalizations l10n) => switch (this) {
+    CostPeriod.month => l10n.costPerMonth,
+    CostPeriod.year => l10n.costPerYear,
+    CostPeriod.day => l10n.costPerDay,
+  };
+}
+
+/// The category ranking with a month / year / day switch.
+class _CategoryPeriods extends StatefulWidget {
+  const _CategoryPeriods();
+
+  @override
+  State<_CategoryPeriods> createState() => _CategoryPeriodsState();
+}
+
+class _CategoryPeriodsState extends State<_CategoryPeriods> {
+  var _period = CostPeriod.month;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Chips rather than a segmented button: they wrap at large text.
+        Wrap(
+          key: const Key('category-period'),
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final p in CostPeriod.values)
+              ChoiceChip(
+                key: ValueKey('period-${p.name}'),
+                label: Text(p.label(l10n)),
+                selected: _period == p,
+                onSelected: (_) => setState(() => _period = p),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        CategoryBars(period: _period),
+      ],
+    );
+  }
+}
+
 /// Grey shades for ranked categories, darkest first (CLAUDE.md: charts tell
 /// the top five apart by shade and label them directly).
 Color rankShade(Palette palette, int rank) {
@@ -421,10 +511,13 @@ Color rankShade(Palette palette, int rank) {
 
 /// Monthly cost by category: top five and "other", labelled bars.
 class CategoryBars extends ConsumerWidget {
-  const CategoryBars({super.key, this.limit});
+  const CategoryBars({super.key, this.limit, this.period = CostPeriod.month});
 
   /// Show at most this many rows (the tablet card has room for fewer).
   final int? limit;
+
+  /// Amounts per month, year or day.
+  final CostPeriod period;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -472,7 +565,7 @@ class CategoryBars extends ConsumerWidget {
                       spacing: 8,
                       crossAxisAlignment: WrapCrossAlignment.end,
                       children: [
-                        MoneyText(e.monthly, style: text.bodyMedium),
+                        MoneyText(period.of(e.monthly), style: text.bodyMedium),
                         Text(
                           percent.format(e.monthly.minor / total),
                           style: tabularFigures(
@@ -584,24 +677,6 @@ class _PriceChanges extends ConsumerWidget {
       ],
     );
   }
-}
-
-/// "+NT$40 (+10%)" for a price change.
-String priceDiffLabel(
-  AppLocalizations l10n,
-  PriceChangeLine l,
-  String locale, {
-  bool hidden = false,
-}) {
-  final sign = l.difference.minor > 0 ? '+' : '';
-  final amount = hidden
-      ? hiddenAmount
-      : '$sign${formatMoney(l.difference, locale: locale)}';
-  final percent = NumberFormat.decimalPatternDigits(
-    locale: locale,
-    decimalDigits: 0,
-  ).format(l.percent);
-  return l10n.reportsPriceDiff(amount, '$sign$percent%');
 }
 
 // --- calendars ------------------------------------------------------------------

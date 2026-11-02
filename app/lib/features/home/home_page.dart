@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../brand.dart';
 import '../../data/presets.dart';
 import '../../data/providers.dart';
+import '../../features.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
 import '../../layout/window_class.dart';
@@ -20,6 +21,7 @@ import '../../widgets/marquee_text.dart';
 import '../../widgets/money_text.dart' show hiddenAmount;
 import '../../widgets/preset_badge.dart';
 import '../items/add_item_page.dart';
+import '../items/idle_prompt.dart';
 import '../items/labels.dart';
 import '../payments/payment_sheet.dart';
 import '../reports/reports_page.dart';
@@ -27,6 +29,7 @@ import 'countdown_ring.dart';
 import 'fixed_summary.dart';
 import 'home_motion.dart';
 import 'home_tiles.dart';
+import 'popular_services.dart';
 import 'tile_icons.dart';
 
 /// Sort, type filter and search of the home grid; `query` null while the
@@ -132,6 +135,7 @@ class HomePage extends ConsumerWidget {
                 : const SizedBox(width: double.infinity),
           ),
           const SizedBox(height: 12),
+          if (Features.idleReminder) const IdlePrompt(),
           _TileGrid(window: window),
         ],
       ),
@@ -764,6 +768,10 @@ class _EmptyGrid extends StatelessWidget {
               style: text.bodyMedium?.copyWith(color: palette.secondaryText),
               textAlign: TextAlign.center,
             ),
+          ],
+          if (body != null && Features.emptyStateOnboarding) ...[
+            const SizedBox(height: 24),
+            const PopularServices(),
           ],
         ],
       ),

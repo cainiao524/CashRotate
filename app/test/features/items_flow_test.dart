@@ -109,6 +109,8 @@ void main() {
     await tester.tap(find.text('Netflix'));
     await settle(tester);
     expect(find.text('Next charge'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('detail-duplicate')));
+    await settle(tester);
     await tester.tap(find.byKey(const Key('detail-duplicate')));
     await settle(tester);
     await tester.pageBack();
@@ -116,6 +118,8 @@ void main() {
     expect(find.text('Netflix (copy)'), findsOneWidget);
 
     await tester.tap(find.text('Netflix (copy)'));
+    await settle(tester);
+    await tester.ensureVisible(find.byKey(const Key('detail-delete')));
     await settle(tester);
     await tester.tap(find.byKey(const Key('detail-delete')));
     await settle(tester);

@@ -12,6 +12,7 @@ import 'package:cashrotate/data/journal.dart';
 import 'package:cashrotate/data/presets.dart';
 import 'package:cashrotate/data/providers.dart';
 import 'package:cashrotate/data/settings/settings_repository.dart';
+import 'package:cashrotate/platform/links.dart';
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,6 +48,17 @@ Future<String> _offline(Uri uri) => throw Exception('offline in tests');
 /// Every test runs on this date so due dates and goldens are stable.
 final testNow = DateTime(2026, 3, 15, 10);
 final testToday = LocalDate(2026, 3, 15);
+
+/// Records links the app asked to open instead of starting a browser.
+class FakeLinkOpener implements LinkOpener {
+  final opened = <String>[];
+
+  @override
+  Future<bool> open(String url) async {
+    opened.add(url);
+    return true;
+  }
+}
 
 /// Representative window height for each golden width (phone, large phone,
 /// unfolded inner screen, small tablet, tablet landscape).
@@ -184,6 +196,7 @@ Future<TestData> pumpApp(
   FakeReminderPlatform? reminders,
   List<Override> overrides = const [],
   FakeNoticePlatform? notices,
+  FakeLinkOpener? links,
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -235,6 +248,7 @@ Future<TestData> pumpApp(
         reminderPlatformProvider.overrideWithValue(
           reminders ?? FakeReminderPlatform(),
         ),
+        linkOpenerProvider.overrideWithValue(links ?? FakeLinkOpener()),
         noticePlatformProvider.overrideWithValue(
           notices ?? FakeNoticePlatform(),
         ),

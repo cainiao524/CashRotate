@@ -1,9 +1,12 @@
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../data/db/app_database.dart';
 import '../../data/items/item_repository.dart';
 import '../../data/providers.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../widgets/money_text.dart' show hiddenAmount;
 import '../home/fixed_summary.dart';
 
 /// Items that count as fixed spending in reports: not transfers, not game
@@ -158,6 +161,24 @@ List<PriceChangeLine> priceChanges(
               : (h.newMinor - h.oldMinor) * 100 / h.oldMinor,
         ),
   ]..sort((a, b) => b.effectiveOn.compareTo(a.effectiveOn));
+}
+
+/// "+NT$40 (+10%)" for a price change.
+String priceDiffLabel(
+  AppLocalizations l10n,
+  PriceChangeLine l,
+  String locale, {
+  bool hidden = false,
+}) {
+  final sign = l.difference.minor > 0 ? '+' : '';
+  final amount = hidden
+      ? hiddenAmount
+      : '$sign${formatMoney(l.difference, locale: locale)}';
+  final percent = NumberFormat.decimalPatternDigits(
+    locale: locale,
+    decimalDigits: 0,
+  ).format(l.percent);
+  return l10n.reportsPriceDiff(amount, '$sign$percent%');
 }
 
 /// Payment records as CSV (UTF-8; Excel opens it with the BOM the caller
