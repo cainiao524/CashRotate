@@ -41,7 +41,7 @@ jobs:
 
       - name: Build release APK
         working-directory: app
-        # Signed with the debug key until release signing lands in M7:
+        # Signed with the debug key until release signing lands in M8:
         # installable for testing, not for Google Play.
         run: flutter build apk --release
 
