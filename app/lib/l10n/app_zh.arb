@@ -395,5 +395,11 @@
   "emptyPopularAdded": "已加入 {name}",
   "shortcutAdd": "新增项目",
   "shortcutPay": "记一笔付款",
-  "shortcutPickItem": "付了哪一项？"
+  "shortcutPickItem": "付了哪一项？",
+  "tileBadge": "自定角标",
+  "tileBadgeText": "角标文字",
+  "tileBadgeTextHint": "最多 3 个字，例如 B站",
+  "tileBadgeColor": "角标底色",
+  "tileBadgeColorDefault": "默认颜色",
+  "tileBadgeReset": "还原角标"
 }

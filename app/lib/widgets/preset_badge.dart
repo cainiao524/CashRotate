@@ -8,9 +8,13 @@ class InitialBadge extends StatelessWidget {
     required this.name,
     required this.color,
     this.size = 40,
+    this.text,
   });
 
   final String name;
+
+  /// Shown instead of the initial (the user's own badge, up to 3 characters).
+  final String? text;
 
   /// `#RRGGBB`.
   final String color;
@@ -28,6 +32,7 @@ class InitialBadge extends StatelessWidget {
   }
 
   String get _initial {
+    if (text case final t? when t.isNotEmpty) return t;
     final trimmed = name.trim();
     if (trimmed.isEmpty) return '?';
     return String.fromCharCode(trimmed.runes.first).toUpperCase();
@@ -44,13 +49,20 @@ class InitialBadge extends StatelessWidget {
           child: Center(
             // The badge is a fixed-size glyph; it must not grow with text scale.
             child: MediaQuery.withNoTextScaling(
-              child: Text(
-                _initial,
-                style: TextStyle(
-                  color: foregroundFor(background),
-                  fontSize: size * 0.45,
-                  fontWeight: FontWeight.w600,
-                  height: 1,
+              child: Padding(
+                padding: EdgeInsets.all(size * 0.16),
+                // Two or three characters shrink to fit the circle.
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _initial,
+                    style: TextStyle(
+                      color: foregroundFor(background),
+                      fontSize: size * 0.45,
+                      fontWeight: FontWeight.w600,
+                      height: 1,
+                    ),
+                  ),
                 ),
               ),
             ),

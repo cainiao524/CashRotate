@@ -17,6 +17,7 @@ import '../../widgets/money_text.dart';
 import '../../widgets/preset_badge.dart';
 import '../../widgets/state_views.dart';
 import '../home/fixed_summary.dart';
+import '../home/tile_icons.dart';
 import '../payments/payment_sheet.dart';
 import '../reports/report_data.dart';
 import 'item_editor_page.dart';
@@ -110,6 +111,11 @@ class ItemDetail extends ConsumerWidget {
     final cancelUrl =
         (v.typeFields['cancelUrl'] as String?) ?? preset?.cancelUrl;
     final rarelyUsed = v.typeFields['rarelyUsed'] == true;
+    final badge = badgeOf(
+      id,
+      v.row.name,
+      ref.watch(userSettingsProvider).value,
+    );
 
     final status = switch (v.row.status) {
       ItemStatus.active => null,
@@ -128,7 +134,8 @@ class ItemDetail extends ConsumerWidget {
           children: [
             InitialBadge(
               name: v.row.name,
-              color: preset?.color ?? '#6B7280',
+              text: badge.text,
+              color: badge.color ?? preset?.color ?? '#6B7280',
               size: 48,
             ),
             const SizedBox(width: 12),

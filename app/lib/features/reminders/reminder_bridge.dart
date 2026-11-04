@@ -26,17 +26,17 @@ NotificationBadge notificationBadge(
   UserSettings settings,
   Map<String, Preset> presets,
 ) {
-  final name = v.row.name.trim();
-  final background = settings.tileColors
+  final badge = badgeOf(v.row.id, v.row.name, settings);
+  final background = badge.color != null
+      ? InitialBadge.parse(badge.color!)
+      : settings.tileColors
       ? InitialBadge.parse(presets[v.row.presetId]?.color ?? '#64748B')
       : const Color(0xFF111111);
   return NotificationBadge(
-    letter: name.isEmpty
-        ? '?'
-        : String.fromCharCode(name.runes.first).toUpperCase(),
+    letter: badge.text,
     background: background.toARGB32(),
     foreground: InitialBadge.foregroundFor(background).toARGB32(),
-    iconCodePoint: tileIcons[settings.tileIcons[v.row.id]]?.codePoint,
+    iconCodePoint: badge.icon?.codePoint,
   );
 }
 

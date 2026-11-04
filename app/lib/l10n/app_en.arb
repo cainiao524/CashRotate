@@ -553,5 +553,11 @@
   "emptyPopularAdded": "Added {name}", "@emptyPopularAdded": {"description": "Snackbar after a one-tap add.", "placeholders": {"name": {"type": "String"}}},
   "shortcutAdd": "Add item", "@shortcutAdd": {"description": "Launcher shortcut: add a fixed expense."},
   "shortcutPay": "Record payment", "@shortcutPay": {"description": "Launcher shortcut: record a payment."},
-  "shortcutPickItem": "Which item did you pay?", "@shortcutPickItem": {"description": "Title of the item picker for recording a payment."}
+  "shortcutPickItem": "Which item did you pay?", "@shortcutPickItem": {"description": "Title of the item picker for recording a payment."},
+  "tileBadge": "Your badge", "@tileBadge": {"description": "Tile menu section: the user's own badge text and colour."},
+  "tileBadgeText": "Badge text", "@tileBadgeText": {"description": "Field: up to three characters shown instead of the initial."},
+  "tileBadgeTextHint": "Up to 3 characters, e.g. B站", "@tileBadgeTextHint": {"description": "Helper under the badge text field."},
+  "tileBadgeColor": "Badge colour", "@tileBadgeColor": {"description": "Label of the badge colour choices."},
+  "tileBadgeColorDefault": "Default colour", "@tileBadgeColorDefault": {"description": "Badge colour choice: the usual colour."},
+  "tileBadgeReset": "Reset badge", "@tileBadgeReset": {"description": "Clears the user's badge text and colour."}
 }

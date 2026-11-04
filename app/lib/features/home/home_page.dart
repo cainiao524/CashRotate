@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../brand.dart';
 import '../../data/presets.dart';
 import '../../data/providers.dart';
+import '../../data/settings/settings_repository.dart' show TileBadge;
 import '../../features.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
@@ -952,6 +953,10 @@ class _ItemTile extends ConsumerWidget {
       ],
     );
 
+    final badge = badgeOf(row.id, row.name, settings);
+    final badgeColor = badge.color == null
+        ? null
+        : InitialBadge.parse(badge.color!);
     final card = Material(
       color: bg,
       shape: RoundedRectangleBorder(
@@ -974,11 +979,13 @@ class _ItemTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _TileIcon(
-                      name: row.name,
-                      icon: tileIcons[settings?.tileIcons[row.id]],
+                      text: badge.text,
+                      icon: badge.icon,
                       size: metrics.icon,
-                      background: box,
-                      color: fg,
+                      background: badgeColor ?? box,
+                      color: badgeColor == null
+                          ? fg
+                          : InitialBadge.foregroundFor(badgeColor),
                     ),
                     const Spacer(),
                     ExcludeSemantics(
@@ -1038,14 +1045,15 @@ class _ItemTile extends ConsumerWidget {
 /// A built-in line icon, or the name's initial, on a rounded square.
 class _TileIcon extends StatelessWidget {
   const _TileIcon({
-    required this.name,
+    required this.text,
     required this.icon,
     required this.size,
     required this.background,
     required this.color,
   });
 
-  final String name;
+  /// The initial, or the user's own badge text (up to 3 characters).
+  final String text;
   final IconData? icon;
   final double size;
   final Color background;
@@ -1053,10 +1061,6 @@ class _TileIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trimmed = name.trim();
-    final initial = trimmed.isEmpty
-        ? '?'
-        : String.fromCharCode(trimmed.runes.first).toUpperCase();
     return ExcludeSemantics(
       child: SizedBox.square(
         dimension: size,
@@ -1069,13 +1073,20 @@ class _TileIcon extends StatelessWidget {
             child: icon != null
                 ? Icon(icon, size: size * 0.58, color: color)
                 : MediaQuery.withNoTextScaling(
-                    child: Text(
-                      initial,
-                      style: TextStyle(
-                        fontSize: size * 0.47,
-                        height: 1,
-                        fontWeight: FontWeight.w800,
-                        color: color,
+                    child: Padding(
+                      padding: EdgeInsets.all(size * 0.12),
+                      // Two or three characters shrink to fit.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          text,
+                          style: TextStyle(
+                            fontSize: size * 0.47,
+                            height: 1,
+                            fontWeight: FontWeight.w800,
+                            color: color,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1189,11 +1200,7 @@ class _TileMenu extends ConsumerWidget {
                 choice(
                   null,
                   Text(
-                    tile.view.row.name.trim().isEmpty
-                        ? '?'
-                        : String.fromCharCode(
-                            tile.view.row.name.trim().runes.first,
-                          ).toUpperCase(),
+                    badgeOf(id, tile.view.row.name, settings).text,
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   l10n.tileIconInitial,
@@ -1203,9 +1210,146 @@ class _TileMenu extends ConsumerWidget {
                   choice(key, Icon(value), '${l10n.tileIcon} ${i + 1}'),
               ],
             ),
+            const SizedBox(height: 16),
+            _BadgeEditor(itemId: id),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The user's own badge: up to three characters in place of the initial
+/// (e.g. "B站"), and a background colour. Saved as it is typed or picked.
+class _BadgeEditor extends ConsumerStatefulWidget {
+  const _BadgeEditor({required this.itemId});
+
+  final String itemId;
+
+  @override
+  ConsumerState<_BadgeEditor> createState() => _BadgeEditorState();
+}
+
+class _BadgeEditorState extends ConsumerState<_BadgeEditor> {
+  late final _text = TextEditingController(
+    text: ref.read(userSettingsProvider).value?.tileBadges[widget.itemId]?.text,
+  );
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save({String? text, String? color, bool keepColor = true}) {
+    final repo = ref.read(settingsRepositoryProvider);
+    final current = ref
+        .read(userSettingsProvider)
+        .value
+        ?.tileBadges[widget.itemId];
+    final badge = TileBadge(
+      text: (text ?? _text.text).trim().isEmpty ? null : (text ?? _text.text),
+      color: keepColor ? (color ?? current?.color) : color,
+    );
+    return repo.setTileBadge(widget.itemId, badge);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final palette = Palette.of(context);
+    final text = Theme.of(context).textTheme;
+    final own = ref.watch(
+      userSettingsProvider.select((s) => s.value?.tileBadges[widget.itemId]),
+    );
+
+    Widget swatch(String? hex) {
+      final selected = own?.color == hex;
+      final fill = hex == null ? palette.card : InitialBadge.parse(hex);
+      return Semantics(
+        button: true,
+        selected: selected,
+        label: hex ?? l10n.tileBadgeColorDefault,
+        child: InkResponse(
+          key: ValueKey('badge-color-${hex ?? 'default'}'),
+          radius: 24,
+          onTap: () => _save(color: hex, keepColor: false),
+          child: SizedBox.square(
+            dimension: 48,
+            child: Center(
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: fill,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected ? palette.primary : palette.outline,
+                    width: selected ? 3 : 1,
+                  ),
+                ),
+                child: hex == null
+                    ? Icon(Icons.block, size: 18, color: palette.secondaryText)
+                    : selected
+                    ? Icon(
+                        Icons.check,
+                        size: 18,
+                        color: InitialBadge.foregroundFor(fill),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.tileBadge,
+          style: text.titleSmall?.copyWith(color: palette.secondaryText),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          key: const Key('badge-text'),
+          controller: _text,
+          maxLength: TileBadge.maxLength,
+          decoration: InputDecoration(
+            labelText: l10n.tileBadgeText,
+            helperText: l10n.tileBadgeTextHint,
+          ),
+          onChanged: (value) async {
+            await _save(text: value);
+            // A text badge replaces a chosen line icon.
+            if (value.trim().isNotEmpty) {
+              await ref
+                  .read(settingsRepositoryProvider)
+                  .setTileIcon(widget.itemId, null);
+            }
+          },
+        ),
+        const SizedBox(height: 8),
+        Text(l10n.tileBadgeColor, style: text.bodyMedium),
+        Wrap(
+          children: [swatch(null), for (final hex in badgeColors) swatch(hex)],
+        ),
+        if (own != null)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              key: const Key('badge-reset'),
+              onPressed: () {
+                _text.clear();
+                ref
+                    .read(settingsRepositoryProvider)
+                    .setTileBadge(widget.itemId, null);
+              },
+              child: Text(l10n.tileBadgeReset),
+            ),
+          ),
+      ],
     );
   }
 }

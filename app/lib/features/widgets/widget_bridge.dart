@@ -12,6 +12,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../l10n/locale_tags.dart';
 import '../../widgets/money_text.dart' show hiddenAmount;
 import '../home/fixed_summary.dart';
+import '../home/tile_icons.dart';
 
 /// Most charges a widget lists (the large size).
 const widgetMaxItems = 6;
@@ -65,10 +66,7 @@ Map<String, Object?> buildWidgetSnapshot({
         {
           'id': view.row.id,
           'name': view.row.name,
-          'letter': view.row.name.trim().isEmpty
-              ? '?'
-              : String.fromCharCode(view.row.name.trim().runes.first)
-                    .toUpperCase(),
+          'letter': badgeOf(view.row.id, view.row.name, settings).text,
           'dueOn': next.dueOn.toString(),
           'amount': money(Money(next.expectedMinor, next.currency)),
         },

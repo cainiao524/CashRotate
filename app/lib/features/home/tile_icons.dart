@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../data/settings/settings_repository.dart';
+
 /// Built-in line icons a home tile can show instead of its initial. Generic
 /// symbols only: no brand marks. Names are stored, so never rename one.
 const tileIcons = <String, IconData>{
@@ -34,3 +36,43 @@ const tileIcons = <String, IconData>{
   'pet': Icons.pets_outlined,
   'receipt': Icons.receipt_long_outlined,
 };
+
+/// The first character of [name], upper-cased; "?" when blank.
+String initialOf(String name) {
+  final trimmed = name.trim();
+  return trimmed.isEmpty
+      ? '?'
+      : String.fromCharCode(trimmed.runes.first).toUpperCase();
+}
+
+/// What an item's badge shows: the user's own text or the initial, the
+/// chosen line icon, and the user's own colour (`#RRGGBB`) if any.
+({String text, IconData? icon, String? color}) badgeOf(
+  String itemId,
+  String name,
+  UserSettings? settings,
+) {
+  final own = settings?.tileBadges[itemId];
+  return (
+    text: own?.text ?? initialOf(name),
+    icon: tileIcons[settings?.tileIcons[itemId]],
+    color: own?.color,
+  );
+}
+
+/// Colours offered for a badge: greys first (the app is monochrome), then
+/// muted hues. Each takes black or white text, whichever reads better.
+const badgeColors = [
+  '#111111',
+  '#5F6368',
+  '#B0B0AC',
+  '#E6E6E3',
+  '#B91C1C',
+  '#C2410C',
+  '#B45309',
+  '#4D7C0F',
+  '#0F766E',
+  '#1D4ED8',
+  '#6D28D9',
+  '#BE185D',
+];

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cashrotate_core/cashrotate_core.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
 import '../db/app_database.dart';
 import '../journal.dart';
@@ -17,6 +18,7 @@ class UserSettings {
     this.tileColors = false,
     this.wideTiles = const {},
     this.tileIcons = const {},
+    this.tileBadges = const {},
     this.remindersOn = true,
     this.reminderMinutes = 9 * 60,
     this.hideAmounts = false,
@@ -53,6 +55,10 @@ class UserSettings {
   /// Built-in icon name per item id; items without one show their initial.
   final Map<String, String> tileIcons;
 
+  /// The user's own badge per item id: a short text in place of the
+  /// initial, and / or a background colour.
+  final Map<String, TileBadge> tileBadges;
+
   /// Notifications before charges, trial ends and the like.
   final bool remindersOn;
 
@@ -86,6 +92,7 @@ class SettingsRepository {
   static const tileColorsKey = 'home_tile_colors';
   static const wideTilesKey = 'home_wide_tiles';
   static const tileIconsKey = 'home_tile_icons';
+  static const tileBadgesKey = 'home_tile_badges';
   static const remindersOnKey = 'reminders_on';
   static const reminderMinutesKey = 'reminder_minutes';
   static const hideAmountsKey = 'hide_amounts';
@@ -123,6 +130,16 @@ class SettingsRepository {
     final icons = {...current.tileIcons}..remove(itemId);
     if (icon != null) icons[itemId] = icon;
     await _set(tileIconsKey, icons);
+  }
+
+  /// [badge] null (or empty) goes back to the initial on the usual colour.
+  Future<void> setTileBadge(String itemId, TileBadge? badge) async {
+    final current = await read(UserSettings.defaultsFor(null));
+    final badges = {...current.tileBadges}..remove(itemId);
+    if (badge != null && !badge.isEmpty) badges[itemId] = badge;
+    await _set(tileBadgesKey, {
+      for (final MapEntry(:key, :value) in badges.entries) key: value.toJson(),
+    });
   }
 
   Future<void> setDecimals(Currency c, int decimals) async {
@@ -165,6 +182,7 @@ class SettingsRepository {
     final decimals = map[decimalsKey];
     final wide = map[wideTilesKey];
     final icons = map[tileIconsKey];
+    final badges = map[tileBadgesKey];
     return UserSettings(
       mainCurrency: code is String
           ? Currency.tryParse(code) ?? defaults.mainCurrency
@@ -200,6 +218,48 @@ class SettingsRepository {
                 if (e.value is String) '${e.key}': e.value as String,
             }
           : const {},
+      tileBadges: badges is Map
+          ? {
+              for (final e in badges.entries)
+                '${e.key}': ?TileBadge.fromJson(e.value),
+            }
+          : const {},
     );
   }
+}
+
+/// A home-tile badge the user made: up to three characters in place of the
+/// initial, and / or its own background colour (`#RRGGBB`).
+@immutable
+class TileBadge {
+  const TileBadge({this.text, this.color});
+
+  static const maxLength = 3;
+
+  final String? text;
+  final String? color;
+
+  bool get isEmpty => (text == null || text!.trim().isEmpty) && color == null;
+
+  static final _hex = RegExp(r'^#[0-9A-F]{6}$');
+
+  static TileBadge? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final text = json['text'];
+    final color = json['color'];
+    final badge = TileBadge(
+      text: text is String && text.trim().isNotEmpty ? text.trim() : null,
+      color: color is String && _hex.hasMatch(color) ? color : null,
+    );
+    return badge.isEmpty ? null : badge;
+  }
+
+  Map<String, Object?> toJson() => {'text': ?text, 'color': ?color};
+
+  @override
+  bool operator ==(Object other) =>
+      other is TileBadge && other.text == text && other.color == color;
+
+  @override
+  int get hashCode => Object.hash(text, color);
 }

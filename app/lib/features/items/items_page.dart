@@ -18,6 +18,7 @@ import '../../widgets/money_text.dart';
 import '../../widgets/preset_badge.dart';
 import '../../widgets/state_views.dart';
 import '../home/fixed_summary.dart';
+import '../home/tile_icons.dart';
 import 'add_item_page.dart';
 import 'item_detail.dart';
 import 'items_filter.dart';
@@ -467,6 +468,11 @@ class ItemTile extends ConsumerWidget {
         .value
         ?.byId[view.row.presetId];
     final next = view.nextDue;
+    final badge = badgeOf(
+      view.row.id,
+      view.row.name,
+      ref.watch(userSettingsProvider).value,
+    );
     final today = todayFrom(ref.watch(clockProvider));
     final subtitle = switch (view.row.status) {
       ItemStatus.paused => l10n.statusPaused,
@@ -512,7 +518,8 @@ class ItemTile extends ConsumerWidget {
                 else
                   InitialBadge(
                     name: view.row.name,
-                    color: preset?.color ?? '#6B7280',
+                    text: badge.text,
+                    color: badge.color ?? preset?.color ?? '#6B7280',
                   ),
                 const SizedBox(width: 16),
                 Expanded(
