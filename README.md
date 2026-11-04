@@ -1,8 +1,10 @@
+<img src="docs/icon.png" width="96" alt="CashRotate icon">
+
 # CashRotate
 
 **以「每月固定支出」為主角的記帳 App。** 訂閱、帳單、分期、保險年費一目了然；讀取銀行通知自動記下每期實付金額。資料只存在你的手機和你自己的 WebDAV，上傳前端對端加密。沒有開發者伺服器，也不用註冊帳號。
 
-> ⚠️ **預覽版（v0.7.0）**：功能大致齊全，但還在測試中，資料格式可能變動，請不要拿來當唯一的財務紀錄。目前只有 Android。App 名稱為暫定。
+> ⚠️ **預覽版（v0.7.1）**：功能大致齊全，但還在測試中，資料格式可能變動，請不要拿來當唯一的財務紀錄。目前只有 Android。App 名稱為暫定。
 
 [下載最新預覽版 APK](../../releases) · [English](#english)
 
@@ -88,7 +90,7 @@ cd packages/sync && dart test
 
 ## 進度
 
-v0.7.0 完成了里程碑 M0–M5 和 M7。接下來是打磨與上架（M8）。AI 匯入和 Wear OS 資訊卡移到了 [backlog](docs/backlog.md)。
+v0.7.1 完成了里程碑 M0–M5 和 M7。接下來是打磨與上架（M8）。AI 匯入和 Wear OS 資訊卡移到了 [backlog](docs/backlog.md)。
 
 歡迎用 Issues 回報問題，或提供銀行與支付 App 的通知樣本（請先遮掉卡號和金額），用來改進自動辨識。
 
@@ -113,6 +115,6 @@ v0.7.0 完成了里程碑 M0–M5 和 M7。接下來是打磨與上架（M8）�
   - App lock, home-screen widgets.
   - Traditional Chinese, Simplified Chinese and English.
 
-> **Preview (v0.7.0)**: still being tested and the data format may change. Android only, and the name is provisional.
+> **Preview (v0.7.1)**: still being tested and the data format may change. Android only, and the name is provisional.
 
 Download the APK from [Releases](../../releases), or build it with Flutter 3.47.8 as shown above. Licensed under [AGPL-3.0](LICENSE).

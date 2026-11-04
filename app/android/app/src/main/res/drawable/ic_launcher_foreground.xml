@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App icon: a pearl-white coin marked C inside a turning arrow (charges
+     that come round again). Kept within the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFF2F2F0"
+        android:pathData="M31,57a19,19 0 1,0 38,0a19,19 0 1,0 -38,0z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF111111"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M56.5,50.5 A9.2,9.2 0 1,0 56.5,63.5" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFF2F2F0"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:pathData="M50,30 A27,27 0 0,1 77,57" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFF2F2F0"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M72,52 L77,57.5 L82,52" />
+</vector>
