@@ -63,9 +63,10 @@ Gemini Nano 本機匯入、他牌 CSV 匯入、預算、現金流預測、年度
 - Item：類型、名稱、presetId、分類、付款帳戶、週期（日 / 週 / 月 / 雙月 / 季 / 半年 / 年 / 自訂間隔 / 不固定（限帳單））與錨定日、paidUntil、狀態（啟用 / 暫停 / 已取消）、提醒規則、類型專屬欄位（JSON）、合租設定
 - PricePhase：itemId、金額、幣別、起始期、持續期數或結束日；最後一段為長期價格
 - Occurrence（每期應付）：itemId、到期日、預期金額、狀態（待付 / 已付 / 跳過）、transactionId；展開未來 12 個月
-- Transaction：類型、金額、幣別、當時匯率、帳戶、轉入帳戶、分類、標籤、日期、備註、附件、occurrenceId
-- Account：類型、幣別、期初餘額、信用額度、結帳日、繳款日；餘額由交易計算，不另存
-- Category、Tag、Alias、PriceHistory、ReminderLog（預定與實際送達時間）、ChangeLog（同步用）
+- Transaction（付款紀錄，ADR 0010 / 0014）：itemId、occurrenceId、實付金額與幣別、日期、付款方式（accountId）、備註；外幣付款另存原幣金額與幣別、實際匯率、當日市場匯率（用來算卡片加價）。只記固定支出的每期付款，不做一般收支
+- Account（付款方式）：名稱、類型（信用卡 / 銀行 / 電子錢包等）、幣別、卡號末四碼（比對通知用）、海外交易手續費率；只當標籤與手續費 / 加價來源，不算餘額、不對帳。另有一個不顯示的「未指定」付款方式
+- PriceHistory（漲價與升降級紀錄）、Alias（通知商家名稱對應到項目）、ReminderLog（預定與實際送達時間）、ChangeLog（同步用）、AppSettings、ExchangeRates
+- 資料庫裡仍有早期記帳設計留下、目前沒用到的欄位與表（帳戶期初餘額與信用額度、轉帳欄位、Category、Tag、Attachment；分類目前用預設庫的固定分類），保留以免改動資料格式；之後若確定不用，再隨資料庫版本移除
 
 ## 必須遵守的規則
 日期與價格
