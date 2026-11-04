@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home-screen widget colours: the app's pearl monochrome tokens. -->
+<resources>
+    <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_text">#111111</color>
+    <color name="widget_secondary">#5F6368</color>
+    <color name="widget_divider">#E3E3E0</color>
+    <color name="widget_error">#B91C1C</color>
+</resources>

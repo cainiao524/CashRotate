@@ -2,12 +2,17 @@ package app.cashrotate
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.drawable.Icon
 import android.os.Build
 import app.cashrotate.keystore.DatabaseKeyStore
 import app.cashrotate.notices.ChargeListenerService
 import app.cashrotate.notices.NoticeChannel
 import app.cashrotate.reminders.ReminderActionReceiver
 import app.cashrotate.reminders.ReminderChannel
+import app.cashrotate.widgets.WidgetRenderer
+import app.cashrotate.widgets.WidgetStore
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -70,6 +75,57 @@ class MainActivity : FlutterFragmentActivity() {
         sharedText = sharedTextOf(intent)
         ChargeListenerService.onNotice = {
             runOnUiThread { noticesChannel?.invokeMethod("noticesAvailable", null) }
+        }
+
+        // Launcher shortcuts, labelled by the app in its current language.
+        val shortcuts = MethodChannel(messenger, SHORTCUTS_CHANNEL)
+        shortcuts.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "set" -> {
+                    val list = call.arguments as List<*>
+                    val manager = getSystemService(ShortcutManager::class.java)
+                    manager.dynamicShortcuts = list.mapNotNull { entry ->
+                        val map = entry as? Map<*, *> ?: return@mapNotNull null
+                        val id = map["id"] as? String ?: return@mapNotNull null
+                        val label = map["label"] as? String ?: return@mapNotNull null
+                        ShortcutInfo.Builder(this, id)
+                            .setShortLabel(label)
+                            .setLongLabel(label)
+                            .setIcon(
+                                Icon.createWithResource(
+                                    this,
+                                    if (id == "pay") R.drawable.ic_shortcut_pay else R.drawable.ic_shortcut_add,
+                                ),
+                            )
+                            .setIntent(
+                                Intent(this, MainActivity::class.java)
+                                    .setAction(Intent.ACTION_VIEW)
+                                    .putExtra(EXTRA_SHORTCUT, id),
+                            )
+                            .build()
+                    }
+                    result.success(null)
+                }
+                "takeOpened" -> {
+                    result.success(openedShortcut)
+                    openedShortcut = null
+                }
+                else -> result.notImplemented()
+            }
+        }
+        shortcutsChannel = shortcuts
+        openedShortcut = intent?.getStringExtra(EXTRA_SHORTCUT)
+
+        // Home-screen widgets: the app hands over what they show.
+        MethodChannel(messenger, WIDGETS_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "update" -> {
+                    WidgetStore.save(this, call.arguments as String)
+                    WidgetRenderer.refreshAll(this)
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
         }
 
         // "Go cancel": the service's cancel page in the browser. Web links only.
@@ -182,6 +238,10 @@ class MainActivity : FlutterFragmentActivity() {
             sharedText = it
             noticesChannel?.invokeMethod("noticesAvailable", null)
         }
+        intent.getStringExtra(EXTRA_SHORTCUT)?.let {
+            openedShortcut = it
+            shortcutsChannel?.invokeMethod("shortcutOpened", null)
+        }
         val item = intent.getStringExtra(EXTRA_OPEN_ITEM) ?: return
         openedItem = item
         remindersChannel?.invokeMethod("itemOpened", null)
@@ -218,14 +278,19 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private var openedItem: String? = null
+    private var openedShortcut: String? = null
+    private var shortcutsChannel: MethodChannel? = null
 
     companion object {
         const val EXTRA_OPEN_ITEM = "app.cashrotate.OPEN_ITEM"
+        const val EXTRA_SHORTCUT = "app.cashrotate.SHORTCUT"
+        private const val SHORTCUTS_CHANNEL = "app.cashrotate/shortcuts"
         private const val KEYSTORE_CHANNEL = "app.cashrotate/keystore"
         private const val REMINDERS_CHANNEL = "app.cashrotate/reminders"
         private const val PERMISSION_REQUEST = 41
         private const val FILES_CHANNEL = "app.cashrotate/files"
         private const val LINKS_CHANNEL = "app.cashrotate/links"
+        private const val WIDGETS_CHANNEL = "app.cashrotate/widgets"
         private const val NOTICES_CHANNEL = "app.cashrotate/notices"
         private const val SAVE_REQUEST = 42
         private const val OPEN_REQUEST = 43

@@ -89,12 +89,14 @@ class RescheduleReceiver : BroadcastReceiver() {
 }
 
 /**
- * Daily safety net: re-arms alarms (some phones drop them) and shows any
- * reminder that was missed in the last day.
+ * Daily safety net: re-arms alarms (some phones drop them), shows any
+ * reminder that was missed in the last day, and redraws the home-screen
+ * widgets so "in N days" moves on.
  */
 class DailyCheckWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
     override fun doWork(): Result {
         ReminderScheduler.rescheduleAll(applicationContext)
+        app.cashrotate.widgets.WidgetRenderer.refreshAll(applicationContext)
         return Result.success()
     }
 

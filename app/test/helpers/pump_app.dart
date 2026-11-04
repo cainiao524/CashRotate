@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,7 +13,9 @@ import 'package:cashrotate/data/journal.dart';
 import 'package:cashrotate/data/presets.dart';
 import 'package:cashrotate/data/providers.dart';
 import 'package:cashrotate/data/settings/settings_repository.dart';
+import 'package:cashrotate/platform/home_widgets.dart';
 import 'package:cashrotate/platform/links.dart';
+import 'package:cashrotate/platform/shortcuts.dart';
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,6 +51,40 @@ Future<String> _offline(Uri uri) => throw Exception('offline in tests');
 /// Every test runs on this date so due dates and goldens are stable.
 final testNow = DateTime(2026, 3, 15, 10);
 final testToday = LocalDate(2026, 3, 15);
+
+/// Launcher shortcuts: what was set, and one to "open" the app from.
+class FakeShortcuts implements ShortcutPlatform {
+  Map<String, String> current = const {};
+  String? pending;
+  final _opened = StreamController<void>.broadcast();
+
+  /// As if the user picked [id] from the launcher.
+  void open(String id) {
+    pending = id;
+    _opened.add(null);
+  }
+
+  @override
+  Future<void> set(Map<String, String> shortcuts) async => current = shortcuts;
+
+  @override
+  Future<String?> takeOpened() async {
+    final id = pending;
+    pending = null;
+    return id;
+  }
+
+  @override
+  Stream<void> get opened => _opened.stream;
+}
+
+/// Keeps what the app handed the home-screen widgets.
+class FakeHomeWidgets implements HomeWidgetPlatform {
+  final updates = <String>[];
+
+  @override
+  Future<void> update(String json) async => updates.add(json);
+}
 
 /// Records links the app asked to open instead of starting a browser.
 class FakeLinkOpener implements LinkOpener {
@@ -197,6 +234,8 @@ Future<TestData> pumpApp(
   List<Override> overrides = const [],
   FakeNoticePlatform? notices,
   FakeLinkOpener? links,
+  FakeHomeWidgets? homeWidgets,
+  FakeShortcuts? shortcuts,
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -249,6 +288,12 @@ Future<TestData> pumpApp(
           reminders ?? FakeReminderPlatform(),
         ),
         linkOpenerProvider.overrideWithValue(links ?? FakeLinkOpener()),
+        shortcutPlatformProvider.overrideWithValue(
+          shortcuts ?? FakeShortcuts(),
+        ),
+        homeWidgetPlatformProvider.overrideWithValue(
+          homeWidgets ?? FakeHomeWidgets(),
+        ),
         noticePlatformProvider.overrideWithValue(
           notices ?? FakeNoticePlatform(),
         ),

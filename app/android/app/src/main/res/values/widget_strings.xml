@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget picker labels (the system shows these before the app runs). The
+     widget's own text comes from the app's ARB strings. -->
+<resources>
+    <string name="widget_small_label">Monthly total</string>
+    <string name="widget_medium_label">Upcoming charges</string>
+    <string name="widget_large_label">This month and upcoming</string>
+    <string name="widget_open_app">Open the app to load</string>
+</resources>

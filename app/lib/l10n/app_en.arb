@@ -550,5 +550,8 @@
   "batchExit": "Done", "@batchExit": {"description": "Leaves multi-select."},
   "emptyPopularTitle": "Popular services", "@emptyPopularTitle": {"description": "Empty home: services to add with one tap."},
   "emptyPopularHint": "Tap to add; fill in the amount later", "@emptyPopularHint": {"description": "Empty home hint."},
-  "emptyPopularAdded": "Added {name}", "@emptyPopularAdded": {"description": "Snackbar after a one-tap add.", "placeholders": {"name": {"type": "String"}}}
+  "emptyPopularAdded": "Added {name}", "@emptyPopularAdded": {"description": "Snackbar after a one-tap add.", "placeholders": {"name": {"type": "String"}}},
+  "shortcutAdd": "Add item", "@shortcutAdd": {"description": "Launcher shortcut: add a fixed expense."},
+  "shortcutPay": "Record payment", "@shortcutPay": {"description": "Launcher shortcut: record a payment."},
+  "shortcutPickItem": "Which item did you pay?", "@shortcutPickItem": {"description": "Title of the item picker for recording a payment."}
 }

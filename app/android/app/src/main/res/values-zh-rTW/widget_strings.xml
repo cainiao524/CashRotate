@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_small_label">本月總額</string>
+    <string name="widget_medium_label">近期扣款</string>
+    <string name="widget_large_label">本月與近期扣款</string>
+    <string name="widget_open_app">開啟 App 以載入</string>
+</resources>

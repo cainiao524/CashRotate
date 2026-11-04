@@ -6,7 +6,9 @@ import 'data/providers.dart';
 import 'features/detection/detection_bridge.dart';
 import 'features/reminders/reminder_bridge.dart';
 import 'features/security/lock_screen.dart';
+import 'features/shortcuts/shortcut_bridge.dart';
 import 'features/sync/sync_bridge.dart';
+import 'features/widgets/widget_bridge.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'l10n/locale_resolution.dart';
 import 'routing/router.dart';
@@ -94,7 +96,11 @@ class _StartupGate extends ConsumerWidget {
     return switch (ref.watch(userSettingsProvider)) {
       AsyncData() => AppLockGate(
         child: SyncBridge(
-          child: ReminderBridge(child: DetectionBridge(child: child)),
+          child: ReminderBridge(
+            child: DetectionBridge(
+              child: WidgetBridge(child: ShortcutBridge(child: child)),
+            ),
+          ),
         ),
       ),
       AsyncError(:final error) => Scaffold(body: ErrorState(message: '$error')),

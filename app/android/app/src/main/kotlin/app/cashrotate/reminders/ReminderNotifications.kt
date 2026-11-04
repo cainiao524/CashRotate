@@ -64,22 +64,27 @@ object ReminderNotifications {
                 builder.setLargeIcon(Icon.createWithBitmap(it))
             }
         }
+        // A paired watch mirrors the notification (it is not local-only) and
+        // shows these two actions; both run on the phone. "Go cancel" opens
+        // a web page, so it stays on the phone.
+        val watch = Notification.WearableExtender()
         if (reminder.occurrenceId != null) {
-            builder.addAction(
-                Notification.Action.Builder(
-                    null,
-                    labels["paid"] ?: "Paid",
-                    actionIntent(context, reminder, ReminderActionReceiver.ACTION_PAID),
-                ).build(),
-            )
-        }
-        builder.addAction(
-            Notification.Action.Builder(
+            val paid = Notification.Action.Builder(
                 null,
-                labels["snooze"] ?: "Later",
-                actionIntent(context, reminder, ReminderActionReceiver.ACTION_SNOOZE),
-            ).build(),
-        )
+                labels["paid"] ?: "Paid",
+                actionIntent(context, reminder, ReminderActionReceiver.ACTION_PAID),
+            ).build()
+            builder.addAction(paid)
+            watch.addAction(paid)
+        }
+        val snooze = Notification.Action.Builder(
+            null,
+            labels["snooze"] ?: "Later",
+            actionIntent(context, reminder, ReminderActionReceiver.ACTION_SNOOZE),
+        ).build()
+        builder.addAction(snooze)
+        watch.addAction(snooze)
+        builder.extend(watch)
         val cancelUri = reminder.cancelUrl?.let(Uri::parse)
         if (cancelUri != null && (cancelUri.scheme == "https" || cancelUri.scheme == "http")) {
             builder.addAction(

@@ -392,5 +392,8 @@
   "batchExit": "完成",
   "emptyPopularTitle": "熱門服務",
   "emptyPopularHint": "點一下加入，金額之後再補",
-  "emptyPopularAdded": "已加入 {name}"
+  "emptyPopularAdded": "已加入 {name}",
+  "shortcutAdd": "新增項目",
+  "shortcutPay": "記一筆付款",
+  "shortcutPickItem": "付了哪一項？"
 }

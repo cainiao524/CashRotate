@@ -7,8 +7,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sodium/sodium_sumo.dart';
 
 import '../platform/files.dart';
+import '../platform/home_widgets.dart';
 import '../platform/keystore.dart';
 import '../platform/links.dart';
+import '../platform/shortcuts.dart';
 import 'backup/backup_service.dart';
 import 'db/app_database.dart';
 import 'detection/detection_service.dart';
@@ -196,6 +198,14 @@ final autoBackupProvider = FutureProvider<bool>(
 final filePickerProvider = Provider<FilePicker>((ref) => SystemFilePicker());
 
 final linkOpenerProvider = Provider<LinkOpener>((ref) => SystemLinkOpener());
+
+final shortcutPlatformProvider = Provider<ShortcutPlatform>(
+  (ref) => SystemShortcuts(),
+);
+
+final homeWidgetPlatformProvider = Provider<HomeWidgetPlatform>(
+  (ref) => SystemHomeWidgets(),
+);
 
 final paymentMethodsProvider = Provider<PaymentMethods>(
   (ref) => PaymentMethods(

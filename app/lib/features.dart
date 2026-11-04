@@ -24,6 +24,6 @@ abstract final class Features {
   /// Popular services to add with one tap when there are no items yet.
   static const emptyStateOnboarding = true;
 
-  /// Launcher shortcuts (new item, record a payment); M7.
-  static const appShortcuts = false;
+  /// Launcher shortcuts: add an item, record a payment.
+  static const appShortcuts = true;
 }
