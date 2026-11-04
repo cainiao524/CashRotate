@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cashrotate_sync/cashrotate_sync.dart';
@@ -162,7 +163,9 @@ void main() {
 
   test('three devices, random offline edits and deletes, random sync order: '
       'all end up identical, newest value per field', () async {
-    for (var seed = 0; seed < 25; seed++) {
+    // SYNC_SEEDS=500 for a longer run (the optimisation pass used 500).
+    final seeds = int.tryParse(Platform.environment['SYNC_SEEDS'] ?? '') ?? 25;
+    for (var seed = 0; seed < seeds; seed++) {
       final rng = Random(seed);
       final remote = MemoryFolder();
       // Clocks skewed by up to a minute.

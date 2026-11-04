@@ -27,6 +27,13 @@ void main() {
     expect(moneyAt(tester, const Key('reports-monthly-total')), r'NT$18,752');
     // March: Netflix at my share (NT$97.50) and ChatGPT (US$20 × 32.59).
     expect(moneyAt(tester, const Key('month-bars-value')), r'NT$749');
+    // Tap the chart's left edge: the oldest month (nothing charged yet).
+    await tester.tapAt(
+      tester.getTopLeft(find.byKey(const Key('month-bars'))) +
+          const Offset(4, 20),
+    );
+    await settle(tester);
+    expect(moneyAt(tester, const Key('month-bars-value')), r'NT$0');
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('category-housing')),
       200,

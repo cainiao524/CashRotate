@@ -426,7 +426,7 @@ class _Toolbar extends ConsumerWidget {
             child: Text(
               l10n.homeItemCount(count),
               key: const Key('home-count'),
-              style: Theme.of(context).textTheme.bodySmall
+              style: Theme.of(context).textTheme.bodyMedium
                   ?.copyWith(color: palette.secondaryText),
             ),
           ),

@@ -350,10 +350,23 @@ class _MonthBarsState extends ConsumerState<MonthBars> {
         style: text.bodyMedium?.copyWith(color: palette.secondaryText),
       );
     }
-    final selected = _selected ?? months.length - 1;
+    final last = months.length - 1;
+    final selected = _selected ?? last;
     final pick = months[selected];
+    final hidden = ref.watch(userSettingsProvider).value?.hideAmounts ?? false;
     String monthName(int year, int month, String pattern) =>
         DateFormat(pattern, locale).format(DateTime(year, month));
+    String describe(int i) {
+      final m = months[i];
+      final amount = hidden
+          ? hiddenAmount
+          : formatMoney(m.total, locale: locale);
+      return '${monthName(m.year, m.month, 'yMMMM')}, $amount';
+    }
+
+    void select(int i) {
+      if (i != selected) setState(() => _selected = i);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -374,69 +387,104 @@ class _MonthBarsState extends ConsumerState<MonthBars> {
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: widget.height,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final (i, m) in months.indexed)
-                Expanded(
-                  child: Semantics(
-                    button: true,
-                    selected: i == selected,
-                    label: monthName(m.year, m.month, 'yMMMM'),
-                    child: InkWell(
-                      key: ValueKey('month-bar-$i'),
-                      borderRadius: BorderRadius.circular(4),
-                      onTap: () => setState(() => _selected = i),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: FractionallySizedBox(
-                                  heightFactor: math.max(
-                                    m.total.minor / max,
-                                    0.02,
-                                  ),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: i == selected
-                                          ? palette.primary
-                                          : palette.outline.withValues(
-                                              alpha: 0.45,
-                                            ),
-                                      borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(3),
+        // One control for the whole chart rather than twelve narrow bars
+        // (each under 48dp): tap or drag to pick a month; TalkBack swipes
+        // up / down and the arrow keys step through the months.
+        Semantics(
+          label: l10n.reportsLast12,
+          value: describe(selected),
+          increasedValue: selected < last ? describe(selected + 1) : null,
+          decreasedValue: selected > 0 ? describe(selected - 1) : null,
+          onIncrease: selected < last ? () => select(selected + 1) : null,
+          onDecrease: selected > 0 ? () => select(selected - 1) : null,
+          excludeSemantics: true,
+          child: Focus(
+            onKeyEvent: (_, event) {
+              if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+                return KeyEventResult.ignored;
+              }
+              final step = switch (event.logicalKey) {
+                LogicalKeyboardKey.arrowRight => 1,
+                LogicalKeyboardKey.arrowLeft => -1,
+                _ => 0,
+              };
+              if (step == 0) return KeyEventResult.ignored;
+              select((selected + step).clamp(0, last));
+              return KeyEventResult.handled;
+            },
+            child: SizedBox(
+              height: widget.height,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  void pickAt(double x) => select(
+                    (x / constraints.maxWidth * months.length).floor().clamp(
+                      0,
+                      last,
+                    ),
+                  );
+                  return GestureDetector(
+                    key: const Key('month-bars'),
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (d) => pickAt(d.localPosition.dx),
+                    onHorizontalDragUpdate: (d) => pickAt(d.localPosition.dx),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final (i, m) in months.indexed)
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.bottomCenter,
+                                      child: FractionallySizedBox(
+                                        heightFactor: math.max(
+                                          m.total.minor / max,
+                                          0.02,
+                                        ),
+                                        child: Container(
+                                          key: ValueKey('month-bar-$i'),
+                                          decoration: BoxDecoration(
+                                            color: i == selected
+                                                ? palette.primary
+                                                : palette.outline.withValues(
+                                                    alpha: 0.45,
+                                                  ),
+                                            borderRadius:
+                                                const BorderRadius.vertical(
+                                                  top: Radius.circular(3),
+                                                ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            ExcludeSemantics(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  monthName(m.year, m.month, 'LLLLL'),
-                                  style: text.labelSmall?.copyWith(
-                                    color: i == selected
-                                        ? palette.text
-                                        : palette.secondaryText,
+                                  const SizedBox(height: 4),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      monthName(m.year, m.month, 'LLLLL'),
+                                      style: text.labelSmall?.copyWith(
+                                        color: i == selected
+                                            ? palette.text
+                                            : palette.secondaryText,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                      ],
                     ),
-                  ),
-                ),
-            ],
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ],
