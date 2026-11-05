@@ -65,8 +65,9 @@ Gemini Nano 本機匯入、他牌 CSV 匯入、預算、現金流預測、年度
 - Occurrence（每期應付）：itemId、到期日、預期金額、狀態（待付 / 已付 / 跳過）、transactionId；展開未來 12 個月
 - Transaction（付款紀錄，ADR 0010 / 0014）：itemId、occurrenceId、實付金額與幣別、日期、付款方式（accountId）、備註；外幣付款另存原幣金額與幣別、實際匯率、當日市場匯率（用來算卡片加價）。只記固定支出的每期付款，不做一般收支
 - Account（付款方式）：名稱、類型（信用卡 / 銀行 / 電子錢包等）、幣別、卡號末四碼（比對通知用）、海外交易手續費率；只當標籤與手續費 / 加價來源，不算餘額、不對帳。另有一個不顯示的「未指定」付款方式
-- PriceHistory（漲價與升降級紀錄）、Alias（通知商家名稱對應到項目）、ReminderLog（預定與實際送達時間）、ChangeLog（同步用）、AppSettings、ExchangeRates
-- 資料庫裡仍有早期記帳設計留下、目前沒用到的欄位與表（帳戶期初餘額與信用額度、轉帳欄位、Category、Tag、Attachment；分類目前用預設庫的固定分類），保留以免改動資料格式；之後若確定不用，再隨資料庫版本移除
+- PriceHistory（漲價與升降級紀錄）、ReminderLog（預定與實際送達時間）、ChangeLog（同步用）、AppSettings、ExchangeRates
+- 項目的類型專屬欄位另存：分期最後一期日期（lastChargeOn，由剩餘期數換算）、使用者指派通知時學到的商家名稱（merchantNames，隨項目同步）
+- 資料庫裡仍有早期記帳設計留下、目前沒用到的欄位與表（帳戶期初餘額與信用額度、轉帳欄位、Category、Tag、Attachment、Alias；分類目前用預設庫的固定分類），保留以免改動資料格式；之後若確定不用，再隨資料庫版本移除
 
 ## 必須遵守的規則
 日期與價格

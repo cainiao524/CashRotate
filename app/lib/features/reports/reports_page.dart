@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:cashrotate_core/cashrotate_core.dart';
@@ -8,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../brand.dart';
 import '../../data/db/app_database.dart';
 import '../../data/items/item_repository.dart';
 import '../../data/providers.dart';
@@ -22,6 +20,7 @@ import '../../widgets/marquee_text.dart';
 import '../../widgets/money_text.dart';
 import '../home/fixed_summary.dart';
 import '../items/labels.dart';
+import '../payments/payments_page.dart' show exportPaymentsCsv;
 import 'report_data.dart';
 
 /// Charts (CLAUDE.md item 11): this month, the last 12 months, the category
@@ -47,31 +46,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     super.dispose();
   }
 
-  Future<void> _exportCsv() async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final payments = ref.read(allPaymentsProvider).value ?? const [];
-    if (payments.isEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.reportsNoPayments)));
-      return;
-    }
-    final items = ref.read(itemsProvider).value ?? const [];
-    final methods = ref.read(paymentMethodListProvider).value ?? const [];
-    final csv = paymentsCsv(
-      [for (final p in payments.reversed) p.row],
-      {for (final v in items) v.row.id: v.row.name},
-      {for (final m in methods) m.id: m.name},
-    );
-    // The BOM lets spreadsheet apps read the file as UTF-8.
-    final bytes = Uint8List.fromList([0xEF, 0xBB, 0xBF, ...utf8.encode(csv)]);
-    final saved = await ref
-        .read(filePickerProvider)
-        .save('${Brand.appName}-payments-$_today.csv', bytes);
-    if (saved) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.reportsExported)));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -83,7 +57,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             key: const Key('reports-export'),
             tooltip: l10n.reportsExportCsv,
             icon: const Icon(Icons.file_download_outlined),
-            onPressed: _exportCsv,
+            onPressed: () => exportPaymentsCsv(context, ref),
           ),
         ],
         bottom: TabBar(

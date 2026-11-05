@@ -137,6 +137,7 @@ List<HomeTile> homeTiles(
   final tiles = [
     for (final v in items)
       if (v.schedule.isUsableOn(today) &&
+          !v.schedule.paidOff &&
           (type == null || v.row.type == type) &&
           (q.isEmpty || v.row.name.toLowerCase().contains(q)))
         HomeTile.of(

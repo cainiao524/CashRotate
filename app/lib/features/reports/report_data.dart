@@ -253,7 +253,9 @@ final monthlyCostsProvider = Provider<Map<String, Money>>((ref) {
   final averages = ref.watch(irregularStatsProvider).averages;
   return {
     for (final v in items)
-      if (countsAsSpending(v) && v.row.status == ItemStatus.active)
+      if (countsAsSpending(v) &&
+          v.row.status == ItemStatus.active &&
+          !v.schedule.paidOff)
         if (monthlyCostOf(v, today: today, irregularAverage: averages[v.row.id])
             case final cost?)
           if (fx.convert(cost, main) case final converted?)

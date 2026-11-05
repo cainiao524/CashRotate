@@ -874,6 +874,10 @@ class _ItemTile extends ConsumerWidget {
           _format(context, ref, tile.amount),
         if (!tile.overdue && tile.dueOn != null)
           _shortDate(context, tile.dueOn!),
+        if (view.instalments case (:final left, :final total))
+          total == null
+              ? l10n.instalmentsLeft(left)
+              : l10n.instalmentOf(total - left + 1, total),
         if (view.schedule.cycle != Cycle.monthly)
           l10n.cycle(view.schedule.cycle),
         if (view.sharingPlan case final plan?)

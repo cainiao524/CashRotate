@@ -76,6 +76,35 @@ void main() {
   });
 
   test(
+    'assigning teaches the merchant name; the next one matches by itself',
+    () async {
+      final id = await items.create(
+        NewItem(
+          type: ItemType.bill,
+          name: '家裡網路',
+          cycle: Cycle.monthly,
+          anchor: LocalDate(2026, 3, 18),
+          prices: PriceSchedule.fixed(const Money(59900, Currency.twd)),
+        ),
+      );
+      final first = await process(
+        '您的信用卡於 3/18 在 HINET 消費新臺幣599元',
+        DateTime(2026, 3, 18, 9),
+      );
+      expect(first!.status, isNot(DetectionStatus.auto));
+      await service.assign(first.id, id, main: Currency.twd, fx: fx);
+      expect(learnedMerchants(await items.view(id)), ['HINET']);
+
+      final next = await process(
+        '您的信用卡於 4/18 在 HINET 消費新臺幣599元',
+        DateTime(2026, 4, 18, 9),
+      );
+      expect(next!.status, DetectionStatus.auto);
+      expect(next.itemId, id);
+    },
+  );
+
+  test(
     'a repeated notification is handled once; non-charges are skipped',
     () async {
       await netflix();

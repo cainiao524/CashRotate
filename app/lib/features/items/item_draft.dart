@@ -157,6 +157,10 @@ class ItemDraft {
       draft._keptSchedule = prices;
     }
     draft._anchor = item.anchor;
+    // Instalments: show what is left now, not what was left when saved.
+    if (view.schedule.instalmentsLeft(draft.nextCharge) case final left?) {
+      draft.fields['remainingPeriods'] = '$left';
+    }
     if (item.sharing case final s?) {
       final plan = SharingPlan.fromJson(s, draft.currency);
       String text(Money? m) => m == null
@@ -323,6 +327,25 @@ class ItemDraft {
     return PriceSchedule.fixed(price);
   }
 
+  /// Instalments: the date of the last charge, from the remaining count (or
+  /// the total when nothing is paid yet) counted from the next charge.
+  LocalDate? _lastChargeOn(LocalDate anchor, LocalDate next) {
+    int? count(String key) {
+      final n = int.tryParse('${fields[key] ?? ''}'.trim());
+      return n != null && n > 0 ? n : null;
+    }
+
+    if (irregular) return null;
+    final total = count('totalPeriods');
+    var left = count('remainingPeriods') ?? total;
+    if (left == null) return null;
+    if (total != null && left > total) left = total;
+    return cycle.dateAt(
+      anchor,
+      cycle.firstIndexOnOrAfter(anchor, next) + left - 1,
+    );
+  }
+
   /// Call only when [isValid]. The next charge date becomes the anchor for
   /// new items; when editing, the original anchor is kept if the next charge
   /// still falls on its schedule so charge numbering stays stable.
@@ -335,6 +358,13 @@ class ItemDraft {
       final index = cycle.firstIndexOnOrAfter(original, next);
       if (cycle.dateAt(original, index) == next) anchor = original;
     }
+    final typeFields = {
+      for (final MapEntry(:key, :value) in fields.entries)
+        if (value != null && value != '' && key != 'lastChargeOn') key: value,
+    };
+    if (_lastChargeOn(anchor, next) case final last?) {
+      typeFields['lastChargeOn'] = last.toString();
+    }
     return NewItem(
       type: type,
       name: name.trim(),
@@ -346,10 +376,7 @@ class ItemDraft {
       presetId: presetId,
       categoryId: category?.name,
       note: note.trim(),
-      typeFields: {
-        for (final MapEntry(:key, :value) in fields.entries)
-          if (value != null && value != '') key: value,
-      },
+      typeFields: typeFields,
       sharing: sharing ? sharingPlan.toJson() : null,
       remindDays: remindDays,
     );

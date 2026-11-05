@@ -118,6 +118,7 @@ class ItemDetail extends ConsumerWidget {
     );
 
     final status = switch (v.row.status) {
+      ItemStatus.active when s.paidOff => l10n.statusPaidOff,
       ItemStatus.active => null,
       ItemStatus.paused => l10n.statusPaused,
       ItemStatus.cancelled =>
@@ -188,6 +189,21 @@ class ItemDetail extends ConsumerWidget {
           next == null ? '—' : formatDate(context, next.dueOn),
         ),
         _Row(l10n.detailMonthlyCost, money(s.cycle.monthlyEquivalent(current))),
+        if (v.instalments case (:final left, :final total))
+          _Row(
+            l10n.detailInstalments,
+            [
+              if (left == 0)
+                l10n.statusPaidOff
+              else if (total == null)
+                l10n.instalmentsLeft(left)
+              else
+                l10n.instalmentOf(total - left + 1, total),
+              if (s.endsOn case final end? when left > 0)
+                l10n.detailLastInstalment(formatDate(context, end)),
+            ].join(' · '),
+            key: const Key('detail-instalments'),
+          ),
         if (s.prices.phases.length > 1)
           _Row(l10n.detailStableMonthly, money(v.stableMonthly)),
         if (Features.costConversion && myMonthly != null) ...[

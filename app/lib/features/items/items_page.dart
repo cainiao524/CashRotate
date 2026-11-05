@@ -478,6 +478,7 @@ class ItemTile extends ConsumerWidget {
       ItemStatus.paused => l10n.statusPaused,
       ItemStatus.cancelled => l10n.statusCancelled,
       ItemStatus.active when view.row.needsDetails => l10n.detailNeedsDetails,
+      ItemStatus.active when view.schedule.paidOff => l10n.statusPaidOff,
       ItemStatus.active =>
         next == null
             ? l10n.cycle(view.schedule.cycle)

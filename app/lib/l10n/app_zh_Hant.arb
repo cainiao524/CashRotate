@@ -3,12 +3,10 @@
 
   "navHome": "首頁",
   "navItems": "固定支出",
-  "navLedger": "記帳",
   "navReports": "分析",
   "navSettings": "設定",
 
   "itemsTitle": "固定支出",
-  "ledgerTitle": "記帳",
   "reportsTitle": "分析",
   "settingsTitle": "設定",
 
@@ -16,14 +14,11 @@
   "tileDueIn": "{count, plural, =0{今天扣款} =1{明天扣款} other{{count} 天後}}",
   "tileOverdue": "{count, plural, other{逾期 {count} 天}}",
   "homeDueSoon": "7 天內到期",
-  "homeIncomeExpense": "本月收支",
-  "homeFixedVsVariable": "固定與變動支出",
 
   "itemsPendingCount": "{count, plural, =0{沒有待補的項目} other{還有 {count} 項待補}}",
 
   "emptyItems": "還沒有固定支出",
   "emptyItemsHint": "加入訂閱、帳單與還款，就能看到每月要付多少。",
-  "emptyLedger": "還沒有交易",
   "emptyReports": "有資料後就會顯示圖表",
   "emptyDueSoon": "7 天內沒有要付的項目",
   "detailPlaceholder": "選擇一個項目以查看詳情",
@@ -131,12 +126,6 @@
   "tileIconInitial": "首字母",
   "tileOpen": "查看詳情",
   "homeAddItem": "新增項目",
-  "homeIncome": "收入",
-  "homeSpending": "支出",
-  "homeBalance": "結餘",
-  "homeFixed": "固定",
-  "homeVariable": "變動",
-  "homeNeedsLedger": "開始記帳後顯示",
   "settingsTileColors": "方塊使用服務代表色",
   "settingsTileColorsHint": "關閉時為單色，即將扣款者反白",
 
@@ -401,5 +390,21 @@
   "tileBadgeTextHint": "最多 3 個字，例如 B站",
   "tileBadgeColor": "角標底色",
   "tileBadgeColorDefault": "預設顏色",
-  "tileBadgeReset": "還原角標"
+  "tileBadgeReset": "還原角標",
+  "instalmentOf": "第 {n}/{total} 期",
+  "instalmentsLeft": "剩 {count} 期",
+  "statusPaidOff": "已還清",
+  "detailInstalments": "期數",
+  "detailLastInstalment": "最後一期 {date}",
+  "reminderStatement": "今天出帳 · {date} 繳款",
+  "reminderStatementAmount": "今天出帳 · {date} 繳款 · {amount}",
+  "navPayments": "付款",
+  "paymentsTitle": "付款紀錄",
+  "paymentsEmpty": "還沒有付款紀錄",
+  "paymentsEmptyHint": "把一筆扣款標成已付款，或讓銀行通知自動記下。",
+  "paymentsToConfirm": "{count} 筆扣款待確認",
+  "paymentsMonthTotal": "合計 {amount}",
+  "paymentDelete": "刪除這筆付款",
+  "paymentDeleted": "已刪除，該期改回待付",
+  "paymentsFilterAll": "全部項目"
 }

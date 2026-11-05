@@ -29,6 +29,10 @@ enum ReminderKind {
 
   /// People sharing the cost have not paid their part yet.
   sharedUnpaid,
+
+  /// A card's statement is out (repayments with a statement day): how much
+  /// and when it is due.
+  statement,
 }
 
 /// One pending charge of an item, as stored.
@@ -226,6 +230,38 @@ List<PlannedReminder> planReminders(
             itemId: s.itemId,
             date: on.addDays(-d),
             daysBefore: d,
+          ),
+        );
+      }
+    }
+
+    // Card statements: on the statement day each month, about the first
+    // charge due after it (the payment due date).
+    final statementDay = _int(s.typeFields['statementDay']);
+    if (s.type == ItemType.repayment &&
+        statementDay != null &&
+        statementDay >= 1 &&
+        statementDay <= 31) {
+      for (
+        var month = LocalDate(today.year, today.month, 1);
+        month <= last;
+        month = month.addMonths(1)
+      ) {
+        final lastDay = month.addMonths(1).addDays(-1).day;
+        final on = LocalDate(
+          month.year,
+          month.month,
+          statementDay > lastDay ? lastDay : statementDay,
+        );
+        final due = s.charges.where((c) => c.dueOn >= on).firstOrNull;
+        if (due == null) continue; // nothing left to pay (or paid off)
+        add(
+          PlannedReminder(
+            kind: ReminderKind.statement,
+            itemId: s.itemId,
+            date: on,
+            charge: due,
+            daysBefore: on.daysUntil(due.dueOn),
           ),
         );
       }

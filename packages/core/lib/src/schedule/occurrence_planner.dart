@@ -20,6 +20,7 @@ final class ItemSchedule {
     this.status = ItemStatus.active,
     this.statusSince,
     this.irregular = false,
+    this.endsOn,
   });
 
   /// Due date of the first charge; every later date derives from it.
@@ -43,6 +44,25 @@ final class ItemSchedule {
   /// charges are planned; payments are recorded as they happen.
   final bool irregular;
 
+  /// The last charge, for instalments with a known count (repayments): none
+  /// is planned after it.
+  final LocalDate? endsOn;
+
+  /// Every instalment is paid: paid through a date after the last charge.
+  bool get paidOff =>
+      endsOn != null && paidUntil != null && paidUntil! > endsOn!;
+
+  /// Instalments left from the charge due on [next] through [endsOn], both
+  /// included; null without an end, 0 once paid off.
+  int? instalmentsLeft(LocalDate? next) {
+    final end = endsOn;
+    if (end == null) return null;
+    if (next == null || next > end) return 0;
+    return cycle.firstIndexOnOrAfter(anchor, end) -
+        cycle.firstIndexOnOrAfter(anchor, next) +
+        1;
+  }
+
   /// Still usable on [today]: active, paused, or cancelled but already paid
   /// through a later date.
   bool isUsableOn(LocalDate today) => switch (status) {
@@ -62,6 +82,7 @@ final class ItemSchedule {
     ItemStatus? status,
     LocalDate? statusSince,
     bool? irregular,
+    LocalDate? endsOn,
   }) => ItemSchedule(
     anchor: anchor ?? this.anchor,
     cycle: cycle ?? this.cycle,
@@ -70,6 +91,7 @@ final class ItemSchedule {
     status: status ?? this.status,
     statusSince: statusSince ?? this.statusSince,
     irregular: irregular ?? this.irregular,
+    endsOn: endsOn ?? this.endsOn,
   );
 }
 
@@ -164,6 +186,7 @@ List<PlannedOccurrence> expectedOccurrences(
     final due = item.cycle.dateAt(item.anchor, k);
     if (due > horizon) break;
     if (stopBefore != null && due >= stopBefore) break;
+    if (item.endsOn case final end? when due > end) break;
     result.add(
       PlannedOccurrence(
         k,

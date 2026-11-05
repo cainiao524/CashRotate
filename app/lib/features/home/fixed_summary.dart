@@ -46,6 +46,7 @@ FixedSummary computeFixedSummary(
     if (next != null && next.dueOn <= soon) dueSoon++;
     if (v.row.needsDetails ||
         v.row.status != ItemStatus.active ||
+        v.schedule.paidOff ||
         v.row.type == ItemType.transferOut ||
         v.typeFields['runsOnItemId'] != null) {
       continue;

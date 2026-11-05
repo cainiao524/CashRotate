@@ -84,6 +84,15 @@ class ItemView {
   /// A bill with no fixed date or amount (CLAUDE.md item 1).
   bool get irregular => schedule.irregular;
 
+  /// Instalment progress for repayments with a known count: charges left
+  /// (the next one included) and the total when given; null otherwise.
+  ({int left, int? total})? get instalments {
+    final left = schedule.instalmentsLeft(nextDue?.dueOn);
+    if (left == null) return null;
+    final total = int.tryParse('${typeFields['totalPeriods'] ?? ''}'.trim());
+    return (left: left, total: total != null && total >= left ? total : null);
+  }
+
   /// Average monthly cost of the long-term price.
   Money get stableMonthly =>
       schedule.cycle.monthlyEquivalent(schedule.prices.stablePrice);
@@ -644,7 +653,21 @@ ItemSchedule _schedule(ItemRow row, List<PricePhaseRow> phases) => ItemSchedule(
   statusSince: row.statusSince,
   irregular:
       row.type == ItemType.bill && row.typeFields.contains('"irregular":true'),
+  endsOn: _lastChargeOn(row.typeFields),
 );
+
+/// Instalments: the last charge, stored in the type-specific fields as
+/// `lastChargeOn` (worked out from the remaining count when saved).
+LocalDate? _lastChargeOn(String typeFields) {
+  if (!typeFields.contains('lastChargeOn')) return null;
+  final value = (jsonDecode(typeFields) as Map)['lastChargeOn'];
+  if (value is! String) return null;
+  try {
+    return LocalDate.parse(value);
+  } on FormatException {
+    return null;
+  }
+}
 
 PricePhaseRow phaseToRow(String itemId, int seq, PricePhase phase) {
   final (kind, periods, until) = switch (phase.length) {

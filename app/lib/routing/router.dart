@@ -7,9 +7,9 @@ import '../features/backup/backup_page.dart';
 import '../features/detection/detection_page.dart';
 import '../features/home/home_page.dart';
 import '../features/items/items_page.dart';
-import '../features/ledger/ledger_page.dart';
 import '../features/onboarding/onboarding_flow.dart';
 import '../features/payments/payment_methods_page.dart';
+import '../features/payments/payments_page.dart';
 import '../features/reports/reports_page.dart';
 import '../features/settings/amount_settings_page.dart';
 import '../features/settings/settings_page.dart';
@@ -126,7 +126,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: Routes.ledger,
-                builder: (_, _) => const LedgerPage(),
+                builder: (_, _) => const PaymentsPage(),
               ),
             ],
           ),

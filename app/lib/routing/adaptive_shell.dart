@@ -35,11 +35,7 @@ class AdaptiveShell extends StatelessWidget {
     final destinations = [
       (Icons.home_outlined, Icons.home, l10n.navHome),
       (Icons.event_repeat_outlined, Icons.event_repeat, l10n.navItems),
-      (
-        Icons.account_balance_wallet_outlined,
-        Icons.account_balance_wallet,
-        l10n.navLedger,
-      ),
+      (Icons.receipt_long_outlined, Icons.receipt_long, l10n.navPayments),
       (Icons.insert_chart_outlined, Icons.insert_chart, l10n.navReports),
     ];
 

@@ -218,7 +218,8 @@ List<NativeReminder> buildNativeReminders({
           occurrenceId: switch (r.kind) {
             ReminderKind.charge ||
             ReminderKind.confirmAmount ||
-            ReminderKind.graceEnd => r.charge?.occurrenceId,
+            ReminderKind.graceEnd ||
+            ReminderKind.statement => r.charge?.occurrenceId,
             _ => null,
           },
           badge: badges[r.itemId],
@@ -259,5 +260,12 @@ String reminderBody(
       money(r.charge!.expected),
     ),
     ReminderKind.sharedUnpaid => l10n.reminderSharedUnpaid(r.unpaidPeople),
+    ReminderKind.statement =>
+      r.charge!.expected.isZero
+          ? l10n.reminderStatement(date(event))
+          : l10n.reminderStatementAmount(
+              date(event),
+              money(r.charge!.expected),
+            ),
   };
 }

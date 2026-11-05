@@ -3,12 +3,10 @@
 
   "navHome": "首页",
   "navItems": "固定支出",
-  "navLedger": "记账",
   "navReports": "分析",
   "navSettings": "设置",
 
   "itemsTitle": "固定支出",
-  "ledgerTitle": "记账",
   "reportsTitle": "分析",
   "settingsTitle": "设置",
 
@@ -16,14 +14,11 @@
   "tileDueIn": "{count, plural, =0{今天扣款} =1{明天扣款} other{{count} 天后}}",
   "tileOverdue": "{count, plural, other{逾期 {count} 天}}",
   "homeDueSoon": "7 天内到期",
-  "homeIncomeExpense": "本月收支",
-  "homeFixedVsVariable": "固定与变动支出",
 
   "itemsPendingCount": "{count, plural, =0{没有待补的项目} other{还有 {count} 项待补}}",
 
   "emptyItems": "还没有固定支出",
   "emptyItemsHint": "添加订阅、账单与还款，就能看到每月要付多少。",
-  "emptyLedger": "还没有交易",
   "emptyReports": "有数据后就会显示图表",
   "emptyDueSoon": "7 天内没有要付的项目",
   "detailPlaceholder": "选择一个项目以查看详情",
@@ -131,12 +126,6 @@
   "tileIconInitial": "首字母",
   "tileOpen": "查看详情",
   "homeAddItem": "新增项目",
-  "homeIncome": "收入",
-  "homeSpending": "支出",
-  "homeBalance": "结余",
-  "homeFixed": "固定",
-  "homeVariable": "变动",
-  "homeNeedsLedger": "开始记账后显示",
   "settingsTileColors": "方块使用服务代表色",
   "settingsTileColorsHint": "关闭时为单色，即将扣款者反白",
 
@@ -401,5 +390,21 @@
   "tileBadgeTextHint": "最多 3 个字，例如 B站",
   "tileBadgeColor": "角标底色",
   "tileBadgeColorDefault": "默认颜色",
-  "tileBadgeReset": "还原角标"
+  "tileBadgeReset": "还原角标",
+  "instalmentOf": "第 {n}/{total} 期",
+  "instalmentsLeft": "剩 {count} 期",
+  "statusPaidOff": "已还清",
+  "detailInstalments": "期数",
+  "detailLastInstalment": "最后一期 {date}",
+  "reminderStatement": "今天出账 · {date} 缴款",
+  "reminderStatementAmount": "今天出账 · {date} 缴款 · {amount}",
+  "navPayments": "付款",
+  "paymentsTitle": "付款记录",
+  "paymentsEmpty": "还没有付款记录",
+  "paymentsEmptyHint": "把一笔扣款标成已付款，或让银行通知自动记下。",
+  "paymentsToConfirm": "{count} 笔扣款待确认",
+  "paymentsMonthTotal": "合计 {amount}",
+  "paymentDelete": "删除这笔付款",
+  "paymentDeleted": "已删除，该期改回待付",
+  "paymentsFilterAll": "全部项目"
 }

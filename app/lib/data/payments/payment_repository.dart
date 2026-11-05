@@ -299,4 +299,21 @@ class PaymentRepository {
     await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
     await _journal.deleted('transactions', id);
   });
+
+  /// Deletes a payment and makes the charge it paid due again (paid-until
+  /// goes back to that charge). Irregular bills have no charge to reopen.
+  Future<void> deleteAndReopen(String id) => _db.transaction(() async {
+    final row = await (_db.select(
+      _db.transactions,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null) return;
+    await delete(id);
+    final occurrenceId = row.occurrenceId;
+    if (occurrenceId == null) return;
+    final occurrence = await (_db.select(
+      _db.occurrences,
+    )..where((o) => o.id.equals(occurrenceId))).getSingleOrNull();
+    if (occurrence == null || occurrence.transactionId != id) return;
+    await _items.reopen(occurrenceId, occurrence.dueOn);
+  });
 }

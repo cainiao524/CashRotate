@@ -104,6 +104,18 @@ class DetectionSettings {
   final List<String> packages;
 }
 
+/// Where merchant names learned from the user's assignments are kept: in
+/// the item's type-specific fields, so they sync with the item.
+const merchantNamesField = 'merchantNames';
+
+/// Learned names kept per item; the oldest goes first.
+const maxLearnedMerchants = 10;
+
+/// Merchant names the user taught for [v] by assigning detected charges.
+List<String> learnedMerchants(ItemView v) => [
+  ...?(v.typeFields[merchantNamesField] as List?)?.whereType<String>(),
+];
+
 /// Turns notices into payment records (ADR 0010): parses them on the phone,
 /// matches them to pending charges, records confident matches as paid,
 /// queues the rest, and remembers unmatched merchants to suggest new
@@ -295,7 +307,12 @@ class DetectionService {
                 0;
       result[ChargeCandidate(
             itemId: v.row.id,
-            names: [v.row.name, ...?preset?.name.all, ...?preset?.aliases],
+            names: [
+              v.row.name,
+              ...?preset?.name.all,
+              ...?preset?.aliases,
+              ...learnedMerchants(v),
+            ],
             expected: Money(o.expectedMinor, o.currency),
             dueOn: o.dueOn,
             occurrenceId: o.id,
@@ -309,7 +326,12 @@ class DetectionService {
       final preset = presets?.byId[v.row.presetId];
       result[ChargeCandidate(
             itemId: v.row.id,
-            names: [v.row.name, ...?preset?.name.all, ...?preset?.aliases],
+            names: [
+              v.row.name,
+              ...?preset?.name.all,
+              ...?preset?.aliases,
+              ...learnedMerchants(v),
+            ],
             expected: v.schedule.prices.stablePrice,
             dueOn: on,
             anyAmount: true,
@@ -388,6 +410,20 @@ class DetectionService {
     final accounts = await _db.select(_db.accounts).get();
     await _record(d, itemId, view.irregular ? null : next, accounts, main, fx);
     d.status = DetectionStatus.assigned;
+    // Remember how this merchant appears in notifications, so the next one
+    // matches the item by name.
+    if (d.merchant case final merchant? when merchant.trim().isNotEmpty) {
+      final known = learnedMerchants(view);
+      final name = merchant.trim();
+      if (!known.any((k) => k.toLowerCase() == name.toLowerCase())) {
+        await _items.setTypeFields(itemId, {
+          merchantNamesField: [
+            ...known.skip(known.length >= maxLearnedMerchants ? 1 : 0),
+            name,
+          ],
+        });
+      }
+    }
   });
 
   Future<void> ignore(String id) =>
