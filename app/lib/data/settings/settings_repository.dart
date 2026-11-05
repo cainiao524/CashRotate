@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart' show immutable;
 
 import '../db/app_database.dart';
 import '../journal.dart';
+import 'income.dart';
+
+export 'income.dart';
 
 /// Settings that follow the user across devices.
 class UserSettings {
@@ -19,6 +22,7 @@ class UserSettings {
     this.wideTiles = const {},
     this.tileIcons = const {},
     this.tileBadges = const {},
+    this.incomes = const [],
     this.remindersOn = true,
     this.reminderMinutes = 9 * 60,
     this.hideAmounts = false,
@@ -59,6 +63,9 @@ class UserSettings {
   /// initial, and / or a background colour.
   final Map<String, TileBadge> tileBadges;
 
+  /// Expected income, to compare fixed expenses with (CLAUDE.md item 19).
+  final List<IncomeSource> incomes;
+
   /// Notifications before charges, trial ends and the like.
   final bool remindersOn;
 
@@ -93,6 +100,7 @@ class SettingsRepository {
   static const wideTilesKey = 'home_wide_tiles';
   static const tileIconsKey = 'home_tile_icons';
   static const tileBadgesKey = 'home_tile_badges';
+  static const incomesKey = 'income_sources';
   static const remindersOnKey = 'reminders_on';
   static const reminderMinutesKey = 'reminder_minutes';
   static const hideAmountsKey = 'hide_amounts';
@@ -142,6 +150,23 @@ class SettingsRepository {
     });
   }
 
+  /// Adds [income], or replaces the one with its id.
+  Future<void> saveIncome(IncomeSource income) async {
+    final current = await read(UserSettings.defaultsFor(null));
+    final list = [...current.incomes];
+    final at = list.indexWhere((i) => i.id == income.id);
+    at < 0 ? list.add(income) : list[at] = income;
+    await _set(incomesKey, [for (final i in list) i.toJson()]);
+  }
+
+  Future<void> removeIncome(String id) async {
+    final current = await read(UserSettings.defaultsFor(null));
+    await _set(incomesKey, [
+      for (final i in current.incomes)
+        if (i.id != id) i.toJson(),
+    ]);
+  }
+
   Future<void> setDecimals(Currency c, int decimals) async {
     final current = await read(UserSettings.defaultsFor(null));
     await _set(decimalsKey, {...current.decimalsOverride, c.code: decimals});
@@ -183,6 +208,7 @@ class SettingsRepository {
     final wide = map[wideTilesKey];
     final icons = map[tileIconsKey];
     final badges = map[tileBadgesKey];
+    final incomes = map[incomesKey];
     return UserSettings(
       mainCurrency: code is String
           ? Currency.tryParse(code) ?? defaults.mainCurrency
@@ -224,6 +250,9 @@ class SettingsRepository {
                 '${e.key}': ?TileBadge.fromJson(e.value),
             }
           : const {},
+      incomes: incomes is List
+          ? [for (final i in incomes) ?IncomeSource.fromJson(i)]
+          : const [],
     );
   }
 }

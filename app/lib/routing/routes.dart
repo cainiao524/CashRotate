@@ -15,4 +15,5 @@ abstract final class Routes {
   static const settingsPaymentMethods = '$settings/payment-methods';
   static const settingsDetection = '$settings/detection';
   static const settingsOwed = '$settings/owed';
+  static const settingsIncome = '$settings/income';
 }

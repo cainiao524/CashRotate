@@ -6,6 +6,7 @@ import '../data/providers.dart';
 import '../features/backup/backup_page.dart';
 import '../features/detection/detection_page.dart';
 import '../features/home/home_page.dart';
+import '../features/income/income_page.dart';
 import '../features/items/items_page.dart';
 import '../features/onboarding/onboarding_flow.dart';
 import '../features/payments/payment_methods_page.dart';
@@ -88,6 +89,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'owed',
                         builder: (_, _) => const OwedPage(),
+                      ),
+                      GoRoute(
+                        path: 'income',
+                        builder: (_, _) => const IncomePage(),
                       ),
                     ],
                   ),

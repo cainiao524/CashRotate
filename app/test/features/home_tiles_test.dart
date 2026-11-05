@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../helpers/fake_reminder_platform.dart';
 import '../helpers/pump_app.dart';
+import 'settings_test.dart' show scrollTo;
 
 Finder tile(String id) => find.byKey(ValueKey('tile-$id'));
 
@@ -177,6 +178,7 @@ void main() {
     expect(find.byKey(const Key('home-add')), findsNothing);
     await tester.tap(find.byKey(const Key('nav-settings')));
     await settle(tester);
+    await scrollTo(tester, find.byKey(const Key('settings-sync')));
     expect(find.byKey(const Key('settings-sync')), findsOneWidget);
   });
 

@@ -19,6 +19,7 @@ import '../../theme/palette.dart';
 import '../../widgets/marquee_text.dart';
 import '../../widgets/money_text.dart';
 import '../home/fixed_summary.dart';
+import '../income/income_page.dart';
 import '../items/labels.dart';
 import '../payments/payments_page.dart' show exportPaymentsCsv;
 import 'report_data.dart';
@@ -108,6 +109,8 @@ class _Overview extends ConsumerWidget {
       builder: (context, constraints) {
         final sections = [
           const _ThisMonth(),
+          if (ref.watch(incomeComparisonProvider) != null)
+            _Section(title: l10n.incomeVsFixed, child: const _IncomeSection()),
           _Section(title: l10n.reportsLast12, child: const MonthBars()),
           _Section(
             title: l10n.reportsByCategory,
@@ -194,6 +197,107 @@ class _Section extends StatelessWidget {
 }
 
 /// This month's fixed spending, paid and to pay, and what is due this week.
+/// Monthly income by type against fixed expenses: the share and what is
+/// left (CLAUDE.md item 19).
+class _IncomeSection extends ConsumerWidget {
+  const _IncomeSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final palette = Palette.of(context);
+    final text = Theme.of(context).textTheme;
+    final c = ref.watch(incomeComparisonProvider);
+    if (c == null) return const SizedBox.shrink();
+    final locale = intlLocaleOf(context);
+    final hidden = ref.watch(userSettingsProvider).value?.hideAmounts ?? false;
+    final over = c.remaining.minor < 0;
+    Widget figure(String label, Money value, Key key, {Color? color}) =>
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: text.bodySmall?.copyWith(color: palette.secondaryText),
+              ),
+              MoneyText(
+                value,
+                key: key,
+                style: text.titleMedium?.copyWith(color: color),
+              ),
+            ],
+          ),
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            figure(
+              l10n.incomeMonthlyTotal,
+              c.income,
+              const Key('reports-income'),
+            ),
+            const SizedBox(width: 12),
+            figure(
+              l10n.incomeLeftAfterFixed,
+              c.remaining,
+              const Key('reports-income-left'),
+              color: over ? palette.error : null,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: LinearProgressIndicator(
+            value: (c.share ?? 0).clamp(0, 1).toDouble(),
+            minHeight: 8,
+            color: over ? palette.error : palette.primary,
+            backgroundColor: palette.selected,
+            semanticsLabel: l10n.incomeVsFixed,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          incomeShareLine(l10n, c, locale, hidden: hidden),
+          key: const Key('reports-income-share'),
+          style: text.bodyMedium?.copyWith(color: over ? palette.error : null),
+        ),
+        if (c.byType.length > 1) ...[
+          const SizedBox(height: 12),
+          for (final (i, e) in c.byType.indexed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: rankShade(palette, i),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: MarqueeText(
+                      l10n.incomeTypeName(e.type),
+                      style: text.bodyMedium,
+                    ),
+                  ),
+                  MoneyText(e.monthly, style: text.bodyMedium),
+                ],
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+}
+
 class _ThisMonth extends ConsumerWidget {
   const _ThisMonth();
 

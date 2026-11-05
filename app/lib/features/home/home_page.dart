@@ -21,6 +21,7 @@ import '../../theme/pearl_surface.dart';
 import '../../widgets/marquee_text.dart';
 import '../../widgets/money_text.dart' show hiddenAmount;
 import '../../widgets/preset_badge.dart';
+import '../income/income_page.dart';
 import '../items/add_item_page.dart';
 import '../items/idle_prompt.dart';
 import '../items/labels.dart';
@@ -207,6 +208,21 @@ class _TotalCard extends ConsumerWidget {
         ),
       if ((summary?.missingRates ?? 0) > 0)
         Text(l10n.obSummaryMissingRates, style: text.bodySmall?.merge(muted)),
+      if (ref.watch(incomeComparisonProvider) case final c?)
+        Text(
+          incomeShareLine(
+            l10n,
+            c,
+            locale,
+            hidden: ref.watch(userSettingsProvider).value?.hideAmounts ?? false,
+          ),
+          key: const Key('home-income-share'),
+          style: text.bodySmall?.copyWith(
+            color: c.remaining.minor < 0
+                ? palette.error
+                : palette.secondaryText,
+          ),
+        ),
     ];
     final header = Row(
       children: [
