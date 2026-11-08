@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/settings/settings_repository.dart';
@@ -45,9 +47,10 @@ String initialOf(String name) {
       : String.fromCharCode(trimmed.runes.first).toUpperCase();
 }
 
-/// What an item's badge shows: the user's own text or the initial, the
-/// chosen line icon, and the user's own colour (`#RRGGBB`) if any.
-({String text, IconData? icon, String? color}) badgeOf(
+/// What an item's badge shows: the user's picture, else the chosen line
+/// icon, else the user's own text or the initial; and the user's own colour
+/// (`#RRGGBB`) if any.
+({String text, IconData? icon, String? color, Uint8List? image}) badgeOf(
   String itemId,
   String name,
   UserSettings? settings,
@@ -57,6 +60,7 @@ String initialOf(String name) {
     text: own?.text ?? initialOf(name),
     icon: tileIcons[settings?.tileIcons[itemId]],
     color: own?.color,
+    image: settings?.tileImages[itemId],
   );
 }
 

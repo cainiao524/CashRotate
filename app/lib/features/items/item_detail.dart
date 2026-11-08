@@ -136,6 +136,7 @@ class ItemDetail extends ConsumerWidget {
             InitialBadge(
               name: v.row.name,
               text: badge.text,
+              image: badge.image,
               color: badge.color ?? preset?.color ?? '#6B7280',
               size: 48,
             ),

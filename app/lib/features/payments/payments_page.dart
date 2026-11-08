@@ -299,6 +299,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
               leading: InitialBadge(
                 name: name,
                 text: badge.text,
+                image: badge.image,
                 color:
                     badge.color ??
                     presets[view?.row.presetId]?.color ??

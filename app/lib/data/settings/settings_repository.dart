@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter/foundation.dart' show immutable;
@@ -23,6 +24,7 @@ class UserSettings {
     this.tileIcons = const {},
     this.tileBadges = const {},
     this.incomes = const [],
+    this.tileImages = const {},
     this.remindersOn = true,
     this.reminderMinutes = 9 * 60,
     this.hideAmounts = false,
@@ -66,6 +68,9 @@ class UserSettings {
   /// Expected income, to compare fixed expenses with (CLAUDE.md item 19).
   final List<IncomeSource> incomes;
 
+  /// The user's own pictures as tile icons (square PNG), per item id.
+  final Map<String, Uint8List> tileImages;
+
   /// Notifications before charges, trial ends and the like.
   final bool remindersOn;
 
@@ -101,6 +106,10 @@ class SettingsRepository {
   static const tileIconsKey = 'home_tile_icons';
   static const tileBadgesKey = 'home_tile_badges';
   static const incomesKey = 'income_sources';
+
+  /// One setting per picture (`tile_image:<item id>`, base64 PNG), so a
+  /// change syncs that picture alone.
+  static const tileImagePrefix = 'tile_image:';
   static const remindersOnKey = 'reminders_on';
   static const reminderMinutesKey = 'reminder_minutes';
   static const hideAmountsKey = 'hide_amounts';
@@ -149,6 +158,10 @@ class SettingsRepository {
       for (final MapEntry(:key, :value) in badges.entries) key: value.toJson(),
     });
   }
+
+  /// [png] null removes the picture.
+  Future<void> setTileImage(String itemId, Uint8List? png) =>
+      _set('$tileImagePrefix$itemId', png == null ? null : base64Encode(png));
 
   /// Adds [income], or replaces the one with its id.
   Future<void> saveIncome(IncomeSource income) async {
@@ -253,6 +266,11 @@ class SettingsRepository {
       incomes: incomes is List
           ? [for (final i in incomes) ?IncomeSource.fromJson(i)]
           : const [],
+      tileImages: {
+        for (final MapEntry(:key, :value) in map.entries)
+          if (key.startsWith(tileImagePrefix) && value is String)
+            key.substring(tileImagePrefix.length): base64Decode(value),
+      },
     );
   }
 }

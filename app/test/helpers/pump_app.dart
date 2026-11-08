@@ -274,6 +274,8 @@ Future<TestData> pumpApp(
         rateFetcherProvider.overrideWithValue(
           RateFetcher(get: (uri) async => testRateResponses(uri)),
         ),
+        // No preset download in widget tests.
+        presetAutoUpdateProvider.overrideWith((ref) async => null),
         autoRateStartupProvider.overrideWith(
           (ref) async => (
             status: AutoRateStatus.alreadyToday,

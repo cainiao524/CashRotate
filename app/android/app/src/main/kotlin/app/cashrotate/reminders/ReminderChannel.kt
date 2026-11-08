@@ -28,6 +28,18 @@ class ReminderChannel(
         when (call.method) {
             // {reminders: [{id, at, title, body, itemId, occurrenceId, kind}],
             //  labels: {paid, snooze, channelName, channelDescription}}
+            // Pictures for notification large icons: one PNG file per item.
+            "setBadgeImages" -> {
+                val images = call.arguments as? Map<*, *> ?: emptyMap<Any, Any>()
+                val dir = ReminderNotifications.badgeDir(context)
+                dir.listFiles()?.forEach { it.delete() }
+                for ((id, bytes) in images) {
+                    if (id is String && bytes is ByteArray) {
+                        java.io.File(dir, ReminderNotifications.badgeFileName(id)).writeBytes(bytes)
+                    }
+                }
+                result.success(null)
+            }
             "setReminders" -> {
                 val args = JSONObject(call.arguments as String)
                 val list = args.getJSONArray("reminders")

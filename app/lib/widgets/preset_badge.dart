@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:material_ui/material_ui.dart';
 
 /// Round badge with the first letter of a name on its brand colour. No logos
@@ -9,7 +11,11 @@ class InitialBadge extends StatelessWidget {
     required this.color,
     this.size = 40,
     this.text,
+    this.image,
   });
+
+  /// The user's own picture, shown instead of the letters.
+  final Uint8List? image;
 
   final String name;
 
@@ -41,6 +47,19 @@ class InitialBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final background = parse(color);
+    if (image case final png?) {
+      return ExcludeSemantics(
+        child: ClipOval(
+          child: Image.memory(
+            png,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+          ),
+        ),
+      );
+    }
     return ExcludeSemantics(
       child: SizedBox.square(
         dimension: size,

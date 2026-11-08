@@ -6,8 +6,9 @@ abstract interface class FilePicker {
   /// Lets the user choose where to save [bytes]. False when cancelled.
   Future<bool> save(String name, Uint8List bytes);
 
-  /// Lets the user pick a file to read. Null when cancelled.
-  Future<Uint8List?> open();
+  /// Lets the user pick a file to read ([type]: a MIME type such as
+  /// `image/*`). Null when cancelled.
+  Future<Uint8List?> open({String type = '*/*'});
 }
 
 class SystemFilePicker implements FilePicker {
@@ -22,5 +23,6 @@ class SystemFilePicker implements FilePicker {
       false;
 
   @override
-  Future<Uint8List?> open() => _channel.invokeMethod<Uint8List>('openFile');
+  Future<Uint8List?> open({String type = '*/*'}) =>
+      _channel.invokeMethod<Uint8List>('openFile', {'type': type});
 }

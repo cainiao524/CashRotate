@@ -212,9 +212,7 @@
   "obImportTitle": "How do you want to start?", "@obImportTitle": { "description": "Onboarding: choose import method." },
   "obImportPick": "Pick common services", "@obImportPick": { "description": "Import option." },
   "obImportPickHint": "Recommended · about a minute", "@obImportPickHint": { "description": "Subtitle of the recommended import option." },
-  "obImportPaste": "Paste a list", "@obImportPaste": { "description": "Import option (later milestone)." },
   "obImportRestore": "Restore from WebDAV", "@obImportRestore": { "description": "Import option (later milestone)." },
-  "obComingLater": "Available in a later update", "@obComingLater": { "description": "Subtitle on options not built yet." },
   "obPickTitle": "Which of these do you pay for?", "@obPickTitle": { "description": "Onboarding: pick services." },
   "obSelectedCount": "{count, plural, =0{Nothing selected} =1{1 selected} other{{count} selected}}", "@obSelectedCount": { "description": "Counter of picked services.", "placeholders": { "count": { "type": "int" } } },
   "obAllCategories": "All", "@obAllCategories": { "description": "Category filter chip." },
@@ -589,5 +587,17 @@
   "incomeTypeBenefits": "Benefits", "@incomeTypeBenefits": {"description": "Income type: government benefits."},
   "incomeTypeAllowance": "Allowance", "@incomeTypeAllowance": {"description": "Income type: money from family, allowance."},
   "incomeTypeSales": "Sales", "@incomeTypeSales": {"description": "Income type: selling things (second-hand, game items)."},
-  "incomeTypeOther": "Other", "@incomeTypeOther": {"description": "Income type."}
+  "incomeTypeOther": "Other", "@incomeTypeOther": {"description": "Income type."},
+  "obImportRestoreHint": "Use the data synced from your other phone", "@obImportRestoreHint": {"description": "Subtitle of the restore-from-WebDAV option on first launch."},
+  "syncRestoreNothing": "No synced CashRotate data in this folder. Check the address, or choose another way to start.", "@syncRestoreNothing": {"description": "Restoring on first launch found nothing to join."},
+  "presetsTitle": "Service library", "@presetsTitle": {"description": "Settings row: the preset library."},
+  "presetsInfo": "{count} services · updated {date}", "@presetsInfo": {"description": "Preset library size and date.", "placeholders": {"count": {"type": "int"}, "date": {"type": "String"}}},
+  "presetsBuiltIn": "{count} services · built in", "@presetsBuiltIn": {"description": "Preset library that came with the app.", "placeholders": {"count": {"type": "int"}}},
+  "presetsUpdate": "Update", "@presetsUpdate": {"description": "Button: download the latest preset library."},
+  "presetsUpdated": "Service library updated: {count} services", "@presetsUpdated": {"description": "Snackbar after an update.", "placeholders": {"count": {"type": "int"}}},
+  "presetsUpToDate": "The service library is up to date", "@presetsUpToDate": {"description": "Snackbar when nothing changed."},
+  "presetsFailed": "Couldn't update the service library. Try again later.", "@presetsFailed": {"description": "Snackbar when the download or check failed."},
+  "presetsSource": "Downloaded from the project's GitHub (via jsDelivr). No personal data is sent.", "@presetsSource": {"description": "Where preset updates come from."},
+  "tileIconPhoto": "Picture", "@tileIconPhoto": {"description": "Tile icon choice: a picture from the phone."},
+  "tileIconPhotoFailed": "Couldn't read that picture", "@tileIconPhotoFailed": {"description": "Snackbar when a picked image can't be decoded."}
 }

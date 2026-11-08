@@ -23,6 +23,7 @@ import '../sharing/owed_page.dart';
 import '../sync/sync_settings_page.dart';
 import 'amount_settings_page.dart';
 import 'basic_settings_fields.dart';
+import 'presets_tile.dart';
 import 'reminder_settings.dart';
 
 final _ratesProvider = StreamProvider<List<ExchangeRate>>(
@@ -72,6 +73,8 @@ class SettingsPage extends ConsumerWidget {
               const ReminderSettings(),
               _Section(l10n.settingsRates),
               const _RatesSettings(),
+              _Section(l10n.presetsTitle),
+              const PresetLibraryTile(),
               _Section(l10n.settingsSetup),
               ListTile(
                 key: const Key('settings-run-setup'),

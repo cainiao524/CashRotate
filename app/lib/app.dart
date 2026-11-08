@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'brand.dart';
+import 'data/presets.dart';
 import 'data/providers.dart';
 import 'features/detection/detection_bridge.dart';
 import 'features/reminders/reminder_bridge.dart';
@@ -91,6 +92,7 @@ class _StartupGate extends ConsumerWidget {
     // Today's exchange rates, in the background (once a day; offline keeps
     // the cached ones).
     ref.watch(autoRateStartupProvider);
+    ref.watch(presetAutoUpdateProvider);
     // Today's automatic backup on the phone (once a day).
     ref.watch(autoBackupProvider);
     return switch (ref.watch(userSettingsProvider)) {

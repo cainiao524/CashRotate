@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,6 +70,7 @@ class _ReminderBridgeState extends ConsumerState<ReminderBridge>
     with WidgetsBindingObserver {
   Timer? _debounce;
   final _subscriptions = <StreamSubscription<void>>[];
+  Map<String, Uint8List>? _images;
 
   @override
   void initState() {
@@ -132,6 +134,14 @@ class _ReminderBridgeState extends ConsumerState<ReminderBridge>
     final locale = intlLocaleOf(context);
     final service = ref.read(reminderServiceProvider);
     final presets = ref.read(presetLibraryProvider).value?.byId ?? const {};
+    // Only when they changed: a few PNGs, not every re-plan.
+    if (!identical(settings.tileImages, _images)) {
+      _images = settings.tileImages;
+      await ref
+          .read(reminderPlatformProvider)
+          .setBadgeImages(settings.tileImages)
+          .catchError((Object _) {});
+    }
     final planned = await service.sync(
       items: items,
       occurrences: occurrences,

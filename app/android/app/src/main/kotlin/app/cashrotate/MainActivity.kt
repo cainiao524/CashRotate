@@ -177,7 +177,7 @@ class MainActivity : FlutterFragmentActivity() {
                     startActivityForResult(
                         Intent(Intent.ACTION_OPEN_DOCUMENT)
                             .addCategory(Intent.CATEGORY_OPENABLE)
-                            .setType("*/*"),
+                            .setType(call.argument<String>("type") ?: "*/*"),
                         OPEN_REQUEST,
                     )
                 }

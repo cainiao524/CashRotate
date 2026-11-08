@@ -23,7 +23,7 @@ class FakePicker implements FilePicker {
   }
 
   @override
-  Future<Uint8List?> open() async => saved;
+  Future<Uint8List?> open({String type = '*/*'}) async => saved;
 }
 
 void main() {

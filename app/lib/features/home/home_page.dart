@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,7 @@ import '../../theme/pearl_surface.dart';
 import '../../widgets/marquee_text.dart';
 import '../../widgets/money_text.dart' show hiddenAmount;
 import '../../widgets/preset_badge.dart';
+import '../../widgets/thumbnail.dart';
 import '../income/income_page.dart';
 import '../items/add_item_page.dart';
 import '../items/idle_prompt.dart';
@@ -1001,6 +1003,7 @@ class _ItemTile extends ConsumerWidget {
                     _TileIcon(
                       text: badge.text,
                       icon: badge.icon,
+                      image: badge.image,
                       size: metrics.icon,
                       background: badgeColor ?? box,
                       color: badgeColor == null
@@ -1067,6 +1070,7 @@ class _TileIcon extends StatelessWidget {
   const _TileIcon({
     required this.text,
     required this.icon,
+    this.image,
     required this.size,
     required this.background,
     required this.color,
@@ -1075,12 +1079,29 @@ class _TileIcon extends StatelessWidget {
   /// The initial, or the user's own badge text (up to 3 characters).
   final String text;
   final IconData? icon;
+
+  /// The user's own picture, shown instead of the icon or letters.
+  final Uint8List? image;
   final double size;
   final Color background;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
+    if (image case final png?) {
+      return ExcludeSemantics(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(size * 0.3),
+          child: Image.memory(
+            png,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+          ),
+        ),
+      );
+    }
     return ExcludeSemantics(
       child: SizedBox.square(
         dimension: size,
@@ -1139,11 +1160,25 @@ class _TileMenu extends ConsumerWidget {
     final settings = ref.watch(userSettingsProvider).value;
     final repo = ref.read(settingsRepositoryProvider);
     final id = tile.id;
+    final picture = settings?.tileImages[id];
     final chosen = settings?.tileIcons[id];
     final next = tile.view.nextDue;
 
+    Future<void> pickPicture() async {
+      final messenger = ScaffoldMessenger.of(context);
+      final failed = l10n.tileIconPhotoFailed;
+      final bytes = await ref.read(filePickerProvider).open(type: 'image/*');
+      if (bytes == null) return; // cancelled
+      final png = await squareThumbnail(bytes);
+      if (png == null) {
+        messenger.showSnackBar(SnackBar(content: Text(failed)));
+        return;
+      }
+      await repo.setTileImage(id, png);
+    }
+
     Widget choice(String? key, Widget child, String label) {
-      final selected = chosen == key;
+      final selected = picture == null && chosen == key;
       return Tooltip(
         message: label,
         child: IconButton(
@@ -1155,7 +1190,10 @@ class _TileMenu extends ConsumerWidget {
               color: selected ? palette.primary : palette.divider,
             ),
           ),
-          onPressed: () => repo.setTileIcon(id, key),
+          onPressed: () async {
+            await repo.setTileIcon(id, key);
+            if (picture != null) await repo.setTileImage(id, null);
+          },
           icon: child,
         ),
       );
@@ -1224,6 +1262,36 @@ class _TileMenu extends ConsumerWidget {
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   l10n.tileIconInitial,
+                ),
+                Tooltip(
+                  message: l10n.tileIconPhoto,
+                  child: IconButton(
+                    key: const ValueKey('tile-icon-picture'),
+                    isSelected: picture != null,
+                    style: IconButton.styleFrom(
+                      backgroundColor: picture != null
+                          ? palette.selected
+                          : null,
+                      side: BorderSide(
+                        color: picture != null
+                            ? palette.primary
+                            : palette.divider,
+                      ),
+                      padding: picture != null ? const EdgeInsets.all(4) : null,
+                    ),
+                    onPressed: pickPicture,
+                    icon: picture == null
+                        ? const Icon(Icons.add_photo_alternate_outlined)
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.memory(
+                              picture,
+                              width: 32,
+                              height: 32,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                  ),
                 ),
                 for (final (i, MapEntry(:key, :value))
                     in tileIcons.entries.indexed)

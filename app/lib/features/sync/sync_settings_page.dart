@@ -51,7 +51,13 @@ String syncStatusText(
 /// Connect a WebDAV folder, set up or unlock its encryption, and see how
 /// syncing goes.
 class SyncSettingsPage extends ConsumerStatefulWidget {
-  const SyncSettingsPage({super.key});
+  const SyncSettingsPage({super.key, this.onRestored});
+
+  /// First launch, "restore from WebDAV": only joining an existing folder is
+  /// offered, and this runs once its data has been downloaded.
+  final VoidCallback? onRestored;
+
+  bool get restoreOnly => onRestored != null;
 
   @override
   ConsumerState<SyncSettingsPage> createState() => _SyncSettingsPageState();
@@ -115,11 +121,18 @@ class _SyncSettingsPageState extends ConsumerState<SyncSettingsPage> {
   }
 
   Future<void> _connect() => _run((s) async {
+    final nothing = AppLocalizations.of(context).syncRestoreNothing;
     final existing = await s.connect(
       _url.text.trim(),
       _user.text.trim(),
       _serverPassword.text,
     );
+    if (!existing && widget.restoreOnly) {
+      // Nothing to restore here; don't start a new sync folder instead.
+      _error = nothing;
+      await s.disconnect();
+      return;
+    }
     _step = existing ? _Step.join : _Step.create;
     if (!existing) {
       _generated ??= SyncKeys(await ref.read(sodiumProvider.future))
@@ -143,12 +156,14 @@ class _SyncSettingsPageState extends ConsumerState<SyncSettingsPage> {
       _saved &&
       (_generate || SyncKeys.strength(_ownCode.text) == RecoveryStrength.ok);
 
-  Future<void> _finish(Future<void> Function(SyncService s) unlock) =>
-      _run((s) async {
-        await unlock(s);
-        _step = null;
-        await s.syncNow();
-      });
+  Future<void> _finish(Future<void> Function(SyncService s) unlock) async {
+    await _run((s) async {
+      await unlock(s);
+      _step = null;
+      await s.syncNow();
+    });
+    if (_error == null && mounted) widget.onRestored?.call();
+  }
 
   @override
   Widget build(BuildContext context) {

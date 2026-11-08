@@ -85,7 +85,7 @@
   "obBasicsTitle": "歡迎", "obBasicsBody": "先確認這幾項。所有資料只存在這支手機上。", "obLanguage": "語言",
   "obLanguageSystem": "跟隨系統", "obRegion": "地區", "obMainCurrency": "主要幣別", "obSyncLater": "WebDAV 同步可以之後在設定中開啟。",
   "obImportTitle": "要怎麼開始？", "obImportPick": "勾選常用服務", "obImportPickHint": "推薦 · 大約一分鐘",
-  "obImportPaste": "貼上清單", "obImportRestore": "從 WebDAV 還原", "obComingLater": "將在之後的更新提供",
+  "obImportRestore": "從 WebDAV 還原",
   "obPickTitle": "你有在付哪些？", "obSelectedCount": "{count, plural, =0{尚未選擇} other{已選 {count} 項}}",
   "obAllCategories": "全部", "obAddCustom": "新增「{name}」", "obBatchTitle": "金額與扣款日", "obBatchHint": "可以先留空，之後再補。",
   "obApplyDate": "已選項目套用同一扣款日", "obApplyCurrency": "已選項目套用同一幣別", "obSelectAll": "全選",
@@ -436,5 +436,17 @@
   "incomeTypeBenefits": "政府補助 / 津貼",
   "incomeTypeAllowance": "家用 / 生活費",
   "incomeTypeSales": "二手 / 道具出售",
-  "incomeTypeOther": "其他收入"
+  "incomeTypeOther": "其他收入",
+  "obImportRestoreHint": "沿用另一台手機同步到 WebDAV 的資料",
+  "syncRestoreNothing": "這個資料夾裡沒有同步資料。請檢查網址，或改用其他方式開始。",
+  "presetsTitle": "服務預設庫",
+  "presetsInfo": "{count} 項服務 · 更新於 {date}",
+  "presetsBuiltIn": "{count} 項服務 · 內建版本",
+  "presetsUpdate": "更新",
+  "presetsUpdated": "預設庫已更新：{count} 項服務",
+  "presetsUpToDate": "預設庫已是最新",
+  "presetsFailed": "無法更新預設庫，請稍後再試。",
+  "presetsSource": "從專案的 GitHub（經 jsDelivr）下載，不會傳送任何個人資料。",
+  "tileIconPhoto": "圖片",
+  "tileIconPhotoFailed": "無法讀取這張圖片"
 }

@@ -13,6 +13,7 @@ import '../../widgets/money_text.dart';
 import '../../widgets/state_views.dart';
 import '../home/fixed_summary.dart';
 import '../settings/basic_settings_fields.dart';
+import '../sync/sync_settings_page.dart';
 import 'batch.dart';
 import 'batch_table.dart';
 import 'service_picker.dart';
@@ -117,6 +118,17 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
               OnboardingStep.basics => const _Basics(),
               OnboardingStep.importMethod => _ImportMethod(
                 onPick: () => _goTo(OnboardingStep.pick),
+                onRestore: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (route) => SyncSettingsPage(
+                      // Everything came from the other phone: setup is done.
+                      onRestored: () async {
+                        Navigator.of(route).pop();
+                        await _finish();
+                      },
+                    ),
+                  ),
+                ),
               ),
               OnboardingStep.pick => ServicePicker(
                 draft: _draft!,
@@ -204,8 +216,9 @@ class _Basics extends ConsumerWidget {
 }
 
 class _ImportMethod extends StatelessWidget {
-  const _ImportMethod({required this.onPick});
+  const _ImportMethod({required this.onPick, required this.onRestore});
   final VoidCallback onPick;
+  final VoidCallback onRestore;
 
   @override
   Widget build(BuildContext context) {
@@ -223,22 +236,16 @@ class _ImportMethod extends StatelessWidget {
             onTap: onPick,
           ),
         ),
+        // Pasting a list waits for AI import (M6, in the backlog).
         const SizedBox(height: 12),
         Card(
           child: ListTile(
-            enabled: false,
-            leading: const Icon(Icons.content_paste),
-            title: Text(l10n.obImportPaste),
-            subtitle: Text(l10n.obComingLater),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            enabled: false,
+            key: const Key('ob-import-restore'),
             leading: const Icon(Icons.cloud_download_outlined),
             title: Text(l10n.obImportRestore),
-            subtitle: Text(l10n.obComingLater),
+            subtitle: Text(l10n.obImportRestoreHint),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: onRestore,
           ),
         ),
       ],

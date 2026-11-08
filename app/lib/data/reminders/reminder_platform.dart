@@ -110,6 +110,10 @@ class ReminderEvent {
 /// The native reminder scheduler (Kotlin: AlarmManager, notifications,
 /// WorkManager), behind an interface so tests can fake it.
 abstract interface class ReminderPlatform {
+  /// Replaces the pictures used as notification large icons (square PNG per
+  /// item id); items without one draw their badge.
+  Future<void> setBadgeImages(Map<String, Uint8List> images);
+
   /// Replaces the planned reminders. [labels]: `paid`, `snooze`,
   /// `goCancel`, `channelName`, `channelDescription`.
   Future<void> setReminders(
@@ -154,6 +158,10 @@ class MethodChannelReminderPlatform implements ReminderPlatform {
   static const _channel = MethodChannel('app.cashrotate/reminders');
   final _events = StreamController<void>.broadcast();
   final _opened = StreamController<void>.broadcast();
+
+  @override
+  Future<void> setBadgeImages(Map<String, Uint8List> images) =>
+      _channel.invokeMethod('setBadgeImages', images);
 
   @override
   Future<void> setReminders(

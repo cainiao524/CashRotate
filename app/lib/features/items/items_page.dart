@@ -520,6 +520,7 @@ class ItemTile extends ConsumerWidget {
                   InitialBadge(
                     name: view.row.name,
                     text: badge.text,
+                    image: badge.image,
                     color: badge.color ?? preset?.color ?? '#6B7280',
                   ),
                 const SizedBox(width: 16),

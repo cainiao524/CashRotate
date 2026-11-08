@@ -60,7 +60,7 @@ object ReminderNotifications {
             .setAutoCancel(true)
             .setCategory(Notification.CATEGORY_REMINDER)
         reminder.badge?.let { badge ->
-            runCatching { badgeBitmap(context, badge) }.getOrNull()?.let {
+            runCatching { badgeBitmap(context, badge, reminder.itemId) }.getOrNull()?.let {
                 builder.setLargeIcon(Icon.createWithBitmap(it))
             }
         }
@@ -132,7 +132,36 @@ object ReminderNotifications {
     }.getOrNull()?.also { iconFont = it }
 
     /** A round badge with the item's line icon, or else its initial. */
-    private fun badgeBitmap(context: Context, badge: JSONObject): Bitmap {
+    /** Where the user's pictures for large icons are kept. */
+    fun badgeDir(context: Context): java.io.File =
+        java.io.File(context.filesDir, "badges").apply { mkdirs() }
+
+    /** A safe file name for an item id. */
+    fun badgeFileName(itemId: String): String =
+        itemId.replace(Regex("[^A-Za-z0-9_-]"), "_") + ".png"
+
+    /** The user's picture for [itemId], cut to a circle, if there is one. */
+    private fun pictureBitmap(context: Context, itemId: String): Bitmap? {
+        val file = java.io.File(badgeDir(context), badgeFileName(itemId))
+        if (!file.exists()) return null
+        val picture = android.graphics.BitmapFactory.decodeFile(file.path) ?: return null
+        val bitmap = Bitmap.createBitmap(BADGE_SIZE, BADGE_SIZE, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        canvas.drawCircle(BADGE_SIZE / 2f, BADGE_SIZE / 2f, BADGE_SIZE / 2f, paint)
+        paint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(
+            picture,
+            null,
+            android.graphics.Rect(0, 0, BADGE_SIZE, BADGE_SIZE),
+            paint,
+        )
+        return bitmap
+    }
+
+    /** The user's picture, else a round badge with the line icon or initial. */
+    private fun badgeBitmap(context: Context, badge: JSONObject, itemId: String): Bitmap {
+        pictureBitmap(context, itemId)?.let { return it }
         val bitmap = Bitmap.createBitmap(BADGE_SIZE, BADGE_SIZE, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val half = BADGE_SIZE / 2f

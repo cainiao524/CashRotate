@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cashrotate/data/reminders/reminder_platform.dart';
 
@@ -16,6 +17,12 @@ class FakeReminderPlatform implements ReminderPlatform {
   String maker = 'google';
   String? opened;
   int batteryOpened = 0;
+
+  Map<String, Uint8List> badgeImages = const {};
+
+  @override
+  Future<void> setBadgeImages(Map<String, Uint8List> images) async =>
+      badgeImages = images;
 
   final _events = StreamController<void>.broadcast();
   final _opened = StreamController<void>.broadcast();
