@@ -10,6 +10,7 @@ import '../platform/files.dart';
 import '../platform/home_widgets.dart';
 import '../platform/keystore.dart';
 import '../platform/links.dart';
+import '../platform/screen_privacy.dart';
 import '../platform/shortcuts.dart';
 import 'backup/backup_service.dart';
 import 'db/app_database.dart';
@@ -26,6 +27,7 @@ import 'reminders/reminder_platform.dart';
 import 'reminders/reminder_service.dart';
 import 'security/app_lock.dart';
 import 'settings/settings_repository.dart';
+import 'sync/conflict_resolver.dart';
 import 'sync/sync_service.dart';
 
 final databaseKeySourceProvider = Provider<DatabaseKeySource>(
@@ -142,6 +144,15 @@ final reminderServiceProvider = Provider<ReminderService>((ref) {
 });
 
 /// libsodium (sumo: Argon2id), loaded once.
+/// Settles sync conflicts: keep an item deleted, or bring it back.
+final conflictResolverProvider = Provider<ConflictResolver>(
+  (ref) => ConflictResolver(
+    ref.watch(appDatabaseProvider).requireValue,
+    ref.watch(journalProvider),
+    ref.watch(itemRepositoryProvider),
+  ),
+);
+
 final sodiumProvider = FutureProvider<SodiumSumo>(
   (ref) => SodiumSumoInit.init(),
 );
@@ -198,6 +209,10 @@ final autoBackupProvider = FutureProvider<bool>(
 final filePickerProvider = Provider<FilePicker>((ref) => SystemFilePicker());
 
 final linkOpenerProvider = Provider<LinkOpener>((ref) => SystemLinkOpener());
+
+final screenPrivacyProvider = Provider<ScreenPrivacy>(
+  (ref) => SystemScreenPrivacy(),
+);
 
 final shortcutPlatformProvider = Provider<ShortcutPlatform>(
   (ref) => SystemShortcuts(),

@@ -15,6 +15,7 @@ import 'package:cashrotate/data/providers.dart';
 import 'package:cashrotate/data/settings/settings_repository.dart';
 import 'package:cashrotate/platform/home_widgets.dart';
 import 'package:cashrotate/platform/links.dart';
+import 'package:cashrotate/platform/screen_privacy.dart';
 import 'package:cashrotate/platform/shortcuts.dart';
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:drift/native.dart';
@@ -51,6 +52,15 @@ Future<String> _offline(Uri uri) => throw Exception('offline in tests');
 /// Every test runs on this date so due dates and goldens are stable.
 final testNow = DateTime(2026, 3, 15, 10);
 final testToday = LocalDate(2026, 3, 15);
+
+/// Whether the app asked to be hidden in the recent-apps list.
+class FakeScreenPrivacy implements ScreenPrivacy {
+  bool? hidden;
+
+  @override
+  Future<void> setHiddenInRecents({required bool hidden}) async =>
+      this.hidden = hidden;
+}
 
 /// Launcher shortcuts: what was set, and one to "open" the app from.
 class FakeShortcuts implements ShortcutPlatform {
@@ -236,6 +246,7 @@ Future<TestData> pumpApp(
   FakeLinkOpener? links,
   FakeHomeWidgets? homeWidgets,
   FakeShortcuts? shortcuts,
+  FakeScreenPrivacy? privacy,
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -290,6 +301,7 @@ Future<TestData> pumpApp(
           reminders ?? FakeReminderPlatform(),
         ),
         linkOpenerProvider.overrideWithValue(links ?? FakeLinkOpener()),
+        screenPrivacyProvider.overrideWithValue(privacy ?? FakeScreenPrivacy()),
         shortcutPlatformProvider.overrideWithValue(
           shortcuts ?? FakeShortcuts(),
         ),

@@ -218,6 +218,10 @@ class DriftSyncStore implements SyncStore {
 
   Future<void> clearConflicts() => _setMeta(_conflictsKey, '[]');
 
+  /// Keeps only [conflicts] (the rest were settled).
+  Future<void> replaceConflicts(List<Map<String, Object?>> conflicts) =>
+      _setMeta(_conflictsKey, jsonEncode(conflicts));
+
   @override
   Future<void> receiveClock(Hlc remote) => _journal.receive(remote);
 

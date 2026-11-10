@@ -29,6 +29,7 @@ import '../items/idle_prompt.dart';
 import '../items/labels.dart';
 import '../payments/payment_sheet.dart';
 import '../reports/reports_page.dart';
+import '../sync/sync_status.dart';
 import 'countdown_ring.dart';
 import 'fixed_summary.dart';
 import 'home_motion.dart';
@@ -81,6 +82,7 @@ class HomePage extends ConsumerWidget {
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         actions: [
+          const SyncStatusButton(),
           IconButton(
             key: const Key('home-hide-amounts'),
             tooltip: hidden ? l10n.showAmounts : l10n.hideAmounts,

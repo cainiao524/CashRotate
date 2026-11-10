@@ -448,5 +448,13 @@
   "presetsFailed": "无法更新预设库，请稍后再试。",
   "presetsSource": "从项目的 GitHub（经 jsDelivr）下载，不会发送任何个人数据。",
   "tileIconPhoto": "图片",
-  "tileIconPhotoFailed": "无法读取这张图片"
+  "tileIconPhotoFailed": "无法读取这张图片",
+  "syncConflictItem": "「{name}」在一台设备上被删除，之后又在另一台被修改。",
+  "syncRestoreItem": "还原",
+  "syncKeepDeleted": "保持删除",
+  "syncRestored": "已还原「{name}」",
+  "syncRestoreFailed": "无法还原：这台设备没有这个项目的完整数据。",
+  "lockRecentsHint": "开启 App 锁时，「最近使用」列表不会显示 App 内容。Android 12 以下会同时禁止截图。",
+  "hourlyEstimate": "每期约 {amount}（{hours} 小时）",
+  "hourlyUse": "带入金额"
 }

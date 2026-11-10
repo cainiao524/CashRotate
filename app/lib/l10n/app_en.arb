@@ -599,5 +599,13 @@
   "presetsFailed": "Couldn't update the service library. Try again later.", "@presetsFailed": {"description": "Snackbar when the download or check failed."},
   "presetsSource": "Downloaded from the project's GitHub (via jsDelivr). No personal data is sent.", "@presetsSource": {"description": "Where preset updates come from."},
   "tileIconPhoto": "Picture", "@tileIconPhoto": {"description": "Tile icon choice: a picture from the phone."},
-  "tileIconPhotoFailed": "Couldn't read that picture", "@tileIconPhotoFailed": {"description": "Snackbar when a picked image can't be decoded."}
+  "tileIconPhotoFailed": "Couldn't read that picture", "@tileIconPhotoFailed": {"description": "Snackbar when a picked image can't be decoded."},
+  "syncConflictItem": "{name} was deleted on one device and changed on another afterwards.", "@syncConflictItem": {"description": "Sync conflict about one item.", "placeholders": {"name": {"type": "String"}}},
+  "syncRestoreItem": "Restore", "@syncRestoreItem": {"description": "Conflict choice: bring the deleted item back with the later changes."},
+  "syncKeepDeleted": "Keep deleted", "@syncKeepDeleted": {"description": "Conflict choice: leave the item deleted."},
+  "syncRestored": "{name} restored", "@syncRestored": {"description": "Snackbar after restoring a deleted item.", "placeholders": {"name": {"type": "String"}}},
+  "syncRestoreFailed": "Couldn't restore it: this device doesn't know enough about the item.", "@syncRestoreFailed": {"description": "Snackbar when a deleted item can't be rebuilt."},
+  "lockRecentsHint": "While the lock is on, the app is hidden in the recent-apps list. On Android 12 and older this also blocks screenshots.", "@lockRecentsHint": {"description": "Explains the recents privacy behaviour under the app lock settings."},
+  "hourlyEstimate": "≈ {amount} per charge ({hours} hours)", "@hourlyEstimate": {"description": "Estimated charge from an hourly rate.", "placeholders": {"amount": {"type": "String"}, "hours": {"type": "int"}}},
+  "hourlyUse": "Use as the amount", "@hourlyUse": {"description": "Button: copy the hourly estimate into the amount field."}
 }

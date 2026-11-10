@@ -103,6 +103,12 @@ class AppLockSettings extends ConsumerWidget {
             style: Theme.of(context).textTheme.bodySmall
                 ?.copyWith(color: palette.secondaryText),
           ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.lockRecentsHint,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: palette.secondaryText),
+          ),
         ],
       ],
     );

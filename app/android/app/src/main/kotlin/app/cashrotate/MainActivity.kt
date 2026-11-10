@@ -77,6 +77,26 @@ class MainActivity : FlutterFragmentActivity() {
             runOnUiThread { noticesChannel?.invokeMethod("noticesAvailable", null) }
         }
 
+        // App lock on: keep the content out of the recent-apps list. Android
+        // 13+ can blank just the thumbnail; older versions need FLAG_SECURE,
+        // which also blocks screenshots.
+        MethodChannel(messenger, PRIVACY_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setHiddenInRecents" -> {
+                    val hidden = call.argument<Boolean>("hidden") == true
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        setRecentsScreenshotEnabled(!hidden)
+                    } else if (hidden) {
+                        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                    } else {
+                        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                    }
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
         // Launcher shortcuts, labelled by the app in its current language.
         val shortcuts = MethodChannel(messenger, SHORTCUTS_CHANNEL)
         shortcuts.setMethodCallHandler { call, result ->
@@ -285,6 +305,7 @@ class MainActivity : FlutterFragmentActivity() {
         const val EXTRA_OPEN_ITEM = "app.cashrotate.OPEN_ITEM"
         const val EXTRA_SHORTCUT = "app.cashrotate.SHORTCUT"
         private const val SHORTCUTS_CHANNEL = "app.cashrotate/shortcuts"
+        private const val PRIVACY_CHANNEL = "app.cashrotate/privacy"
         private const val KEYSTORE_CHANNEL = "app.cashrotate/keystore"
         private const val REMINDERS_CHANNEL = "app.cashrotate/reminders"
         private const val PERMISSION_REQUEST = 41

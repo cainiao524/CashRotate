@@ -333,6 +333,14 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // With the lock on, keep the content out of the recent-apps list.
+    ref.listenManual(appLockConfigProvider, (_, next) {
+      if (!next.hasValue) return;
+      ref
+          .read(screenPrivacyProvider)
+          .setHiddenInRecents(hidden: next.value != null)
+          .catchError((Object _) {});
+    }, fireImmediately: true);
   }
 
   @override

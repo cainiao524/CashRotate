@@ -2,17 +2,19 @@ import 'package:cashrotate_sync/cashrotate_sync.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/providers.dart';
+import '../../data/sync/conflict_resolver.dart';
 import '../../data/sync/drift_sync_store.dart';
 import '../../data/sync/sync_crypto.dart';
 import '../../data/sync/sync_service.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../l10n/locale_tags.dart';
 import '../../routing/routes.dart';
 import '../../theme/palette.dart';
+import 'sync_status.dart';
+
+export 'sync_status.dart' show syncStatusText;
 
 /// The settings row: sync status at a glance, opens [SyncSettingsPage].
 class SyncSettingsTile extends ConsumerWidget {
@@ -32,20 +34,6 @@ class SyncSettingsTile extends ConsumerWidget {
       onTap: () => context.go(Routes.settingsSync),
     );
   }
-}
-
-/// "Not set up", "Not synced yet" or "Last synced Mar 15 10:02".
-String syncStatusText(
-  BuildContext context,
-  AppLocalizations l10n,
-  SyncConfig? c,
-) {
-  if (c == null || !c.unlocked) return l10n.syncNotSetUp;
-  if (c.lastSyncAt == null) return l10n.syncNever;
-  final at = DateTime.fromMillisecondsSinceEpoch(c.lastSyncAt!);
-  return l10n.syncLast(
-    DateFormat.MMMd(intlLocaleOf(context)).add_Hm().format(at),
-  );
 }
 
 /// Connect a WebDAV folder, set up or unlock its encryption, and see how
@@ -480,16 +468,8 @@ class _SyncSettingsPageState extends ConsumerState<SyncSettingsPage> {
   }
 }
 
-/// Changes waiting to upload, and conflicts waiting for the user.
-final _pendingProvider = StreamProvider.autoDispose<(int, int)>((ref) async* {
-  final db = ref.watch(appDatabaseProvider).requireValue;
-  final store = DriftSyncStore(db, ref.watch(journalProvider));
-  final service = await ref.watch(syncServiceProvider.future);
-  await for (final _ in db.select(db.meta).watch()) {
-    yield (await service.pendingCount(), (await store.conflictsJson()).length);
-  }
-});
-
+/// Changes waiting to upload, and conflicts waiting for the user: each
+/// deleted item that was edited elsewhere can be restored or kept deleted.
 class _PendingAndConflicts extends ConsumerWidget {
   const _PendingAndConflicts();
 
@@ -497,19 +477,68 @@ class _PendingAndConflicts extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final palette = Palette.of(context);
-    final counts = ref.watch(_pendingProvider).value;
-    if (counts == null) return const SizedBox.shrink();
-    final (pending, conflicts) = counts;
+    final status = ref.watch(syncPendingProvider).value;
+    if (status == null) return const SizedBox.shrink();
+    final resolver = ref.read(conflictResolverProvider);
+    // Conflicts not about an item (rare) can only be dismissed.
+    final others =
+        status.conflicts - status.deleted.fold(0, (n, d) => n + d.changes);
+
+    String nameOf(DeletedItemConflict d) =>
+        d.name.isEmpty ? l10n.itemsTitle : d.name;
+
+    Future<void> restore(DeletedItemConflict d) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final restored = await resolver.restore(d.itemId);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            restored == null
+                ? l10n.syncRestoreFailed
+                : l10n.syncRestored(nameOf(d)),
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.syncPending(pending), key: const Key('sync-pending')),
-        if (conflicts > 0) ...[
+        Text(l10n.syncPending(status.pending), key: const Key('sync-pending')),
+        if (status.conflicts > 0) ...[
           const SizedBox(height: 8),
           Text(
-            l10n.syncConflicts(conflicts),
+            l10n.syncConflicts(status.conflicts),
             style: TextStyle(color: palette.warning),
           ),
+        ],
+        for (final d in status.deleted)
+          Padding(
+            key: ValueKey('sync-conflict-${d.itemId}'),
+            padding: const EdgeInsets.only(top: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.syncConflictItem(nameOf(d))),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    FilledButton.tonal(
+                      key: ValueKey('sync-restore-${d.itemId}'),
+                      onPressed: () => restore(d),
+                      child: Text(l10n.syncRestoreItem),
+                    ),
+                    TextButton(
+                      key: ValueKey('sync-keep-deleted-${d.itemId}'),
+                      onPressed: () => resolver.keepDeleted(d.itemId),
+                      child: Text(l10n.syncKeepDeleted),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        if (others > 0) ...[
           Text(l10n.syncConflictsHint),
           TextButton(
             key: const Key('sync-dismiss-conflicts'),
