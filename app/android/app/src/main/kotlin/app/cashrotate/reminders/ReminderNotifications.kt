@@ -141,7 +141,7 @@ object ReminderNotifications {
         itemId.replace(Regex("[^A-Za-z0-9_-]"), "_") + ".png"
 
     /** The user's picture for [itemId], cut to a circle, if there is one. */
-    private fun pictureBitmap(context: Context, itemId: String): Bitmap? {
+    fun pictureBitmap(context: Context, itemId: String): Bitmap? {
         val file = java.io.File(badgeDir(context), badgeFileName(itemId))
         if (!file.exists()) return null
         val picture = android.graphics.BitmapFactory.decodeFile(file.path) ?: return null

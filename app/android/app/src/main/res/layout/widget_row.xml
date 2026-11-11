@@ -11,6 +11,14 @@
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
 
+    <ImageView
+        android:id="@+id/row_picture"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/row_badge"
         android:layout_width="28dp"

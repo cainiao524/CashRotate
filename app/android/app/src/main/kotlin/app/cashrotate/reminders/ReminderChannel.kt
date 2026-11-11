@@ -38,6 +38,7 @@ class ReminderChannel(
                         java.io.File(dir, ReminderNotifications.badgeFileName(id)).writeBytes(bytes)
                     }
                 }
+                app.cashrotate.widgets.WidgetRenderer.refreshAll(context)
                 result.success(null)
             }
             "setReminders" -> {

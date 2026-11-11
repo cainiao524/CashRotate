@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.RemoteViews
 import app.cashrotate.MainActivity
 import app.cashrotate.R
+import app.cashrotate.reminders.ReminderNotifications
 import org.json.JSONObject
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -110,6 +111,12 @@ object WidgetRenderer {
             val item = items!!.getJSONObject(i)
             val row = RemoteViews(context.packageName, R.layout.widget_row)
             row.setTextViewText(R.id.row_badge, item.optString("letter"))
+            // The user's own picture, if the app handed one over.
+            ReminderNotifications.pictureBitmap(context, item.optString("id"))?.let {
+                row.setImageViewBitmap(R.id.row_picture, it)
+                row.setViewVisibility(R.id.row_picture, View.VISIBLE)
+                row.setViewVisibility(R.id.row_badge, View.GONE)
+            }
             row.setTextViewText(R.id.row_name, item.optString("name"))
             row.setTextViewText(R.id.row_amount, item.optString("amount"))
             val days = runCatching {

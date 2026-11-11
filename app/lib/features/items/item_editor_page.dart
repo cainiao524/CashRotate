@@ -435,8 +435,53 @@ class _ItemEditorPageState extends ConsumerState<ItemEditorPage> {
         text('specs', l10n.fieldSpecs),
         text('location', l10n.fieldLocation),
         toggle('hourly', l10n.fieldHourly),
-        if (d.fields['hourly'] == true)
-          text('hourlyRate', l10n.fieldHourlyRate),
+        if (d.fields['hourly'] == true) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: TextField(
+              key: const Key('field-hourlyRate'),
+              controller: _controller(
+                'f.hourlyRate',
+                '${d.fields['hourlyRate'] ?? ''}',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: l10n.fieldHourlyRate,
+                suffixText: d.currency.code,
+              ),
+              onChanged: (v) => setState(() => d.fields['hourlyRate'] = v),
+            ),
+          ),
+          if (hourlyEstimate(d) case (:final amount, :final hours))
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              children: [
+                Text(
+                  l10n.hourlyEstimate(
+                    formatMoney(amount, locale: intlLocaleOf(context)),
+                    hours,
+                  ),
+                  key: const Key('hourly-estimate'),
+                ),
+                TextButton(
+                  key: const Key('hourly-use'),
+                  onPressed: () => setState(() {
+                    final text = formatAmount(
+                      amount,
+                      locale: 'en',
+                      decimals: amount.currency.minorUnits,
+                    ).replaceAll(',', '');
+                    d.amountText = text;
+                    _controller('amount', text).text = text;
+                  }),
+                  child: Text(l10n.hourlyUse),
+                ),
+              ],
+            ),
+        ],
       ],
       FieldGroup.gameServer => [
         text('game', l10n.fieldGame),
@@ -954,3 +999,30 @@ final _serversProvider = StreamProvider<List<ItemView>>(
             .toList(),
       ),
 );
+
+/// Hours in one billing cycle, for hourly-billed servers: a month is a
+/// twelfth of an average Gregorian year (730 h).
+int hoursPerCycle(Cycle c) => switch (c.unit) {
+  CycleUnit.day => 24 * c.every,
+  CycleUnit.week => 168 * c.every,
+  CycleUnit.month => (8765.82 * c.every / 12).round(),
+  CycleUnit.year => (8765.82 * c.every).round(),
+};
+
+/// What an hourly-billed server costs per charge when it runs all the time;
+/// null without a usable rate.
+({Money amount, int hours})? hourlyEstimate(ItemDraft d) {
+  // Hourly rates go below the currency's smallest unit (€0.007 an hour).
+  final rate = double.tryParse(
+    '${d.fields['hourlyRate'] ?? ''}'.trim().replaceAll(',', '.'),
+  );
+  if (rate == null || rate <= 0) return null;
+  final hours = hoursPerCycle(d.cycle);
+  return (
+    amount: Money(
+      (rate * hours * d.currency.minorPerMajor).round(),
+      d.currency,
+    ),
+    hours: hours,
+  );
+}
