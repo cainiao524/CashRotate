@@ -77,6 +77,10 @@ class MainActivity : FlutterFragmentActivity() {
             runOnUiThread { noticesChannel?.invokeMethod("noticesAvailable", null) }
         }
 
+        // Phone tilt for the pearl sheen on the home total card.
+        io.flutter.plugin.common.EventChannel(messenger, TILT_CHANNEL)
+            .setStreamHandler(TiltStream(this))
+
         // App lock on: keep the content out of the recent-apps list. Android
         // 13+ can blank just the thumbnail; older versions need FLAG_SECURE,
         // which also blocks screenshots.
@@ -306,6 +310,7 @@ class MainActivity : FlutterFragmentActivity() {
         const val EXTRA_SHORTCUT = "app.cashrotate.SHORTCUT"
         private const val SHORTCUTS_CHANNEL = "app.cashrotate/shortcuts"
         private const val PRIVACY_CHANNEL = "app.cashrotate/privacy"
+        private const val TILT_CHANNEL = "app.cashrotate/tilt"
         private const val KEYSTORE_CHANNEL = "app.cashrotate/keystore"
         private const val REMINDERS_CHANNEL = "app.cashrotate/reminders"
         private const val PERMISSION_REQUEST = 41

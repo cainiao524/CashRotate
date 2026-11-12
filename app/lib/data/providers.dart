@@ -12,6 +12,7 @@ import '../platform/keystore.dart';
 import '../platform/links.dart';
 import '../platform/screen_privacy.dart';
 import '../platform/shortcuts.dart';
+import '../platform/tilt.dart';
 import 'backup/backup_service.dart';
 import 'db/app_database.dart';
 import 'detection/detection_service.dart';
@@ -209,6 +210,8 @@ final autoBackupProvider = FutureProvider<bool>(
 final filePickerProvider = Provider<FilePicker>((ref) => SystemFilePicker());
 
 final linkOpenerProvider = Provider<LinkOpener>((ref) => SystemLinkOpener());
+
+final tiltSourceProvider = Provider<TiltSource>((ref) => SystemTiltSource());
 
 final screenPrivacyProvider = Provider<ScreenPrivacy>(
   (ref) => SystemScreenPrivacy(),

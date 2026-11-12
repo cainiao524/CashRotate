@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../data/providers.dart';
 import '../home/fixed_summary.dart';
+import 'sync_status.dart';
 
 /// Syncs in the background once sync is set up: when the app opens, when it
 /// comes back to the foreground, and a little after local changes settle.
@@ -61,10 +62,12 @@ class _SyncBridgeState extends ConsumerState<SyncBridge>
     final config = ref.read(syncConfigProvider).value;
     if (config == null || !config.unlocked) return;
     _running = true;
+    final shown = ref.read(syncRunningProvider.notifier)..set(true);
     try {
       await (await ref.read(syncServiceProvider.future)).syncNow();
     } finally {
       _running = false;
+      if (mounted) shown.set(false);
     }
   }
 

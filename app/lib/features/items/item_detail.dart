@@ -402,7 +402,10 @@ class ItemDetail extends ConsumerWidget {
               icon: Icon(Icons.delete_outline, color: palette.error),
               label: Text(
                 l10n.actionDelete,
-                style: TextStyle(color: palette.error),
+                style: TextStyle(
+                  color: palette.error,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               onPressed: () async {
                 final ok = await showDialog<bool>(

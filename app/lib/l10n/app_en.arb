@@ -607,5 +607,9 @@
   "syncRestoreFailed": "Couldn't restore it: this device doesn't know enough about the item.", "@syncRestoreFailed": {"description": "Snackbar when a deleted item can't be rebuilt."},
   "lockRecentsHint": "While the lock is on, the app is hidden in the recent-apps list. On Android 12 and older this also blocks screenshots.", "@lockRecentsHint": {"description": "Explains the recents privacy behaviour under the app lock settings."},
   "hourlyEstimate": "≈ {amount} per charge ({hours} hours)", "@hourlyEstimate": {"description": "Estimated charge from an hourly rate.", "placeholders": {"amount": {"type": "String"}, "hours": {"type": "int"}}},
-  "hourlyUse": "Use as the amount", "@hourlyUse": {"description": "Button: copy the hourly estimate into the amount field."}
+  "hourlyUse": "Use as the amount", "@hourlyUse": {"description": "Button: copy the hourly estimate into the amount field."},
+  "syncAgoJustNow": "Just now", "@syncAgoJustNow": {"description": "Header: last sync under a minute ago."},
+  "syncAgoMinutes": "{count, plural, =1{1 min ago} other{{count} min ago}}", "@syncAgoMinutes": {"description": "Header: minutes since the last sync.", "placeholders": {"count": {"type": "int"}}},
+  "syncAgoHours": "{count, plural, =1{1 h ago} other{{count} h ago}}", "@syncAgoHours": {"description": "Header: hours since the last sync.", "placeholders": {"count": {"type": "int"}}},
+  "syncRunning": "Syncing", "@syncRunning": {"description": "Header: a sync is running."}
 }

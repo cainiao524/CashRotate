@@ -456,5 +456,9 @@
   "syncRestoreFailed": "无法还原：这台设备没有这个项目的完整数据。",
   "lockRecentsHint": "开启 App 锁时，「最近使用」列表不会显示 App 内容。Android 12 以下会同时禁止截图。",
   "hourlyEstimate": "每期约 {amount}（{hours} 小时）",
-  "hourlyUse": "带入金额"
+  "hourlyUse": "带入金额",
+  "syncAgoJustNow": "刚刚",
+  "syncAgoMinutes": "{count} 分钟前",
+  "syncAgoHours": "{count} 小时前",
+  "syncRunning": "同步中"
 }

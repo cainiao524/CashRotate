@@ -93,6 +93,19 @@ Future<void> _loadSdkFonts() async {
     'roboto-bold.ttf',
   ]);
   await load('MaterialIcons', ['materialicons-regular.otf']);
+
+  // The app's own typeface, bundled in assets/fonts.
+  final manrope = FontLoader('Manrope');
+  for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold']) {
+    manrope.addFont(
+      Future.value(
+        ByteData.sublistView(
+          File('assets/fonts/Manrope-$weight.ttf').readAsBytesSync(),
+        ),
+      ),
+    );
+  }
+  await manrope.load();
 }
 
 /// `<flutter>/bin/cache/artifacts/material_fonts`, found by walking up from

@@ -17,6 +17,7 @@ import 'package:cashrotate/platform/home_widgets.dart';
 import 'package:cashrotate/platform/links.dart';
 import 'package:cashrotate/platform/screen_privacy.dart';
 import 'package:cashrotate/platform/shortcuts.dart';
+import 'package:cashrotate/platform/tilt.dart';
 import 'package:cashrotate_core/cashrotate_core.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -247,6 +248,7 @@ Future<TestData> pumpApp(
   FakeHomeWidgets? homeWidgets,
   FakeShortcuts? shortcuts,
   FakeScreenPrivacy? privacy,
+  TiltSource? tilt,
 }) async {
   final view = tester.view;
   final dispatcher = tester.platformDispatcher;
@@ -301,6 +303,7 @@ Future<TestData> pumpApp(
           reminders ?? FakeReminderPlatform(),
         ),
         linkOpenerProvider.overrideWithValue(links ?? FakeLinkOpener()),
+        tiltSourceProvider.overrideWithValue(tilt ?? const NoTilt()),
         screenPrivacyProvider.overrideWithValue(privacy ?? FakeScreenPrivacy()),
         shortcutPlatformProvider.overrideWithValue(
           shortcuts ?? FakeShortcuts(),

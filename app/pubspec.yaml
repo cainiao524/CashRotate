@@ -40,3 +40,20 @@ flutter:
   generate: true
   assets:
     - assets/presets/presets.json
+    - assets/fonts/Manrope-OFL.txt
+  # Latin letters and figures (the design's typeface); Chinese falls back to
+  # the system font. Static weights cut from the variable font, because
+  # Flutter does not map FontWeight onto a variable font's axis.
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Manrope-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Manrope-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Manrope-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Manrope-ExtraBold.ttf
+          weight: 800

@@ -61,11 +61,29 @@ final homeViewProvider = NotifierProvider<HomeViewNotifier, HomeView>(
 /// Home: a compact pearl total card, the sort and filter bar, then every
 /// fixed expense as a tile, soonest charge first. Tablets put the total in
 /// a large tile of the same grid, beside the month's income and spending.
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  /// The add button shows its label until the user scrolls down the tiles,
+  /// then tucks into a round button so it covers less of the grid.
+  bool _fabExtended = true;
+
+  bool _onScroll(ScrollUpdateNotification n) {
+    if (n.depth != 0) return false;
+    final extended = n.metrics.pixels <= 24 || (n.scrollDelta ?? 0) < -4;
+    final collapsed = (n.scrollDelta ?? 0) > 4;
+    if (collapsed && _fabExtended) setState(() => _fabExtended = false);
+    if (extended && !_fabExtended) setState(() => _fabExtended = true);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final window = WindowClass.of(context);
     final compact = window == WindowClass.compact;
@@ -109,41 +127,46 @@ class HomePage extends ConsumerWidget {
               // The fixed expenses tab keeps its own add button alive in
               // the same indexed stack: no shared hero tag.
               heroTag: null,
+              isExtended: _fabExtended,
+              tooltip: l10n.actionAdd,
               onPressed: () => openAddItem(context),
               icon: const Icon(Icons.add),
               label: Text(l10n.actionAdd),
             )
           : null,
-      body: ListView(
-        key: const PageStorageKey('home'),
-        // Room under the last tiles for the floating add button.
-        padding: EdgeInsets.fromLTRB(side, 8, side, compact ? 96 : 24),
-        children: [
-          if (!expanded) ...[const _TotalCard(), const SizedBox(height: 12)],
-          const _Toolbar(),
-          AnimatedSwitcher(
-            duration: HomeMotion.of(context, HomeMotion.fade),
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SizeTransition(
-                sizeFactor: CurvedAnimation(
-                  parent: animation,
-                  curve: HomeMotion.curve,
+      body: NotificationListener<ScrollUpdateNotification>(
+        onNotification: _onScroll,
+        child: ListView(
+          key: const PageStorageKey('home'),
+          // Room under the last tiles for the floating add button.
+          padding: EdgeInsets.fromLTRB(side, 8, side, compact ? 96 : 24),
+          children: [
+            if (!expanded) ...[const _TotalCard(), const SizedBox(height: 12)],
+            const _Toolbar(),
+            AnimatedSwitcher(
+              duration: HomeMotion.of(context, HomeMotion.fade),
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SizeTransition(
+                  sizeFactor: CurvedAnimation(
+                    parent: animation,
+                    curve: HomeMotion.curve,
+                  ),
+                  child: child,
                 ),
-                child: child,
               ),
+              child: searching
+                  ? const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: _SearchField(),
+                    )
+                  : const SizedBox(width: double.infinity),
             ),
-            child: searching
-                ? const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: _SearchField(),
-                  )
-                : const SizedBox(width: double.infinity),
-          ),
-          const SizedBox(height: 12),
-          if (Features.idleReminder) const IdlePrompt(),
-          _TileGrid(window: window),
-        ],
+            const SizedBox(height: 12),
+            if (Features.idleReminder) const IdlePrompt(),
+            _TileGrid(window: window),
+          ],
+        ),
       ),
     );
   }
@@ -442,13 +465,20 @@ class _Toolbar extends ConsumerWidget {
           onSelected: notifier.setType,
         ),
         if (count != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              l10n.homeItemCount(count),
-              key: const Key('home-count'),
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: palette.secondaryText),
+          // Its own semantics node: read on its own, not merged into the
+          // whole toolbar.
+          Semantics(
+            container: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                l10n.homeItemCount(count),
+                key: const Key('home-count'),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: palette.secondaryText,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
       ],
